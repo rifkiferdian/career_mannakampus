@@ -1,0 +1,45 @@
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+
+# Composer dependencies
+/vendor/
+
+# CodeIgniter runtime files
+/writable/cache/*
+!/writable/cache/index.html
+/writable/debugbar/*
+!/writable/debugbar/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+
+# Test and coverage output
+/.phpunit.cache/
+/.phpunit.result.cache
+/build/
+/coverage/
+
+# IDE and editor settings
+/.idea/
+/.vscode/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary and backup files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
