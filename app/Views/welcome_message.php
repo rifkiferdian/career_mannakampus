@@ -6,22 +6,16 @@
     <meta name="description" content="Temukan peluang karier dan tumbuh bersama Manna Kampus.">
     <meta name="theme-color" content="#12372a">
     <title>Karier Manna Kampus</title>
-    <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="assets/css/career.css">
+    <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=10">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 
     <header class="site-header" id="homepage">
         <div class="container nav-wrap">
-            <a class="brand" href="#homepage" aria-label="Manna Kampus - kembali ke beranda">
-                <span class="brand-mark" aria-hidden="true">
-                    <svg viewBox="0 0 42 42" role="img">
-                        <path d="M9 30V13l12 9 12-9v17"/>
-                        <path d="M9 13l12 17 12-17"/>
-                    </svg>
-                </span>
-                <span>Manna <strong>Kampus</strong></span>
+            <a class="brand header-brand" href="#homepage" aria-label="Manna Kampus - kembali ke beranda">
+                <img class="header-logo" src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
             </a>
 
             <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
@@ -32,9 +26,10 @@
             <nav class="primary-nav" id="primary-nav" aria-label="Navigasi utama">
                 <a class="active" href="#homepage">Homepage</a>
                 <a href="#lowongan">Lowongan</a>
-                <a href="#tahapan-seleksi">Tahapan Seleksi</a>
-                <a href="#join-us">Join Us</a>
+                <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
                 <a href="#faq">FAQ</a>
+                <a class="nav-auth nav-login" href="<?= site_url('masuk') ?>">Masuk</a>
+                <a class="nav-auth nav-register" href="<?= site_url('daftar') ?>">Daftar</a>
             </nav>
         </div>
     </header>
@@ -46,11 +41,11 @@
             <div class="container hero-grid">
                 <div class="hero-copy reveal">
                     <span class="eyebrow"><span></span> Karier di Manna Kampus</span>
-                    <h1 id="hero-title">Bertumbuh bersama,<br><em>berdampak lebih jauh.</em></h1>
-                    <p>Kami percaya pekerjaan terbaik lahir dari orang-orang yang berani belajar, saling mendukung, dan punya semangat untuk menciptakan perubahan.</p>
+                    <h1 id="hero-title">Tumbuh bersama,<br><em>hadirkan layanan terbaik.</em></h1>
+                    <p>Di Manna Kampus, setiap peran ikut menghadirkan pengalaman belanja yang nyaman dan terpercaya. Kami mencari pribadi yang sigap, peduli, dan siap berkembang bersama dunia retail.</p>
                     <div class="hero-actions">
                         <a class="button button-primary" href="#lowongan">Lihat Lowongan <span aria-hidden="true">→</span></a>
-                        <a class="text-link" href="#tahapan-seleksi">Kenali proses kami <span aria-hidden="true">↘</span></a>
+                        <a class="text-link" href="<?= site_url('tahapan-seleksi') ?>">Kenali proses kami <span aria-hidden="true">↘</span></a>
                     </div>
                     <div class="hero-notes" aria-label="Nilai utama">
                         <span><i aria-hidden="true">✓</i> Lingkungan suportif</span>
@@ -90,10 +85,98 @@
 
         <section class="values-strip" aria-label="Budaya Manna Kampus">
             <div class="container values-grid">
-                <div><strong>Curious</strong><span>Selalu ingin tahu</span></div>
-                <div><strong>Collaborative</strong><span>Tumbuh bersama</span></div>
-                <div><strong>Impactful</strong><span>Membawa perubahan</span></div>
-                <div><strong>Authentic</strong><span>Berani jadi diri sendiri</span></div>
+                <div><strong>Caring</strong><span class="value-description">Peduli dan saling mendukung.</span></div>
+                <div><strong>Human Integrity</strong><span class="value-description">Jujur, tulus, dan bertanggung jawab.</span></div>
+                <div><strong>Ethical Communication</strong><span class="value-description">Berkomunikasi santun dan terbuka.</span></div>
+                <div><strong>Adaptif</strong><span class="value-description">Cepat belajar dan menyesuaikan diri.</span></div>
+                <div><strong>Profesional</strong><span class="value-description">Bekerja kompeten dan konsisten.</span></div>
+                <div><strong>Excellent Service</strong><span class="value-description">Memberikan pelayanan terbaik.</span></div>
+                <div><strong>Reputable &amp; Profitability</strong><span class="value-description">Menjaga reputasi dan pertumbuhan.</span></div>
+            </div>
+        </section>
+
+        <section class="benefits-section" aria-labelledby="benefits-title">
+            <div class="container">
+                <div class="benefits-heading reveal">
+                    <h2 id="benefits-title">Kenapa Bergabung Dengan Kami?</h2>
+                    <p>Kami membangun fondasi karir di atas nilai-nilai yang kuat untuk memastikan setiap<br class="desktop-break"> individu berkembang secara profesional dan personal.</p>
+                </div>
+
+                <div class="benefits-grid">
+                    <article class="benefit-card reveal">
+                        <span class="benefit-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="M10.5 20.5c-2-1.6-3.2-4-3.2-6.6A8.7 8.7 0 0 1 16 5.2a8.7 8.7 0 0 1 8.7 8.7c0 2.7-1.2 5-3.2 6.6-1.1.9-1.7 1.9-1.8 3.1h-7.4c-.1-1.2-.7-2.2-1.8-3.1Z"/>
+                                <path d="M12.6 27h6.8M12.3 23.6h7.4"/>
+                            </svg>
+                        </span>
+                        <h3>Innovation</h3>
+                        <p>Kami selalu terbuka pada ide baru dan teknologi terkini untuk terus menjadi pemimpin di industri retail modern.</p>
+                    </article>
+
+                    <article class="benefit-card reveal">
+                        <span class="benefit-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="M16 4.5 25 8v6.8c0 5.7-3.6 10.5-9 12.7-5.4-2.2-9-7-9-12.7V8l9-3.5Z"/>
+                                <path d="m12 15.8 2.7 2.8 5.7-6"/>
+                            </svg>
+                        </span>
+                        <h3>Integrity</h3>
+                        <p>Kepercayaan pelanggan dimulai dari kejujuran dan etika kerja tinggi dari setiap anggota tim kami.</p>
+                    </article>
+
+                    <article class="benefit-card reveal">
+                        <span class="benefit-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="m5.5 23 7.2-7.3 4.4 4.2 9.4-10"/>
+                                <path d="M20.7 9.9h5.8v5.8"/>
+                            </svg>
+                        </span>
+                        <h3>Growth</h3>
+                        <p>Program pengembangan karir berkelanjutan untuk membantu Anda mencapai potensi maksimal di setiap level.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="wellbeing-section" aria-labelledby="wellbeing-title">
+            <div class="container wellbeing-layout">
+                <div class="wellbeing-content reveal">
+                    <h2 id="wellbeing-title">Kesejahteraan Karyawan</h2>
+                    <p class="wellbeing-lead">Kesejahteraan Anda adalah prioritas kami. Manna Kampus menyediakan berbagai manfaat untuk mendukung kehidupan kerja yang seimbang dan produktif.</p>
+
+                    <div class="wellbeing-benefits">
+                        <div class="wellbeing-item">
+                            <span class="wellbeing-icon" aria-hidden="true">
+                                <svg viewBox="0 0 28 28"><path d="M5 9h18v14H5zM9 9V6.5A2.5 2.5 0 0 1 11.5 4h5A2.5 2.5 0 0 1 19 6.5V9M14 12v8M10 16h8"/></svg>
+                            </span>
+                            <p><strong>Health Insurance</strong><span>Perlindungan kesehatan lengkap.</span></p>
+                        </div>
+                        <div class="wellbeing-item">
+                            <span class="wellbeing-icon" aria-hidden="true">
+                                <svg viewBox="0 0 28 28"><path d="m3.5 10 10.5-6 10.5 6L14 16 3.5 10Z"/><path d="M7 12.2V18c3.7 3.1 10.3 3.1 14 0v-5.8M24.5 10v7"/></svg>
+                            </span>
+                            <p><strong>Training Program</strong><span>Sertifikasi dan pelatihan rutin.</span></p>
+                        </div>
+                        <div class="wellbeing-item">
+                            <span class="wellbeing-icon" aria-hidden="true">
+                                <svg viewBox="0 0 28 28"><path d="M5 9h18l-1 15H6L5 9Z"/><path d="M10 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            </span>
+                            <p><strong>Employee Discounts</strong><span>Harga khusus belanja karyawan.</span></p>
+                        </div>
+                        <div class="wellbeing-item">
+                            <span class="wellbeing-icon" aria-hidden="true">
+                                <svg viewBox="0 0 28 28"><path d="M14 5v19M5 24h18M8 8h12M8 8l-5 8h10L8 8ZM20 8l-5 8h10l-5-8Z"/></svg>
+                            </span>
+                            <p><strong>Work-Life Balance</strong><span>Fleksibilitas dan cuti tahunan.</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wellbeing-photos reveal" aria-label="Suasana kerja kolaboratif di Manna Kampus">
+                    <div class="wellbeing-photo wellbeing-photo-employee" role="img" aria-label="Karyawan berdiskusi dalam pertemuan"></div>
+                    <div class="wellbeing-photo wellbeing-photo-office" role="img" aria-label="Tim berkolaborasi di ruang kerja modern"></div>
+                </div>
             </div>
         </section>
 
@@ -104,7 +187,10 @@
                         <span class="eyebrow"><span></span> Peluang Karier</span>
                         <h2 id="jobs-title">Temukan posisi yang<br>sesuai denganmu.</h2>
                     </div>
-                    <p>Jadilah bagian dari tim yang dinamis dan bantu kami membangun pengalaman pendidikan yang lebih baik.</p>
+                    <div class="section-heading-action">
+                        <p>Jadilah bagian dari tim yang dinamis dan bantu kami menghadirkan pengalaman belanja yang lebih baik bagi setiap pelanggan.</p>
+                        <a class="button button-outline" href="<?= site_url('lowongan') ?>">Lihat Semua Lowongan <span aria-hidden="true">→</span></a>
+                    </div>
                 </div>
 
                 <div class="job-list">
@@ -143,43 +229,6 @@
                 </div>
 
                 <p class="jobs-note reveal">Belum menemukan posisi yang cocok? Tetap pantau halaman ini untuk peluang berikutnya.</p>
-            </div>
-        </section>
-
-        <section class="section process-section" id="tahapan-seleksi" aria-labelledby="process-title">
-            <div class="container process-layout">
-                <div class="process-intro reveal">
-                    <span class="eyebrow eyebrow-light"><span></span> Proses Rekrutmen</span>
-                    <h2 id="process-title">Langkah kecil menuju perjalanan besar.</h2>
-                    <p>Kami membuat proses seleksi tetap transparan dan manusiawi. Setiap tahap adalah kesempatan untuk saling mengenal.</p>
-                    <div class="process-promise">
-                        <span aria-hidden="true">◎</span>
-                        <p><strong>Proses yang transparan</strong>Kami akan memberi kabar di setiap perkembangan prosesmu.</p>
-                    </div>
-                </div>
-
-                <ol class="process-list">
-                    <li class="reveal">
-                        <span class="step-number">01</span>
-                        <div><h3>Seleksi Administrasi</h3><p>Tim kami meninjau profil, CV, dan portofoliomu.</p></div>
-                        <span class="step-icon" aria-hidden="true">⌕</span>
-                    </li>
-                    <li class="reveal">
-                        <span class="step-number">02</span>
-                        <div><h3>Perkenalan dengan HR</h3><p>Obrolan singkat tentang motivasi, pengalaman, dan aspirasimu.</p></div>
-                        <span class="step-icon" aria-hidden="true">◌</span>
-                    </li>
-                    <li class="reveal">
-                        <span class="step-number">03</span>
-                        <div><h3>Assessment & User Interview</h3><p>Eksplorasi kemampuan dan cara kerjamu bersama calon tim.</p></div>
-                        <span class="step-icon" aria-hidden="true">◇</span>
-                    </li>
-                    <li class="reveal">
-                        <span class="step-number">04</span>
-                        <div><h3>Offering & Onboarding</h3><p>Selamat datang! Saatnya memulai perjalanan bersama.</p></div>
-                        <span class="step-icon" aria-hidden="true">✓</span>
-                    </li>
-                </ol>
             </div>
         </section>
 
@@ -248,6 +297,6 @@
         </div>
     </footer>
 
-    <script src="assets/js/career.js" defer></script>
+    <script src="<?= base_url('assets/js/career.js') ?>?v=3" defer></script>
 </body>
 </html>

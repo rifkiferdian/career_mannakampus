@@ -1,84 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+$appConfig = config('App');
+$baseUrl = rtrim((string) $appConfig->baseURL, '/');
+?>
+<!doctype html>
+<html lang="id">
 <head>
     <meta charset="utf-8">
-    <title><?= lang('Errors.pageNotFound') ?></title>
-
-    <style>
-        div.logo {
-            height: 200px;
-            width: 155px;
-            display: inline-block;
-            opacity: 0.08;
-            position: absolute;
-            top: 2rem;
-            left: 50%;
-            margin-left: -73px;
-        }
-        body {
-            height: 100%;
-            background: #fafafa;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            color: #777;
-            font-weight: 300;
-        }
-        h1 {
-            font-weight: lighter;
-            letter-spacing: normal;
-            font-size: 3rem;
-            margin-top: 0;
-            margin-bottom: 0;
-            color: #222;
-        }
-        .wrap {
-            max-width: 1024px;
-            margin: 5rem auto;
-            padding: 2rem;
-            background: #fff;
-            text-align: center;
-            border: 1px solid #efefef;
-            border-radius: 0.5rem;
-            position: relative;
-        }
-        pre {
-            white-space: normal;
-            margin-top: 1.5rem;
-        }
-        code {
-            background: #fafafa;
-            border: 1px solid #efefef;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            display: block;
-        }
-        p {
-            margin-top: 1.5rem;
-        }
-        .footer {
-            margin-top: 2rem;
-            border-top: 1px solid #efefef;
-            padding: 1em 2em 0 2em;
-            font-size: 85%;
-            color: #999;
-        }
-        a:active,
-        a:link,
-        a:visited {
-            color: #dd4814;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, follow">
+    <meta name="theme-color" content="#fbf8f1">
+    <title>Halaman Tidak Ditemukan | Manna Kampus</title>
+    <link rel="icon" href="<?= esc($baseUrl) ?>/favicon.ico">
+    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/career.css?v=11">
+    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/not-found.css?v=1">
 </head>
 <body>
-    <div class="wrap">
-        <h1>404</h1>
+    <header class="site-header">
+        <div class="container nav-wrap">
+            <a class="brand header-brand" href="<?= esc($baseUrl) ?>/#homepage" aria-label="Manna Kampus - kembali ke beranda">
+                <img class="header-logo" src="<?= esc($baseUrl) ?>/assets/img/Logo_Manna_Kampus.png" alt="Manna Kampus">
+            </a>
 
-        <p>
-            <?php if (ENVIRONMENT !== 'production') : ?>
-                <?= nl2br(esc($message)) ?>
-            <?php else : ?>
-                <?= lang('Errors.sorryCannotFind') ?>
-            <?php endif; ?>
-        </p>
-    </div>
+            <nav class="not-found-nav" aria-label="Navigasi halaman tidak ditemukan">
+                <a href="<?= esc($baseUrl) ?>/">Homepage</a>
+                <a href="<?= esc($baseUrl) ?>/lowongan">Lowongan</a>
+                <a class="nav-auth nav-login" href="<?= esc($baseUrl) ?>/masuk">Masuk</a>
+                <a class="nav-auth nav-register" href="<?= esc($baseUrl) ?>/daftar">Daftar</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="not-found-main">
+        <div class="not-found-pattern" aria-hidden="true"></div>
+        <div class="container not-found-layout">
+            <section class="not-found-copy" aria-labelledby="not-found-title">
+                <span class="not-found-eyebrow"><i></i> Error 404</span>
+                <h1 id="not-found-title">Sepertinya Anda<br><em>tersesat sedikit.</em></h1>
+                <p>Halaman yang Anda cari tidak tersedia, sudah dipindahkan, atau alamat yang dimasukkan kurang tepat.</p>
+                <div class="not-found-actions">
+                    <a class="not-found-button not-found-button-primary" href="<?= esc($baseUrl) ?>/">Kembali ke Homepage <span aria-hidden="true">→</span></a>
+                    <a class="not-found-button not-found-button-secondary" href="<?= esc($baseUrl) ?>/lowongan">Lihat Lowongan</a>
+                </div>
+                <span class="not-found-help">Masih mengalami kendala? Periksa kembali alamat URL Anda.</span>
+            </section>
+
+            <div class="not-found-visual" aria-hidden="true">
+                <span class="number number-four">4</span>
+                <div class="compass">
+                    <span class="compass-ring"></span>
+                    <span class="compass-needle"></span>
+                    <strong>MK</strong>
+                </div>
+                <span class="number number-zero">0</span>
+                <span class="number number-last">4</span>
+                <div class="route-line"><i></i><i></i><i></i></div>
+                <span class="visual-label">Halaman tidak ditemukan</span>
+            </div>
+        </div>
+    </main>
+
+    <footer class="not-found-footer">
+        <div class="container">
+            <span>© <?= date('Y') ?> Manna Kampus</span>
+            <span>Ruang untuk belajar, bertumbuh, dan memberi dampak.</span>
+        </div>
+    </footer>
 </body>
 </html>
