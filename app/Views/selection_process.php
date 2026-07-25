@@ -27,6 +27,7 @@
                 <a href="<?= base_url() ?>#homepage">Homepage</a>
                 <a href="<?= base_url() ?>#lowongan">Lowongan</a>
                 <a class="active" href="<?= site_url('tahapan-seleksi') ?>" aria-current="page">Tahapan Seleksi</a>
+                <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
                 <a href="<?= base_url() ?>#faq">FAQ</a>
             </nav>
         </div>

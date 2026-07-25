@@ -27,6 +27,7 @@
                 <a class="active" href="#homepage">Homepage</a>
                 <a href="#lowongan">Lowongan</a>
                 <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
+                <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
                 <a href="#faq">FAQ</a>
             </nav>
         </div>
@@ -273,7 +274,7 @@
                     </details>
                     <details>
                         <summary>Bagaimana saya mengetahui status lamaran?<span aria-hidden="true"></span></summary>
-                        <p>Tim rekrutmen akan menghubungi kandidat melalui kontak yang dicantumkan pada CV di setiap perkembangan proses.</p>
+                        <p>Gunakan NIK dan nomor pengajuan pada halaman <a href="<?= site_url('lamaran/status') ?>">Cek Status Lamaran</a>. Tim rekrutmen juga akan menghubungi kandidat melalui email atau WhatsApp.</p>
                     </details>
                 </div>
             </div>

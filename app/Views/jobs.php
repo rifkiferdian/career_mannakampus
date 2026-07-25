@@ -27,6 +27,7 @@
                 <a href="<?= base_url() ?>#homepage">Homepage</a>
                 <a class="active" href="<?= site_url('lowongan') ?>" aria-current="page">Lowongan</a>
                 <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
+                <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
                 <a href="<?= base_url() ?>#faq">FAQ</a>
             </nav>
         </div>
@@ -105,7 +106,7 @@
         </div>
         <div class="container footer-bottom">
             <span>© <?= date('Y') ?> Manna Kampus. All rights reserved.</span>
-            <div><a href="<?= site_url('lowongan') ?>">Karier</a><a href="<?= base_url() ?>#faq">FAQ</a></div>
+            <div><a href="<?= site_url('lowongan') ?>">Karier</a><a href="<?= site_url('lamaran/status') ?>">Cek Status</a><a href="<?= base_url() ?>#faq">FAQ</a></div>
         </div>
     </footer>
 

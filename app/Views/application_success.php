@@ -29,7 +29,8 @@
             <?php endforeach ?>
         </div>
         <p class="success-note">Simpan nomor pengajuan dan nomor setiap lamaran sebagai referensi proses rekrutmen Anda.</p>
-        <a class="button-primary success-link" href="<?= site_url('lowongan') ?>">Kembali ke Lowongan</a>
+        <a class="button-primary success-link" href="<?= site_url('lamaran/status') ?>">Cek Status Lamaran</a>
+        <a class="button-secondary success-link" href="<?= site_url('lowongan') ?>">Kembali ke Lowongan</a>
     </main>
 </body>
 </html>

@@ -329,6 +329,7 @@
             <nav aria-label="Navigasi footer formulir">
                 <a href="<?= site_url('lowongan') ?>">Lowongan</a>
                 <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
+                <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
                 <a href="<?= base_url() ?>#faq">FAQ</a>
             </nav>
             <span>© <?= date('Y') ?> Manna Kampus. Data Anda diproses khusus untuk kebutuhan rekrutmen.</span>

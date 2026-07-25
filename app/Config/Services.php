@@ -11,6 +11,8 @@ use App\Modules\Recruitment\Models\ScreeningAnswerModel;
 use App\Modules\Recruitment\Models\ApplicationBatchModel;
 use App\Modules\Recruitment\Models\ApplicantDocumentModel;
 use App\Modules\Recruitment\Presenters\VacancyPresenter;
+use App\Modules\Recruitment\Presenters\ApplicationStatusPresenter;
+use App\Modules\Recruitment\Services\ApplicationStatusLookupService;
 use App\Modules\Recruitment\Services\ApplicationSubmissionService;
 use App\Modules\Recruitment\Services\VacancyCatalogService;
 use CodeIgniter\Config\BaseService;
@@ -57,6 +59,18 @@ class Services extends BaseService
             new ScreeningAnswerModel(),
             new ApplicationBatchModel(),
             new ApplicantDocumentModel(),
+        );
+    }
+
+    public static function applicationStatusLookup(bool $getShared = true): ApplicationStatusLookupService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('applicationStatusLookup');
+        }
+
+        return new ApplicationStatusLookupService(
+            db_connect(),
+            new ApplicationStatusPresenter(),
         );
     }
 
