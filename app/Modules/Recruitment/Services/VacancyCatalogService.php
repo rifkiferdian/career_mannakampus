@@ -3,6 +3,7 @@
 namespace App\Modules\Recruitment\Services;
 
 use App\Modules\Recruitment\Models\ScreeningQuestionModel;
+use App\Modules\Recruitment\Models\DepartmentModel;
 use App\Modules\Recruitment\Models\VacancyModel;
 use App\Modules\Recruitment\Presenters\VacancyPresenter;
 use DateTimeImmutable;
@@ -12,6 +13,7 @@ class VacancyCatalogService
     public function __construct(
         private readonly VacancyModel $vacancyModel,
         private readonly ScreeningQuestionModel $questionModel,
+        private readonly DepartmentModel $departmentModel,
         private readonly VacancyPresenter $presenter,
     ) {
     }
@@ -21,7 +23,23 @@ class VacancyCatalogService
      */
     public function openVacancies(?int $limit = null): array
     {
-        $vacancies = $this->vacancyModel->findPublicOpen(new DateTimeImmutable(), $limit);
+        return $this->searchOpenVacancies('', '', $limit);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function searchOpenVacancies(
+        string $keyword = '',
+        string $departmentCode = '',
+        ?int $limit = null,
+    ): array {
+        $vacancies = $this->vacancyModel->findPublicOpen(
+            new DateTimeImmutable(),
+            $limit,
+            trim($keyword),
+            trim($departmentCode),
+        );
 
         if ($vacancies === []) {
             return [];
@@ -50,11 +68,9 @@ class VacancyCatalogService
         $vacancies = $this->openVacancies();
         $departments = [];
 
-        foreach ($vacancies as $vacancy) {
-            $departments[$vacancy['department_slug']] = $vacancy['department'] ?: 'Umum';
+        foreach ($this->departmentModel->findWithOpenVacancies(new DateTimeImmutable()) as $department) {
+            $departments[$department['code']] = $department['name'];
         }
-
-        asort($departments);
 
         return [
             'vacancies'   => $vacancies,

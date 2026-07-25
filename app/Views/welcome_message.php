@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=15">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=18">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -295,6 +295,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/career.js') ?>?v=3" defer></script>
+    <script src="<?= base_url('assets/js/career.js') ?>?v=11" defer></script>
 </body>
 </html>

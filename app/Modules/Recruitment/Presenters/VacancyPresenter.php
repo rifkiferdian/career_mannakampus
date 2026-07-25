@@ -16,7 +16,7 @@ class VacancyPresenter
             $department = trim((string) ($vacancy['department'] ?? ''));
             $department = $department !== '' ? $department : 'Umum';
 
-            $vacancy['department_slug'] = $this->slugify($department);
+            $vacancy['department_slug'] = (string) ($vacancy['department_code'] ?? $this->slugify($department));
             $vacancy['icon_text'] = $this->initials((string) $vacancy['title']);
             $vacancy['icon_class'] = $this->iconClass($department);
             $vacancy['age_requirement'] = $this->ageRequirement($vacancy['minimum_age'] ?? null);

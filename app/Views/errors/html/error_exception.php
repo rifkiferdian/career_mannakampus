@@ -3,6 +3,7 @@ use CodeIgniter\HTTP\Header;
 use CodeIgniter\CodeIgniter;
 
 $errorId = uniqid('error', true);
+$baseUrl = rtrim((string) config('App')->baseURL, '/');
 ?>
 <!doctype html>
 <html>
@@ -15,11 +16,9 @@ $errorId = uniqid('error', true);
         <?= preg_replace('#[\r\n\t ]+#', ' ', file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.css')) ?>
     </style>
 
-    <script>
-        <?= file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.js') ?>
-    </script>
+    <script src="<?= esc($baseUrl) ?>/assets/js/debug-error.js?v=1" defer></script>
 </head>
-<body onload="init()">
+<body>
 
     <!-- Header -->
     <div class="header">
@@ -113,7 +112,12 @@ $errorId = uniqid('error', true);
                                 &nbsp;&nbsp;&mdash;&nbsp;&nbsp;<?= esc($row['class'] . $row['type'] . $row['function']) ?>
                                 <?php if (! empty($row['args'])) : ?>
                                     <?php $argsId = $errorId . 'args' . $index ?>
-                                    ( <a href="#" onclick="return toggle('<?= esc($argsId, 'attr') ?>');">arguments</a> )
+                                    ( <a
+                                        class="debug-arguments-toggle"
+                                        href="#<?= esc($argsId, 'attr') ?>"
+                                        data-target="<?= esc($argsId, 'attr') ?>"
+                                        aria-expanded="false"
+                                    >arguments</a> )
                                     <div class="args" id="<?= esc($argsId, 'attr') ?>">
                                         <table cellspacing="0">
 

@@ -15,7 +15,7 @@ class VacancyModel extends Model
     protected $allowedFields = [
         'code',
         'title',
-        'department',
+        'department_id',
         'location',
         'employment_type',
         'minimum_education',
@@ -29,21 +29,44 @@ class VacancyModel extends Model
     /**
      * @return list<array<string, mixed>>
      */
-    public function findPublicOpen(DateTimeInterface $now, ?int $limit = null): array
+    public function findPublicOpen(
+        DateTimeInterface $now,
+        ?int $limit = null,
+        string $keyword = '',
+        string $departmentCode = '',
+    ): array
     {
         $builder = $this->builder()
-            ->where('status', 'open')
-            ->where('deleted_at', null)
+            ->select('vacancies.*, departments.code AS department_code, departments.name AS department')
+            ->join('departments', 'departments.id = vacancies.department_id')
+            ->where('vacancies.status', 'open')
+            ->where('vacancies.deleted_at', null)
+            ->where('departments.is_active', 1)
             ->groupStart()
-                ->where('opened_at', null)
-                ->orWhere('opened_at <=', $now->format('Y-m-d H:i:s'))
+                ->where('vacancies.opened_at', null)
+                ->orWhere('vacancies.opened_at <=', $now->format('Y-m-d H:i:s'))
             ->groupEnd()
             ->groupStart()
-                ->where('closed_at', null)
-                ->orWhere('closed_at >=', $now->format('Y-m-d H:i:s'))
+                ->where('vacancies.closed_at', null)
+                ->orWhere('vacancies.closed_at >=', $now->format('Y-m-d H:i:s'))
             ->groupEnd()
-            ->orderBy('opened_at', 'DESC')
-            ->orderBy('title', 'ASC');
+            ->orderBy('vacancies.opened_at', 'DESC')
+            ->orderBy('vacancies.title', 'ASC');
+
+        if ($keyword !== '') {
+            $builder
+                ->groupStart()
+                    ->like('vacancies.title', $keyword)
+                    ->orLike('departments.name', $keyword)
+                    ->orLike('vacancies.location', $keyword)
+                    ->orLike('vacancies.employment_type', $keyword)
+                    ->orLike('vacancies.minimum_education', $keyword)
+                ->groupEnd();
+        }
+
+        if ($departmentCode !== '') {
+            $builder->where('departments.code', $departmentCode);
+        }
 
         if ($limit !== null) {
             $builder->limit($limit);

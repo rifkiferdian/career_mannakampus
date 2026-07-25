@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Lowongan Kerja | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=15">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=18">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -38,11 +38,11 @@
                 <h1 id="jobs-page-title">Temukan Karir Impianmu di<br><em>Manna Kampus</em></h1>
                 <p>Bergabunglah dengan tim yang berdedikasi untuk memberikan pengalaman belanja terbaik dan dipercaya oleh masyarakat Yogyakarta &amp; Solo.</p>
 
-                <form class="job-search" id="job-search-form" role="search">
+                <form class="job-search" id="job-search-form" role="search" data-search-url="<?= site_url('lowongan/cari') ?>">
                     <label class="job-search-field" for="job-keyword">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
-                        <span class="sr-only">Cari posisi pekerjaan</span>
-                        <input id="job-keyword" name="keyword" type="search" placeholder="Cari posisi pekerjaan..." autocomplete="off">
+                        <span class="sr-only">Cari posisi, lokasi, atau pendidikan</span>
+                        <input id="job-keyword" name="keyword" type="search" placeholder="Posisi, lokasi, atau pendidikan..." autocomplete="off">
                     </label>
                     <div class="job-search-field job-department-field custom-select" id="department-select">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h6v-6H4v6Zm10 0h6v-6h-6v6ZM9 10h6L12 4l-3 6Z"/></svg>
@@ -73,53 +73,8 @@
                     <span class="jobs-count" id="jobs-count" aria-live="polite"><?= count($vacancies ?? []) ?> posisi ditemukan</span>
                 </div>
 
-                <div class="job-openings">
-                    <?php foreach ($vacancies ?? [] as $vacancy): ?>
-                        <details
-                            class="job-opening reveal"
-                            id="vacancy-<?= esc($vacancy['code'], 'attr') ?>"
-                            data-title="<?= esc($vacancy['title'], 'attr') ?>"
-                            data-department="<?= esc($vacancy['department_slug'], 'attr') ?>"
-                        >
-                            <summary>
-                                <span class="job-icon <?= esc($vacancy['icon_class'], 'attr') ?>" aria-hidden="true"><?= esc($vacancy['icon_text']) ?></span>
-                                <span class="job-opening-title">
-                                    <small><?= esc($vacancy['department'] ?: 'Umum') ?> · <?= esc($vacancy['employment_type'] ?: 'Full-time') ?></small>
-                                    <strong><?= esc($vacancy['title']) ?></strong>
-                                    <em><?= esc($vacancy['location'] ?: 'Yogyakarta') ?></em>
-                                    <span class="job-opening-requirements">
-                                        <span><?= esc($vacancy['age_requirement']) ?></span>
-                                        <span><?= esc($vacancy['education_requirement']) ?></span>
-                                    </span>
-                                </span>
-                                <span class="job-opening-toggle" aria-hidden="true"></span>
-                            </summary>
-                            <div class="job-opening-details">
-                                <div>
-                                    <h3>Tentang Peran</h3>
-                                    <p>Jadilah bagian dari tim <?= esc($vacancy['department'] ?: 'Manna Kampus') ?> sebagai <?= esc($vacancy['title']) ?> di <?= esc($vacancy['location'] ?: 'Yogyakarta') ?>.</p>
-                                </div>
-                                <div>
-                                    <h3>Persyaratan Awal</h3>
-                                    <?php if ($vacancy['screening_questions'] !== []): ?>
-                                        <ul>
-                                            <?php foreach ($vacancy['screening_questions'] as $question): ?>
-                                                <li><?= esc($question['question_text']) ?></li>
-                                            <?php endforeach ?>
-                                        </ul>
-                                    <?php else: ?>
-                                        <p>Persyaratan lengkap akan diinformasikan pada saat proses lamaran.</p>
-                                    <?php endif ?>
-                                </div>
-                                <a class="button button-primary" href="#cara-melamar">Cara Melamar <span aria-hidden="true">→</span></a>
-                            </div>
-                        </details>
-                    <?php endforeach ?>
-                    <div class="jobs-empty" id="jobs-empty" <?= ($vacancies ?? []) === [] ? '' : 'hidden' ?>>
-                        <span aria-hidden="true">⌕</span>
-                        <h3>Lowongan tidak ditemukan</h3>
-                        <p>Coba gunakan kata kunci atau departemen yang berbeda.</p>
-                    </div>
+                <div class="job-openings" id="job-openings" aria-live="polite">
+                    <?= view('partials/job_openings', ['vacancies' => $vacancies ?? []]) ?>
                 </div>
             </div>
         </section>
@@ -154,6 +109,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/career.js') ?>?v=6" defer></script>
+    <script src="<?= base_url('assets/js/career.js') ?>?v=11" defer></script>
+    <script src="<?= base_url('assets/js/jobs.js') ?>?v=1" defer></script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 namespace Config;
 
 use App\Modules\Recruitment\Models\ScreeningQuestionModel;
+use App\Modules\Recruitment\Models\DepartmentModel;
 use App\Modules\Recruitment\Models\VacancyModel;
 use App\Modules\Recruitment\Presenters\VacancyPresenter;
 use App\Modules\Recruitment\Services\VacancyCatalogService;
@@ -32,6 +33,7 @@ class Services extends BaseService
         return new VacancyCatalogService(
             new VacancyModel(),
             new ScreeningQuestionModel(),
+            new DepartmentModel(),
             new VacancyPresenter(),
         );
     }
