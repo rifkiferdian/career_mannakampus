@@ -37,11 +37,17 @@ class VacancyModel extends Model
     ): array
     {
         $builder = $this->builder()
-            ->select('vacancies.*, departments.code AS department_code, departments.name AS department')
+            ->select(
+                'vacancies.*, departments.code AS department_code, departments.name AS department, '
+                . 'requirement_groups.code AS requirement_group_code, requirement_groups.name AS requirement_group_name, '
+                . 'requirement_groups.max_positions',
+            )
             ->join('departments', 'departments.id = vacancies.department_id')
+            ->join('requirement_groups', 'requirement_groups.id = vacancies.requirement_group_id')
             ->where('vacancies.status', 'open')
             ->where('vacancies.deleted_at', null)
             ->where('departments.is_active', 1)
+            ->where('requirement_groups.is_active', 1)
             ->groupStart()
                 ->where('vacancies.opened_at', null)
                 ->orWhere('vacancies.opened_at <=', $now->format('Y-m-d H:i:s'))

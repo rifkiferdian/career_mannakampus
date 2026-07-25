@@ -84,7 +84,7 @@
                 <div>
                     <span class="eyebrow eyebrow-light"><span></span> Cara Melamar</span>
                     <h2 id="application-title">Siapkan profil terbaikmu.</h2>
-                    <p>Pilih posisi yang sesuai, siapkan CV dan portofolio terbaru. Informasi kanal pengiriman lamaran dapat ditambahkan pada bagian ini.</p>
+                    <p>Pilih posisi yang sesuai lalu klik Lamar Sekarang. Isi biodata dan screening tanpa perlu membuat akun, kemudian unggah CV dalam format PDF.</p>
                 </div>
                 <div class="application-actions">
                     <a class="button button-primary" href="#open-positions-title">Pilih Lowongan <span aria-hidden="true">↑</span></a>

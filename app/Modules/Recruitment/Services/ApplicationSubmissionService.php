@@ -1,0 +1,448 @@
+<?php
+
+namespace App\Modules\Recruitment\Services;
+
+use App\Modules\Recruitment\Models\ApplicantModel;
+use App\Modules\Recruitment\Models\ApplicantDocumentModel;
+use App\Modules\Recruitment\Models\ApplicationBatchModel;
+use App\Modules\Recruitment\Models\ApplicationModel;
+use App\Modules\Recruitment\Models\ScreeningAnswerModel;
+use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\HTTP\Files\UploadedFile;
+use Config\Services;
+use DomainException;
+use RuntimeException;
+use Throwable;
+
+class ApplicationSubmissionService
+{
+    public function __construct(
+        private readonly BaseConnection $database,
+        private readonly ApplicantModel $applicantModel,
+        private readonly ApplicationModel $applicationModel,
+        private readonly ScreeningAnswerModel $answerModel,
+        private readonly ApplicationBatchModel $batchModel,
+        private readonly ApplicantDocumentModel $documentModel,
+    ) {
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @param list<array<string, mixed>> $vacancies
+     * @param array<string, UploadedFile|null> $files
+     *
+     * @return array{
+     *     batch_number: string,
+     *     screening_status: string,
+     *     public_message: string,
+     *     applications: list<array{title: string, application_number: string, screening_status: string, preference_order: int}>
+     * }
+     */
+    public function submit(
+        array $input,
+        array $vacancies,
+        array $files,
+        string $ipAddress,
+        string $userAgent,
+    ): array {
+        if ($vacancies === [] || count($vacancies) > 3) {
+            throw new DomainException('Pilih minimal satu dan maksimal tiga posisi.');
+        }
+
+        $requirementGroupIds = array_unique(array_map(
+            static fn (array $vacancy): int => (int) $vacancy['requirement_group_id'],
+            $vacancies,
+        ));
+        if (count($requirementGroupIds) !== 1) {
+            throw new DomainException('Semua posisi harus berasal dari kelompok persyaratan yang sama.');
+        }
+
+        $nik = preg_replace('/\D+/', '', (string) $input['nik']) ?? '';
+        $nikHash = hash_hmac('sha256', $nik, (string) config('Encryption')->key);
+        $now = date('Y-m-d H:i:s');
+        $batchUuid = $this->uuid();
+        $storedFiles = [];
+
+        $this->database->transBegin();
+
+        try {
+            $applicant = $this->applicantModel->withDeleted()->where('nik_hash', $nikHash)->first();
+            $emailOwner = $this->applicantModel->withDeleted()->where('email', strtolower((string) $input['email']))->first();
+
+            if ($emailOwner !== null && ($applicant === null || (int) $emailOwner['id'] !== (int) $applicant['id'])) {
+                throw new DomainException('Email sudah digunakan oleh pelamar lain.');
+            }
+
+            $photoPath = $applicant['profile_photo_path'] ?? null;
+            if (($files['profile_photo'] ?? null)?->isValid()) {
+                $photoPath = $this->storeFile($files['profile_photo'], $batchUuid, 'profile');
+                $storedFiles[] = $photoPath;
+            }
+
+            $applicantData = [
+                'nik_hash'              => $nikHash,
+                'nik_encrypted'         => base64_encode(Services::encrypter()->encrypt($nik)),
+                'full_name'             => trim((string) $input['full_name']),
+                'email'                 => strtolower(trim((string) $input['email'])),
+                'phone'                 => $this->normalizePhone((string) $input['phone']),
+                'profile_photo_path'    => $photoPath,
+                'birth_place'           => trim((string) $input['birth_place']),
+                'birth_date'            => (string) $input['birth_date'],
+                'height_cm'             => $input['height_cm'] !== '' ? (int) $input['height_cm'] : null,
+                'gender'                => (string) $input['gender'],
+                'marital_status'        => (string) $input['marital_status'],
+                'religion'              => (string) $input['religion'],
+                'address'               => trim((string) $input['address']),
+                'last_education'        => (string) $input['last_education'],
+                'institution'           => trim((string) $input['institution']),
+                'major'                 => trim((string) $input['major']),
+                'gpa'                   => $input['gpa'] !== '' ? (float) $input['gpa'] : null,
+                'training_experience'   => trim((string) ($input['training_experience'] ?? '')),
+                'privacy_consent_at'    => $now,
+                'privacy_policy_version'=> '2026-07',
+                'registration_ip'       => $ipAddress,
+                'registration_user_agent' => mb_substr($userAgent, 0, 500),
+                'is_active'             => 1,
+                'deleted_at'            => null,
+            ];
+
+            if ($applicant === null) {
+                $applicantData['uuid'] = $this->uuid();
+                $applicantId = (int) $this->applicantModel->insert($applicantData, true);
+            } else {
+                $applicantId = (int) $applicant['id'];
+                $this->applicantModel->update($applicantId, $applicantData);
+            }
+
+            $selectedVacancyIds = array_map(
+                static fn (array $vacancy): int => (int) $vacancy['id'],
+                $vacancies,
+            );
+            $existingApplication = $this->applicationModel
+                ->withDeleted()
+                ->where('applicant_id', $applicantId)
+                ->whereIn('vacancy_id', $selectedVacancyIds)
+                ->first();
+
+            if ($existingApplication !== null) {
+                throw new DomainException('Salah satu posisi yang dipilih sudah pernah Anda lamar.');
+            }
+
+            $activeApplicationCount = $this->database->table('applications AS applications')
+                ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+                ->where('applications.applicant_id', $applicantId)
+                ->where('applications.deleted_at', null)
+                ->where('vacancies.status', 'open')
+                ->where('vacancies.deleted_at', null)
+                ->countAllResults();
+
+            if ($activeApplicationCount + count($vacancies) > 3) {
+                throw new DomainException('Setiap pelamar hanya dapat memiliki maksimal tiga lamaran pada lowongan aktif.');
+            }
+
+            $batchNumber = 'MKB-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+            $batchId = (int) $this->batchModel->insert([
+                'uuid'                 => $batchUuid,
+                'batch_number'         => $batchNumber,
+                'applicant_id'         => $applicantId,
+                'requirement_group_id' => $requirementGroupIds[0],
+                'position_count'       => count($vacancies),
+                'applicant_snapshot'   => json_encode(
+                    $this->applicantSnapshot($applicantData, $nik, $now),
+                    JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+                ),
+                'snapshot_version'     => '2026-07-v1',
+                'submitted_at'         => $now,
+                'submitted_ip'         => $ipAddress,
+                'submitted_user_agent' => mb_substr($userAgent, 0, 500),
+            ], true);
+
+            $cv = $files['cv'];
+            $cvMetadata = $this->fileMetadata($cv);
+            $cvPath = $this->storeFile($cv, $batchUuid, 'cv');
+            $storedFiles[] = $cvPath;
+            $this->saveDocument($applicantId, $batchId, 'cv', $cvPath, $cvMetadata, $now);
+            $documentPath = null;
+
+            if (($files['document_bundle'] ?? null)?->isValid()) {
+                $document = $files['document_bundle'];
+                $documentMetadata = $this->fileMetadata($document);
+                $documentPath = $this->storeFile($document, $batchUuid, 'documents');
+                $storedFiles[] = $documentPath;
+                $this->saveDocument($applicantId, $batchId, 'supporting_documents', $documentPath, $documentMetadata, $now);
+            }
+
+            $applicationResults = [];
+            foreach ($vacancies as $vacancy) {
+                $screening = $this->evaluateScreening(
+                    $vacancy['screening_questions'],
+                    (array) ($input['screening'] ?? []),
+                );
+                $applicationNumber = 'MK-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+                $publicMessage = $screening['passed']
+                    ? 'Lolos screening awal.'
+                    : 'Belum memenuhi screening awal.';
+
+                $applicationId = (int) $this->applicationModel->insert([
+                    'uuid'                 => $this->uuid(),
+                    'application_number'   => $applicationNumber,
+                    'tracking_token_hash'  => hash('sha256', bin2hex(random_bytes(32))),
+                    'batch_id'             => $batchId,
+                    'applicant_id'         => $applicantId,
+                    'vacancy_id'           => (int) $vacancy['id'],
+                    'preference_order'      => (int) $vacancy['preference_order'],
+                    'cv_path'              => null,
+                    'document_bundle_path' => null,
+                    'portfolio_url'        => trim((string) ($input['portfolio_url'] ?? '')) ?: null,
+                    'work_experience'      => trim((string) ($input['work_experience'] ?? '')),
+                    'skills'               => trim((string) $input['skills']),
+                    'work_motivation'      => trim((string) $input['work_motivation']),
+                    'career_goal'          => trim((string) $input['career_goal']),
+                    'screening_status'     => $screening['passed'] ? 'passed' : 'failed',
+                    'screening_score'      => $screening['score'],
+                    'screening_notes'      => $screening['notes'],
+                    'public_message'       => $publicMessage,
+                    'application_status'   => $screening['passed'] ? 'screening_passed' : 'screening_failed',
+                    'submitted_at'         => $now,
+                    'submitted_ip'         => $ipAddress,
+                    'submitted_user_agent' => mb_substr($userAgent, 0, 500),
+                ], true);
+
+                foreach ($screening['answers'] as $answer) {
+                    $this->answerModel->insert([
+                        'application_id' => $applicationId,
+                        'question_id'    => $answer['question_id'],
+                        'answer_value'   => $answer['answer_value'],
+                        'is_eligible'    => $answer['is_eligible'],
+                        'score'          => $answer['score'],
+                    ]);
+                }
+
+                $applicationResults[] = [
+                    'title'              => (string) $vacancy['title'],
+                    'application_number' => $applicationNumber,
+                    'screening_status'   => $screening['passed'] ? 'passed' : 'failed',
+                    'preference_order'   => (int) $vacancy['preference_order'],
+                ];
+            }
+
+            if ($this->database->transStatus() === false) {
+                throw new RuntimeException('Penyimpanan lamaran gagal.');
+            }
+
+            $this->database->transCommit();
+
+            $passedCount = count(array_filter(
+                $applicationResults,
+                static fn (array $result): bool => $result['screening_status'] === 'passed',
+            ));
+
+            return [
+                'batch_number'     => $batchNumber,
+                'screening_status' => $passedCount > 0 ? 'passed' : 'failed',
+                'public_message'   => "{$passedCount} dari " . count($applicationResults) . ' posisi lolos screening awal.',
+                'applications'     => $applicationResults,
+            ];
+        } catch (Throwable $exception) {
+            $this->database->transRollback();
+            foreach ($storedFiles as $storedFile) {
+                $absolutePath = WRITEPATH . 'uploads/' . $storedFile;
+                if (is_file($absolutePath)) {
+                    unlink($absolutePath);
+                }
+            }
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * @param list<array<string, mixed>> $questions
+     * @param array<string, mixed> $submittedAnswers
+     *
+     * @return array{passed: bool, score: float, notes: string, answers: list<array<string, mixed>>}
+     */
+    private function evaluateScreening(array $questions, array $submittedAnswers): array
+    {
+        $answers = [];
+        $failedKnockout = [];
+        $eligibleCount = 0;
+
+        foreach ($questions as $question) {
+            $answer = trim((string) ($submittedAnswers[(string) $question['id']] ?? ''));
+            $eligible = $this->answerMatches(
+                $answer,
+                (string) ($question['expected_value'] ?? ''),
+                (string) ($question['comparison_operator'] ?? ''),
+            );
+
+            if ($eligible) {
+                $eligibleCount++;
+            } elseif ((int) $question['is_knockout'] === 1) {
+                $failedKnockout[] = (string) $question['question_code'];
+            }
+
+            $answers[] = [
+                'question_id' => (int) $question['id'],
+                'answer_value'=> $answer,
+                'is_eligible' => $eligible ? 1 : 0,
+                'score'       => $eligible ? 100 : 0,
+            ];
+        }
+
+        $score = $questions === [] ? 100.0 : round(($eligibleCount / count($questions)) * 100, 2);
+
+        return [
+            'passed'  => $failedKnockout === [],
+            'score'   => $score,
+            'notes'   => $failedKnockout === [] ? 'Semua kriteria knockout terpenuhi.' : 'Tidak memenuhi: ' . implode(', ', $failedKnockout),
+            'answers' => $answers,
+        ];
+    }
+
+    private function answerMatches(string $answer, string $expected, string $operator): bool
+    {
+        if ($expected === '' || $operator === '') {
+            return true;
+        }
+
+        if ($operator === 'equals') {
+            return mb_strtoupper($answer) === mb_strtoupper($expected);
+        }
+
+        if ($operator === 'between') {
+            [$minimum, $maximum] = array_map('intval', explode('-', $expected, 2));
+            return is_numeric($answer) && (float) $answer >= $minimum && (float) $answer <= $maximum;
+        }
+
+        if ($operator === 'greater_than_or_equal') {
+            return is_numeric($answer) && (float) $answer >= (float) $expected;
+        }
+
+        if ($operator === 'minimum_education') {
+            $rank = ['SMP' => 1, 'SMA' => 2, 'SMK' => 2, 'SMA/SMK' => 2, 'D1' => 3, 'D3' => 4, 'S1' => 5, 'S2' => 6];
+            $expectedLevels = preg_split('/\//', mb_strtoupper($expected)) ?: [];
+            $minimumRank = min(array_map(static fn (string $level): int => $rank[$level] ?? 99, $expectedLevels));
+            return ($rank[mb_strtoupper($answer)] ?? 0) >= $minimumRank;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array<string, mixed> $applicantData
+     *
+     * @return array<string, mixed>
+     */
+    private function applicantSnapshot(array $applicantData, string $nik, string $capturedAt): array
+    {
+        return [
+            'snapshot_version' => '2026-07-v1',
+            'captured_at'      => $capturedAt,
+            'identity'         => [
+                'nik_masked'     => substr($nik, 0, 4) . str_repeat('*', 8) . substr($nik, -4),
+                'full_name'      => $applicantData['full_name'],
+                'gender'         => $applicantData['gender'],
+                'birth_place'    => $applicantData['birth_place'],
+                'birth_date'     => $applicantData['birth_date'],
+                'height_cm'      => $applicantData['height_cm'],
+                'marital_status' => $applicantData['marital_status'],
+                'religion'       => $applicantData['religion'],
+            ],
+            'contact'          => [
+                'email' => $applicantData['email'],
+                'phone' => $applicantData['phone'],
+            ],
+            'address'          => $applicantData['address'],
+            'education'        => [
+                'level'               => $applicantData['last_education'],
+                'institution'         => $applicantData['institution'],
+                'major'               => $applicantData['major'],
+                'gpa'                 => $applicantData['gpa'],
+                'training_experience' => $applicantData['training_experience'],
+            ],
+            'profile_photo_path' => $applicantData['profile_photo_path'],
+        ];
+    }
+
+    /**
+     * @return array{original_name: string, mime_type: string, file_size: int}
+     */
+    private function fileMetadata(UploadedFile $file): array
+    {
+        return [
+            'original_name' => mb_substr($file->getClientName(), 0, 255),
+            'mime_type'     => mb_substr($file->getClientMimeType(), 0, 100),
+            'file_size'     => $file->getSize(),
+        ];
+    }
+
+    /**
+     * @param array{original_name: string, mime_type: string, file_size: int} $metadata
+     */
+    private function saveDocument(
+        int $applicantId,
+        int $batchId,
+        string $documentType,
+        string $filePath,
+        array $metadata,
+        string $createdAt,
+    ): void {
+        $this->documentModel->insert([
+            'applicant_id'  => $applicantId,
+            'batch_id'      => $batchId,
+            'document_type' => $documentType,
+            'file_path'     => $filePath,
+            'original_name' => $metadata['original_name'],
+            'mime_type'     => $metadata['mime_type'],
+            'file_size'     => $metadata['file_size'],
+            'created_at'    => $createdAt,
+        ]);
+    }
+
+    private function storeFile(UploadedFile $file, string $applicationUuid, string $prefix): string
+    {
+        if (!$file->isValid() || $file->hasMoved()) {
+            throw new RuntimeException('Berkas unggahan tidak valid.');
+        }
+
+        $relativeDirectory = 'applications/' . $applicationUuid;
+        $absoluteDirectory = WRITEPATH . 'uploads/' . $relativeDirectory;
+
+        if (!is_dir($absoluteDirectory) && !mkdir($absoluteDirectory, 0700, true) && !is_dir($absoluteDirectory)) {
+            throw new RuntimeException('Direktori unggahan tidak dapat dibuat.');
+        }
+
+        $filename = $prefix . '-' . bin2hex(random_bytes(8)) . '.' . $file->getExtension();
+        $file->move($absoluteDirectory, $filename);
+
+        return $relativeDirectory . '/' . $filename;
+    }
+
+    private function normalizePhone(string $phone): string
+    {
+        $phone = preg_replace('/\D+/', '', $phone) ?? '';
+        if (str_starts_with($phone, '0')) {
+            return '62' . substr($phone, 1);
+        }
+
+        return $phone;
+    }
+
+    private function uuid(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        $hex = bin2hex($bytes);
+
+        return sprintf(
+            '%s-%s-%s-%s-%s',
+            substr($hex, 0, 8),
+            substr($hex, 8, 4),
+            substr($hex, 12, 4),
+            substr($hex, 16, 4),
+            substr($hex, 20),
+        );
+    }
+}

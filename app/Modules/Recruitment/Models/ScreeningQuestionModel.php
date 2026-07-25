@@ -33,7 +33,10 @@ class ScreeningQuestionModel extends Model
             return [];
         }
 
-        return $this->select('vacancy_id, question_text, is_required, display_order')
+        return $this->select(
+            'id, vacancy_id, question_code, question_text, answer_type, '
+            . 'is_required, is_knockout, expected_value, comparison_operator, display_order',
+        )
             ->whereIn('vacancy_id', $vacancyIds)
             ->orderBy('display_order', 'ASC')
             ->findAll();

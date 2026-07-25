@@ -5,7 +5,13 @@ namespace Config;
 use App\Modules\Recruitment\Models\ScreeningQuestionModel;
 use App\Modules\Recruitment\Models\DepartmentModel;
 use App\Modules\Recruitment\Models\VacancyModel;
+use App\Modules\Recruitment\Models\ApplicantModel;
+use App\Modules\Recruitment\Models\ApplicationModel;
+use App\Modules\Recruitment\Models\ScreeningAnswerModel;
+use App\Modules\Recruitment\Models\ApplicationBatchModel;
+use App\Modules\Recruitment\Models\ApplicantDocumentModel;
 use App\Modules\Recruitment\Presenters\VacancyPresenter;
+use App\Modules\Recruitment\Services\ApplicationSubmissionService;
 use App\Modules\Recruitment\Services\VacancyCatalogService;
 use CodeIgniter\Config\BaseService;
 
@@ -35,6 +41,22 @@ class Services extends BaseService
             new ScreeningQuestionModel(),
             new DepartmentModel(),
             new VacancyPresenter(),
+        );
+    }
+
+    public static function applicationSubmission(bool $getShared = true): ApplicationSubmissionService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('applicationSubmission');
+        }
+
+        return new ApplicationSubmissionService(
+            db_connect(),
+            new ApplicantModel(),
+            new ApplicationModel(),
+            new ScreeningAnswerModel(),
+            new ApplicationBatchModel(),
+            new ApplicantDocumentModel(),
         );
     }
 

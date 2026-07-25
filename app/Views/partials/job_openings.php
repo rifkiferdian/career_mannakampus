@@ -33,7 +33,7 @@
                     <p>Persyaratan lengkap akan diinformasikan pada saat proses lamaran.</p>
                 <?php endif ?>
             </div>
-            <a class="button button-primary" href="#cara-melamar">Cara Melamar <span aria-hidden="true">→</span></a>
+            <a class="button button-primary" href="<?= site_url('lowongan/' . $vacancy['code'] . '/lamar') ?>">Lamar Sekarang <span aria-hidden="true">→</span></a>
         </div>
     </details>
 <?php endforeach ?>

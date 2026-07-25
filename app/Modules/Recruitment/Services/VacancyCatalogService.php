@@ -27,6 +27,37 @@ class VacancyCatalogService
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    public function openVacancyByCode(string $code): ?array
+    {
+        foreach ($this->openVacancies() as $vacancy) {
+            if (hash_equals((string) $vacancy['code'], $code)) {
+                return $vacancy;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function compatibleVacancies(string $code): array
+    {
+        $selectedVacancy = $this->openVacancyByCode($code);
+        if ($selectedVacancy === null) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $this->openVacancies(),
+            static fn (array $vacancy): bool =>
+                (int) $vacancy['requirement_group_id'] === (int) $selectedVacancy['requirement_group_id'],
+        ));
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function searchOpenVacancies(
