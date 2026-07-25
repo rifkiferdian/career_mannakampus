@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Lowongan Kerja | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=10">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=15">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -28,8 +28,6 @@
                 <a class="active" href="<?= site_url('lowongan') ?>" aria-current="page">Lowongan</a>
                 <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
                 <a href="<?= base_url() ?>#faq">FAQ</a>
-                <a class="nav-auth nav-login" href="<?= site_url('masuk') ?>">Masuk</a>
-                <a class="nav-auth nav-register" href="<?= site_url('daftar') ?>">Daftar</a>
             </nav>
         </div>
     </header>
@@ -55,9 +53,9 @@
                         </button>
                         <div class="custom-select-menu" id="department-options" role="listbox" aria-label="Pilih departemen">
                             <button class="custom-select-option selected" type="button" role="option" aria-selected="true" data-value="">Semua Departemen</button>
-                            <button class="custom-select-option" type="button" role="option" aria-selected="false" data-value="product-technology">Product &amp; Technology</button>
-                            <button class="custom-select-option" type="button" role="option" aria-selected="false" data-value="marketing">Marketing</button>
-                            <button class="custom-select-option" type="button" role="option" aria-selected="false" data-value="people-operations">People &amp; Operations</button>
+                            <?php foreach ($departments ?? [] as $departmentSlug => $departmentName): ?>
+                                <button class="custom-select-option" type="button" role="option" aria-selected="false" data-value="<?= esc($departmentSlug, 'attr') ?>"><?= esc($departmentName) ?></button>
+                            <?php endforeach ?>
                         </div>
                     </div>
                     <button class="job-search-button" type="submit">Cari Lowongan</button>
@@ -72,67 +70,52 @@
                         <span class="eyebrow"><span></span> Open Positions</span>
                         <h2 id="open-positions-title">Lowongan yang tersedia</h2>
                     </div>
-                    <span class="jobs-count" id="jobs-count" aria-live="polite">3 posisi ditemukan</span>
+                    <span class="jobs-count" id="jobs-count" aria-live="polite"><?= count($vacancies ?? []) ?> posisi ditemukan</span>
                 </div>
 
                 <div class="job-openings">
-                    <details class="job-opening reveal" data-title="UI UX Designer" data-department="product-technology">
-                        <summary>
-                            <span class="job-icon job-icon-product" aria-hidden="true">UI</span>
-                            <span class="job-opening-title"><small>Product &amp; Technology · Full Time</small><strong>UI/UX Designer</strong><em>Jakarta / Hybrid</em></span>
-                            <span class="job-opening-toggle" aria-hidden="true"></span>
-                        </summary>
-                        <div class="job-opening-details">
-                            <div>
-                                <h3>Tentang Peran</h3>
-                                <p>Merancang pengalaman digital yang intuitif, relevan, dan menyenangkan bagi pengguna Manna Kampus.</p>
+                    <?php foreach ($vacancies ?? [] as $vacancy): ?>
+                        <details
+                            class="job-opening reveal"
+                            id="vacancy-<?= esc($vacancy['code'], 'attr') ?>"
+                            data-title="<?= esc($vacancy['title'], 'attr') ?>"
+                            data-department="<?= esc($vacancy['department_slug'], 'attr') ?>"
+                        >
+                            <summary>
+                                <span class="job-icon <?= esc($vacancy['icon_class'], 'attr') ?>" aria-hidden="true"><?= esc($vacancy['icon_text']) ?></span>
+                                <span class="job-opening-title">
+                                    <small><?= esc($vacancy['department'] ?: 'Umum') ?> · <?= esc($vacancy['employment_type'] ?: 'Full-time') ?></small>
+                                    <strong><?= esc($vacancy['title']) ?></strong>
+                                    <em><?= esc($vacancy['location'] ?: 'Yogyakarta') ?></em>
+                                    <span class="job-opening-requirements">
+                                        <span><?= esc($vacancy['age_requirement']) ?></span>
+                                        <span><?= esc($vacancy['education_requirement']) ?></span>
+                                    </span>
+                                </span>
+                                <span class="job-opening-toggle" aria-hidden="true"></span>
+                            </summary>
+                            <div class="job-opening-details">
+                                <div>
+                                    <h3>Tentang Peran</h3>
+                                    <p>Jadilah bagian dari tim <?= esc($vacancy['department'] ?: 'Manna Kampus') ?> sebagai <?= esc($vacancy['title']) ?> di <?= esc($vacancy['location'] ?: 'Yogyakarta') ?>.</p>
+                                </div>
+                                <div>
+                                    <h3>Persyaratan Awal</h3>
+                                    <?php if ($vacancy['screening_questions'] !== []): ?>
+                                        <ul>
+                                            <?php foreach ($vacancy['screening_questions'] as $question): ?>
+                                                <li><?= esc($question['question_text']) ?></li>
+                                            <?php endforeach ?>
+                                        </ul>
+                                    <?php else: ?>
+                                        <p>Persyaratan lengkap akan diinformasikan pada saat proses lamaran.</p>
+                                    <?php endif ?>
+                                </div>
+                                <a class="button button-primary" href="#cara-melamar">Cara Melamar <span aria-hidden="true">→</span></a>
                             </div>
-                            <div>
-                                <h3>Yang Kami Cari</h3>
-                                <ul><li>Memahami proses design thinking dan user research.</li><li>Menguasai tools desain dan prototyping.</li><li>Mampu berkolaborasi dengan tim product dan engineering.</li></ul>
-                            </div>
-                            <a class="button button-primary" href="#cara-melamar">Cara Melamar <span aria-hidden="true">→</span></a>
-                        </div>
-                    </details>
-
-                    <details class="job-opening reveal" data-title="Content Marketing Specialist" data-department="marketing">
-                        <summary>
-                            <span class="job-icon job-icon-marketing" aria-hidden="true">CM</span>
-                            <span class="job-opening-title"><small>Marketing · Full Time</small><strong>Content Marketing Specialist</strong><em>Jakarta / Hybrid</em></span>
-                            <span class="job-opening-toggle" aria-hidden="true"></span>
-                        </summary>
-                        <div class="job-opening-details">
-                            <div>
-                                <h3>Tentang Peran</h3>
-                                <p>Mengembangkan konten kreatif yang menghubungkan brand dengan audiens secara konsisten dan bermakna.</p>
-                            </div>
-                            <div>
-                                <h3>Yang Kami Cari</h3>
-                                <ul><li>Memiliki kemampuan copywriting dan storytelling.</li><li>Memahami strategi konten digital dan media sosial.</li><li>Kreatif, terorganisir, dan terbiasa bekerja dengan target.</li></ul>
-                            </div>
-                            <a class="button button-primary" href="#cara-melamar">Cara Melamar <span aria-hidden="true">→</span></a>
-                        </div>
-                    </details>
-
-                    <details class="job-opening reveal" data-title="People Operations Intern" data-department="people-operations">
-                        <summary>
-                            <span class="job-icon job-icon-people" aria-hidden="true">PO</span>
-                            <span class="job-opening-title"><small>People &amp; Operations · Internship</small><strong>People Operations Intern</strong><em>Jakarta / On-site</em></span>
-                            <span class="job-opening-toggle" aria-hidden="true"></span>
-                        </summary>
-                        <div class="job-opening-details">
-                            <div>
-                                <h3>Tentang Peran</h3>
-                                <p>Mendukung pengalaman kerja karyawan melalui proses people operations yang rapi, hangat, dan efektif.</p>
-                            </div>
-                            <div>
-                                <h3>Yang Kami Cari</h3>
-                                <ul><li>Mahasiswa tingkat akhir atau fresh graduate dipersilakan.</li><li>Teliti, komunikatif, dan menjaga kerahasiaan data.</li><li>Tertarik mempelajari people operations dan employee experience.</li></ul>
-                            </div>
-                            <a class="button button-primary" href="#cara-melamar">Cara Melamar <span aria-hidden="true">→</span></a>
-                        </div>
-                    </details>
-                    <div class="jobs-empty" id="jobs-empty" hidden>
+                        </details>
+                    <?php endforeach ?>
+                    <div class="jobs-empty" id="jobs-empty" <?= ($vacancies ?? []) === [] ? '' : 'hidden' ?>>
                         <span aria-hidden="true">⌕</span>
                         <h3>Lowongan tidak ditemukan</h3>
                         <p>Coba gunakan kata kunci atau departemen yang berbeda.</p>
@@ -149,7 +132,7 @@
                     <p>Pilih posisi yang sesuai, siapkan CV dan portofolio terbaru. Informasi kanal pengiriman lamaran dapat ditambahkan pada bagian ini.</p>
                 </div>
                 <div class="application-actions">
-                    <a class="button button-primary" href="<?= site_url('daftar') ?>">Daftar Akun Karier <span aria-hidden="true">→</span></a>
+                    <a class="button button-primary" href="#open-positions-title">Pilih Lowongan <span aria-hidden="true">↑</span></a>
                     <a class="application-process-link" href="<?= site_url('tahapan-seleksi') ?>">Pelajari Tahapan Seleksi</a>
                 </div>
             </div>
@@ -171,6 +154,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/career.js') ?>?v=5" defer></script>
+    <script src="<?= base_url('assets/js/career.js') ?>?v=6" defer></script>
 </body>
 </html>

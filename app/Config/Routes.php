@@ -6,9 +6,5 @@ use CodeIgniter\Router\RouteCollection;
 $routes->set404Override('\\App\\Controllers\\NotFound::index');
 
 $routes->get('/', 'Home::index');
-$routes->get('lowongan', 'Home::jobs');
+$routes->get('lowongan', '\App\Modules\Recruitment\Controllers\VacancyController::index');
 $routes->get('tahapan-seleksi', 'Home::selectionProcess');
-$routes->get('daftar', 'Home::register');
-$routes->post('daftar', 'Home::createAccount');
-$routes->get('masuk', 'Home::login');
-$routes->post('masuk', 'Home::authenticate');

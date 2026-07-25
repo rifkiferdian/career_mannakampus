@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Tahapan Seleksi | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=13">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=15">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -28,8 +28,6 @@
                 <a href="<?= base_url() ?>#lowongan">Lowongan</a>
                 <a class="active" href="<?= site_url('tahapan-seleksi') ?>" aria-current="page">Tahapan Seleksi</a>
                 <a href="<?= base_url() ?>#faq">FAQ</a>
-                <a class="nav-auth nav-login" href="<?= site_url('masuk') ?>">Masuk</a>
-                <a class="nav-auth nav-register" href="<?= site_url('daftar') ?>">Daftar</a>
             </nav>
         </div>
     </header>

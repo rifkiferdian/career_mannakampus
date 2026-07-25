@@ -11,7 +11,7 @@ $baseUrl = rtrim((string) $appConfig->baseURL, '/');
     <meta name="theme-color" content="#fbf8f1">
     <title>Halaman Tidak Ditemukan | Manna Kampus</title>
     <link rel="icon" href="<?= esc($baseUrl) ?>/favicon.ico">
-    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/career.css?v=11">
+    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/career.css?v=15">
     <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/not-found.css?v=1">
 </head>
 <body>
@@ -24,8 +24,6 @@ $baseUrl = rtrim((string) $appConfig->baseURL, '/');
             <nav class="not-found-nav" aria-label="Navigasi halaman tidak ditemukan">
                 <a href="<?= esc($baseUrl) ?>/">Homepage</a>
                 <a href="<?= esc($baseUrl) ?>/lowongan">Lowongan</a>
-                <a class="nav-auth nav-login" href="<?= esc($baseUrl) ?>/masuk">Masuk</a>
-                <a class="nav-auth nav-register" href="<?= esc($baseUrl) ?>/daftar">Daftar</a>
             </nav>
         </div>
     </header>

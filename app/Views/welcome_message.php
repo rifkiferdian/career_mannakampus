@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=10">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=15">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -28,8 +28,6 @@
                 <a href="#lowongan">Lowongan</a>
                 <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
                 <a href="#faq">FAQ</a>
-                <a class="nav-auth nav-login" href="<?= site_url('masuk') ?>">Masuk</a>
-                <a class="nav-auth nav-register" href="<?= site_url('daftar') ?>">Daftar</a>
             </nav>
         </div>
     </header>
@@ -83,15 +81,11 @@
             </div>
         </section>
 
-        <section class="values-strip" aria-label="Budaya Manna Kampus">
+        <section class="values-strip" aria-label="Kriteria staf Manna Kampus">
             <div class="container values-grid">
-                <div><strong>Caring</strong><span class="value-description">Peduli dan saling mendukung.</span></div>
-                <div><strong>Human Integrity</strong><span class="value-description">Jujur, tulus, dan bertanggung jawab.</span></div>
-                <div><strong>Ethical Communication</strong><span class="value-description">Berkomunikasi santun dan terbuka.</span></div>
-                <div><strong>Adaptif</strong><span class="value-description">Cepat belajar dan menyesuaikan diri.</span></div>
-                <div><strong>Profesional</strong><span class="value-description">Bekerja kompeten dan konsisten.</span></div>
-                <div><strong>Excellent Service</strong><span class="value-description">Memberikan pelayanan terbaik.</span></div>
-                <div><strong>Reputable &amp; Profitability</strong><span class="value-description">Menjaga reputasi dan pertumbuhan.</span></div>
+                <div><strong>Integritas &amp; Tanggung Jawab</strong><span class="value-description">Jujur, disiplin, dan dapat dipercaya dalam menjalankan setiap tugas.</span></div>
+                <div><strong>Siap Belajar &amp; Berkembang</strong><span class="value-description">Adaptif, memiliki inisiatif, dan terbuka terhadap tantangan serta hal baru.</span></div>
+                <div><strong>Kolaboratif &amp; Melayani</strong><span class="value-description">Mampu bekerja dalam tim, berkomunikasi dengan baik, dan memberikan pelayanan terbaik.</span></div>
             </div>
         </section>
 
@@ -134,6 +128,19 @@
                         </span>
                         <h3>Growth</h3>
                         <p>Program pengembangan karir berkelanjutan untuk membantu Anda mencapai potensi maksimal di setiap level.</p>
+                    </article>
+
+                    <article class="benefit-card reveal">
+                        <span class="benefit-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <circle cx="11" cy="10" r="3.5"/>
+                                <circle cx="22" cy="11.5" r="3"/>
+                                <path d="M4.5 25v-2.2a6.5 6.5 0 0 1 13 0V25"/>
+                                <path d="M18 18.5a5.5 5.5 0 0 1 8.5 4.6V25"/>
+                            </svg>
+                        </span>
+                        <h3>Collaboration</h3>
+                        <p>Kami tumbuh melalui kerja sama, komunikasi terbuka, dan saling mendukung untuk mencapai tujuan bersama.</p>
                     </article>
                 </div>
             </div>
@@ -194,41 +201,32 @@
                 </div>
 
                 <div class="job-list">
-                    <article class="job-card reveal">
-                        <div class="job-icon job-icon-product" aria-hidden="true">UI</div>
-                        <div class="job-main">
-                            <div class="job-meta"><span>Product & Technology</span><span>Full Time</span></div>
-                            <h3>UI/UX Designer</h3>
-                            <p>Merancang pengalaman digital yang intuitif, relevan, dan menyenangkan bagi pengguna.</p>
-                        </div>
-                        <div class="job-location"><span>⌖</span> Jakarta / Hybrid</div>
-                        <a class="job-arrow" href="#join-us" aria-label="Lihat detail lowongan UI/UX Designer">↗</a>
-                    </article>
-
-                    <article class="job-card reveal">
-                        <div class="job-icon job-icon-marketing" aria-hidden="true">CM</div>
-                        <div class="job-main">
-                            <div class="job-meta"><span>Marketing</span><span>Full Time</span></div>
-                            <h3>Content Marketing Specialist</h3>
-                            <p>Mengembangkan konten kreatif yang menghubungkan brand dengan audiens secara bermakna.</p>
-                        </div>
-                        <div class="job-location"><span>⌖</span> Jakarta / Hybrid</div>
-                        <a class="job-arrow" href="#join-us" aria-label="Lihat detail lowongan Content Marketing Specialist">↗</a>
-                    </article>
-
-                    <article class="job-card reveal">
-                        <div class="job-icon job-icon-people" aria-hidden="true">PO</div>
-                        <div class="job-main">
-                            <div class="job-meta"><span>People & Operations</span><span>Internship</span></div>
-                            <h3>People Operations Intern</h3>
-                            <p>Mendukung pengalaman kerja yang positif melalui proses people operations yang rapi.</p>
-                        </div>
-                        <div class="job-location"><span>⌖</span> Jakarta / On-site</div>
-                        <a class="job-arrow" href="#join-us" aria-label="Lihat detail lowongan People Operations Intern">↗</a>
-                    </article>
+                    <?php foreach ($vacancies ?? [] as $vacancy): ?>
+                        <article class="job-card reveal">
+                            <div class="job-icon <?= esc($vacancy['icon_class'], 'attr') ?>" aria-hidden="true"><?= esc($vacancy['icon_text']) ?></div>
+                            <div class="job-main">
+                                <div class="job-meta">
+                                    <span><?= esc($vacancy['department'] ?: 'Umum') ?></span>
+                                    <span><?= esc($vacancy['employment_type'] ?: 'Full-time') ?></span>
+                                </div>
+                                <h3><?= esc($vacancy['title']) ?></h3>
+                                <p>Bergabung dan berkembang bersama tim <?= esc($vacancy['department'] ?: 'Manna Kampus') ?>.</p>
+                                <div class="job-requirements" aria-label="Persyaratan minimum">
+                                    <span><?= esc($vacancy['age_requirement']) ?></span>
+                                    <span><?= esc($vacancy['education_requirement']) ?></span>
+                                </div>
+                            </div>
+                            <div class="job-location"><span aria-hidden="true">⌖</span> <?= esc($vacancy['location'] ?: 'Yogyakarta') ?></div>
+                            <a class="job-arrow" href="<?= site_url('lowongan') ?>#vacancy-<?= esc($vacancy['code'], 'attr') ?>" aria-label="Lihat detail lowongan <?= esc($vacancy['title'], 'attr') ?>">↗</a>
+                        </article>
+                    <?php endforeach ?>
                 </div>
 
-                <p class="jobs-note reveal">Belum menemukan posisi yang cocok? Tetap pantau halaman ini untuk peluang berikutnya.</p>
+                <?php if (($vacancies ?? []) === []): ?>
+                    <p class="jobs-note reveal">Belum ada lowongan yang sedang dibuka. Tetap pantau halaman ini untuk peluang berikutnya.</p>
+                <?php else: ?>
+                    <p class="jobs-note reveal">Belum menemukan posisi yang cocok? Tetap pantau halaman ini untuk peluang berikutnya.</p>
+                <?php endif ?>
             </div>
         </section>
 

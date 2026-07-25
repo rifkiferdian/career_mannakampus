@@ -2,6 +2,10 @@
 
 namespace Config;
 
+use App\Modules\Recruitment\Models\ScreeningQuestionModel;
+use App\Modules\Recruitment\Models\VacancyModel;
+use App\Modules\Recruitment\Presenters\VacancyPresenter;
+use App\Modules\Recruitment\Services\VacancyCatalogService;
 use CodeIgniter\Config\BaseService;
 
 /**
@@ -19,6 +23,19 @@ use CodeIgniter\Config\BaseService;
  */
 class Services extends BaseService
 {
+    public static function vacancyCatalog(bool $getShared = true): VacancyCatalogService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('vacancyCatalog');
+        }
+
+        return new VacancyCatalogService(
+            new VacancyModel(),
+            new ScreeningQuestionModel(),
+            new VacancyPresenter(),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {

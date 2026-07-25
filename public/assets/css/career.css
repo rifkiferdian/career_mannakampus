@@ -48,12 +48,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .primary-nav a::after { content: ''; position: absolute; left: 13px; right: 13px; bottom: 4px; height: 2px; background: var(--orange); border-radius: 4px; transform: scaleX(0); transition: transform .2s; }
 .primary-nav a:hover, .primary-nav a.active { color: var(--green-900); }
 .primary-nav a.active::after { transform: scaleX(1); }
-.primary-nav .nav-auth { min-width: 72px; display: inline-flex; align-items: center; justify-content: center; padding: 9px 15px; border-radius: 9px; transform: translateX(14px); }
-.primary-nav .nav-auth::after { display: none; }
-.primary-nav .nav-login { margin-left: 28px; color: var(--green-900); border: 1px solid #bdcdc6; }
-.primary-nav .nav-login:hover { color: white; background: var(--green-900); border-color: var(--green-900); }
-.primary-nav .nav-register { color: white; background: var(--orange); box-shadow: 0 7px 16px rgba(242,119,61,.18); }
-.primary-nav .nav-register:hover { color: white; background: var(--orange-dark); box-shadow: 0 9px 20px rgba(242,119,61,.27); }
 .nav-toggle { display: none; width: 42px; height: 42px; padding: 10px; border: 0; border-radius: 11px; background: var(--green-100); cursor: pointer; }
 .nav-toggle span:not(.sr-only) { display: block; height: 2px; margin: 5px 0; background: var(--green-900); border-radius: 2px; transition: transform .2s, opacity .2s; }
 
@@ -121,12 +115,12 @@ h1 em { color: var(--orange); font-style: normal; }
 @keyframes float { 50% { transform: translateY(-9px); } }
 
 .values-strip { color: white; background: var(--green-900); }
-.values-grid { min-height: 138px; display: grid; grid-template-columns: repeat(7, 1fr); align-items: stretch; }
+.values-grid { min-height: 138px; display: grid; grid-template-columns: repeat(3, 1fr); align-items: stretch; }
 .values-grid > div { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 18px 14px; border-right: 1px solid rgba(255,255,255,.14); text-align: center; }
 .values-grid > div:first-child { padding-left: 0; }
 .values-grid > div:last-child { padding-right: 0; border-right: 0; }
 .values-grid strong { display: block; color: white; font-family: 'Manrope'; font-size: 11px; line-height: 1.45; text-transform: uppercase; letter-spacing: .25px; }
-.values-grid .value-description { display: block; max-width: 145px; color: rgba(255,255,255,.58); font-size: 9px; line-height: 1.45; }
+.values-grid .value-description { display: block; max-width: 280px; color: rgba(255,255,255,.58); font-size: 10px; line-height: 1.5; }
 
 .wellbeing-section { padding: 100px 0 92px; background: #f3f4f3; }
 .wellbeing-layout { display: grid; grid-template-columns: 1.02fr .98fr; align-items: center; gap: 75px; }
@@ -149,8 +143,8 @@ h1 em { color: var(--orange); font-style: normal; }
 .benefits-heading { margin-bottom: 62px; text-align: center; }
 .benefits-heading h2 { margin: 0 0 12px; font-size: clamp(30px, 3.2vw, 42px); letter-spacing: -.04em; }
 .benefits-heading p { max-width: 710px; margin: 0 auto; color: #756b65; font-size: 14px; line-height: 1.65; }
-.benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.benefit-card { min-height: 290px; padding: 44px 43px 40px; background: white; border: 1px solid rgba(18,55,42,.035); border-radius: 9px; box-shadow: 0 4px 18px rgba(22,43,35,.035); transition: transform .25s, box-shadow .25s, border-color .25s; }
+.benefits-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.benefit-card { min-height: 290px; padding: 40px 30px 36px; background: white; border: 1px solid rgba(18,55,42,.035); border-radius: 9px; box-shadow: 0 4px 18px rgba(22,43,35,.035); transition: transform .25s, box-shadow .25s, border-color .25s; }
 .benefit-card:hover { transform: translateY(-5px); border-color: rgba(242,119,61,.2); box-shadow: 0 18px 40px rgba(22,43,35,.08); }
 .benefit-icon { width: 46px; height: 46px; display: grid; place-items: center; margin-bottom: 25px; color: #b45c1e; background: #ffd9c2; border-radius: 5px; }
 .benefit-icon svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
@@ -174,6 +168,8 @@ h1 em { color: var(--orange); font-style: normal; }
 .job-meta span { padding: 4px 8px; color: var(--muted); background: #f2f5f3; border-radius: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; }
 .job-main h3 { margin: 0 0 5px; font-size: 20px; }
 .job-main p { margin: 0; color: var(--muted); font-size: 12px; }
+.job-requirements { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.job-requirements span, .job-opening-requirements span { padding: 5px 8px; color: var(--green-800); background: var(--green-100); border-radius: 6px; font-size: 9px; font-weight: 700; }
 .job-location { color: var(--muted); font-size: 12px; }
 .job-location span { color: var(--orange); font-size: 16px; }
 .job-arrow { width: 42px; height: 42px; display: grid; place-items: center; color: var(--green-900); border: 1px solid var(--line); border-radius: 50%; font-size: 18px; text-decoration: none; transition: color .2s, background .2s, border .2s; }
@@ -278,6 +274,7 @@ h1 em { color: var(--orange); font-style: normal; }
 .job-opening-title small { grid-column: 1 / -1; color: var(--orange-dark); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .65px; }
 .job-opening-title strong { color: var(--green-950); font-family: 'Manrope'; font-size: 20px; letter-spacing: -.035em; }
 .job-opening-title em { color: var(--muted); font-size: 11px; font-style: normal; text-align: right; }
+.job-opening-requirements { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
 .job-opening-toggle { position: relative; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; }
 .job-opening-toggle::before, .job-opening-toggle::after { content: ''; position: absolute; top: 19px; left: 13px; width: 13px; height: 1px; background: var(--green-900); }
 .job-opening-toggle::after { transform: rotate(90deg); transition: transform .2s; }
@@ -356,22 +353,19 @@ h1 em { color: var(--orange); font-style: normal; }
     .primary-nav.open { transform: translateY(0); opacity: 1; visibility: visible; }
     .primary-nav a { padding: 13px 4px; border-bottom: 1px solid #edf1ee; }
     .primary-nav a::after { display: none; }
-    .primary-nav .nav-auth { width: 100%; min-height: 43px; margin: 8px 0 0; padding: 10px 15px; border-bottom: 0; transform: none; }
-    .primary-nav .nav-register { margin-top: 4px; }
     .nav-toggle { display: block; }
     .nav-toggle[aria-expanded="true"] span:nth-of-type(2) { transform: translateY(7px) rotate(45deg); }
     .nav-toggle[aria-expanded="true"] span:nth-of-type(3) { opacity: 0; }
     .nav-toggle[aria-expanded="true"] span:nth-of-type(4) { transform: translateY(-7px) rotate(-45deg); }
     .hero-grid { grid-template-columns: 1fr 1fr; gap: 25px; }
     .main-card { left: 25px; }
-    .values-grid { grid-template-columns: repeat(4, 1fr); padding-block: 14px; }
-    .values-grid > div:nth-child(4) { border-right: 0; }
-    .values-grid > div:nth-child(-n+4) { border-bottom: 1px solid rgba(255,255,255,.14); }
+    .values-grid { grid-template-columns: repeat(3, 1fr); padding-block: 14px; }
     .wellbeing-layout { gap: 40px; }
     .wellbeing-benefits { gap: 22px 20px; }
     .wellbeing-photos { min-height: 330px; }
     .wellbeing-photo { height: 280px; }
-    .benefit-card { padding: 36px 30px; }
+    .benefits-grid { gap: 14px; }
+    .benefit-card { padding: 32px 24px; }
     .section-heading { grid-template-columns: 1fr 320px; }
     .job-card { grid-template-columns: 64px 1fr 46px; }
     .job-location { grid-column: 2; }
@@ -384,7 +378,7 @@ h1 em { color: var(--orange); font-style: normal; }
 }
 
 @media (max-width: 760px) {
-    .container { width: min(100% - 32px, 600px); }
+    .container { width: min(calc(100% - 32px), 600px); }
     .nav-wrap { height: 70px; }
     .primary-nav { top: 70px; }
     .hero { min-height: auto; }
@@ -416,9 +410,12 @@ h1 em { color: var(--orange); font-style: normal; }
     .benefits-heading { margin-bottom: 38px; }
     .benefits-heading p { font-size: 13px; }
     .desktop-break { display: none; }
-    .benefits-grid { grid-template-columns: 1fr; gap: 16px; }
-    .benefit-card { min-height: 0; padding: 30px 28px 32px; }
-    .benefit-icon { margin-bottom: 21px; }
+    .benefits-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .benefit-card { min-height: 230px; padding: 20px 12px; }
+    .benefit-icon { width: 38px; height: 38px; margin-bottom: 17px; }
+    .benefit-icon svg { width: 23px; height: 23px; }
+    .benefit-card h3 { font-size: clamp(13px, 3.2vw, 18px); overflow-wrap: anywhere; }
+    .benefit-card p { font-size: clamp(9px, 2.2vw, 12px); line-height: 1.5; }
     .section { padding: 82px 0; }
     .section-heading { grid-template-columns: 1fr; gap: 20px; margin-bottom: 37px; }
     .section-heading-action { gap: 17px; }
@@ -447,26 +444,37 @@ h1 em { color: var(--orange); font-style: normal; }
     .selection-preparation { padding: 78px 0; }
     .preparation-grid { grid-template-columns: 1fr; gap: 15px; }
     .selection-cta { align-items: flex-start; flex-direction: column; gap: 30px; }
-    .jobs-page-hero { padding: 58px 0 62px; }
-    .jobs-page-hero h1 { font-size: clamp(34px, 10vw, 46px); }
+    .jobs-page { overflow: clip; }
+    .jobs-page-hero { padding: 46px 0 54px; }
+    .jobs-page-hero h1 { margin-bottom: 15px; font-size: clamp(32px, 9.5vw, 40px); overflow-wrap: anywhere; }
     .jobs-page-hero p { font-size: 12px; }
-    .job-search { grid-template-columns: 1fr; gap: 0; margin-top: 34px; padding: 8px; }
-    .job-search-field { border-right: 0; border-bottom: 1px solid #ece8e5; }
+    .job-search { grid-template-columns: 1fr; gap: 0; margin-top: 28px; padding: 7px; border-radius: 15px; }
+    .job-search-field { height: 52px; padding-inline: 17px; border-right: 0; border-bottom: 1px solid #ece8e5; }
     .job-department-field { margin-bottom: 8px; border-bottom: 0; }
     .custom-select-menu { left: 0; right: 0; }
     .job-search-button { min-height: 50px; }
-    .jobs-board { padding: 78px 0; }
-    .jobs-board-heading { align-items: flex-start; flex-direction: column; gap: 20px; margin-bottom: 32px; }
-    .job-opening summary { grid-template-columns: 52px 1fr 35px; gap: 14px; min-height: 110px; padding: 20px 17px; }
+    .jobs-board { padding: 64px 0; }
+    .jobs-board-heading { align-items: flex-start; flex-direction: column; gap: 15px; margin-bottom: 28px; }
+    .jobs-board-heading h2 { font-size: clamp(29px, 8vw, 36px); }
+    .job-openings { gap: 12px; }
+    .job-opening summary { grid-template-columns: 48px minmax(0, 1fr) 34px; gap: 12px; min-height: 104px; padding: 18px 14px; }
+    .job-opening .job-icon { width: 48px; height: 48px; border-radius: 13px; font-size: 11px; }
     .job-opening-title { grid-template-columns: 1fr; gap: 4px; }
+    .job-opening-title small { font-size: 8px; line-height: 1.5; overflow-wrap: anywhere; }
     .job-opening-title strong { font-size: 16px; }
     .job-opening-title em { font-size: 9px; text-align: left; }
+    .job-opening-requirements { margin-top: 7px; }
+    .job-opening-requirements span { padding: 4px 6px; font-size: 8px; }
     .job-opening-toggle { width: 34px; height: 34px; }
     .job-opening-toggle::before, .job-opening-toggle::after { top: 16px; left: 10px; }
-    .job-opening-details { grid-template-columns: 1fr; gap: 0; padding: 0 25px 30px; }
-    .job-opening-details .button { margin-top: 20px; }
+    .job-opening-details { grid-template-columns: 1fr; gap: 0; padding: 0 20px 25px; }
+    .job-opening-details > div { padding-top: 22px; }
+    .job-opening-details .button { width: 100%; margin-top: 20px; }
     .application-guide { padding-bottom: 78px; }
-    .application-card { align-items: flex-start; flex-direction: column; gap: 30px; padding: 42px 28px; }
+    .application-card { align-items: flex-start; flex-direction: column; gap: 28px; padding: 38px 24px; border-radius: 19px; }
+    .application-card h2 { font-size: 30px; }
+    .application-actions { width: 100%; }
+    .application-actions .button { width: 100%; }
     .join-card { grid-template-columns: 1fr; gap: 45px; padding: 50px 28px; border-radius: 22px; }
     .join-quote { padding: 29px; }
     .faq-layout { grid-template-columns: 1fr; gap: 35px; }
@@ -478,7 +486,7 @@ h1 em { color: var(--orange); font-style: normal; }
 
 @media (max-width: 420px) {
     .brand { font-size: 16px; }
-    .header-logo { width: 170px; }
+    .header-logo { width: 155px; }
     .brand-mark { width: 35px; height: 35px; }
     .hero-visual { min-height: 410px; }
     .portrait-area { height: 245px; }
@@ -491,9 +499,16 @@ h1 em { color: var(--orange); font-style: normal; }
     .wellbeing-photos { min-height: 245px; gap: 9px; }
     .wellbeing-photo { height: 220px; border-radius: 8px; }
     .job-card { grid-template-columns: 1fr 38px; }
-    .job-icon { display: none; }
+    .job-card > .job-icon { display: none; }
     .job-location { grid-column: 1; }
     .job-arrow { grid-column: 2; }
+    .jobs-page-hero h1 { font-size: clamp(30px, 9vw, 36px); }
+    .job-opening summary { grid-template-columns: 44px minmax(0, 1fr) 32px; gap: 10px; padding: 16px 12px; }
+    .job-opening .job-icon { width: 44px; height: 44px; }
+    .job-opening-title strong { font-size: 15px; }
+    .job-opening-toggle { width: 32px; height: 32px; }
+    .job-opening-toggle::before, .job-opening-toggle::after { top: 15px; left: 9px; }
+    .job-opening-details { padding-inline: 17px; }
     .footer-bottom { flex-direction: column; justify-content: center; gap: 8px; }
 }
 

@@ -76,6 +76,11 @@
         const jobsCount = document.querySelector('#jobs-count');
         const jobsEmpty = document.querySelector('#jobs-empty');
 
+        const targetedOpening = document.querySelector(window.location.hash);
+        if (targetedOpening?.classList.contains('job-opening')) {
+            targetedOpening.open = true;
+        }
+
         const filterJobs = () => {
             const keyword = keywordInput.value.trim().toLocaleLowerCase('id');
             const department = departmentSelect.value;
