@@ -418,6 +418,47 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .screening-table-edit-form .screening-edit-question { grid-column: 1 / -1; }
 .department-table-edit-form select { width: 100%; min-height: 39px; display: block; margin-top: 7px; padding: 8px 10px; color: #3d5062; background: white; border: 1px solid #dce3e9; border-radius: 7px; font: inherit; font-size: 10px; outline: 0; }
 .screening-table-edit-form .screening-flags { align-self: center; margin: 0; }
+.vacancy-content, .vacancy-form-content { max-width: 1320px; padding-bottom: 60px; }
+.vacancy-create-link { font-size: 11px; }
+.vacancy-filter-form { display: grid; grid-template-columns: minmax(240px, 1fr) 190px 145px auto auto; gap: 9px; padding: 15px 18px; }
+.vacancy-filter-form input, .vacancy-filter-form select { min-width: 0; height: 42px; padding: 0 12px; color: #3d5062; background: #fbfcfd; border: 1px solid #dce3e9; border-radius: 8px; font-size: 10px; outline: 0; }
+.vacancy-filter-form button, .vacancy-filter-form a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; }
+.vacancy-filter-form button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
+.vacancy-filter-form a { color: #657582; background: white; border: 1px solid #dce3e9; }
+.vacancy-table { min-width: 1160px; }
+.vacancy-table td { color: #60717e; font-size: 10px; }
+.vacancy-table-subtext, .vacancy-period small { display: block; margin-top: 4px; color: #8b97a0; font-size: 8px; font-weight: 500; }
+.vacancy-period { white-space: nowrap; }
+.vacancy-status { display: inline-flex; align-items: center; padding: 6px 9px; border-radius: 999px; font-size: 9px; font-weight: 850; white-space: nowrap; }
+.status-open { color: #256849; background: #e8f5ef; }
+.status-draft { color: #75602e; background: #fff7df; }
+.status-closed { color: #855c58; background: #f4eeee; }
+.status-archived { color: #65717b; background: #edf0f2; }
+.vacancy-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.vacancy-actions form { margin: 0; }
+.vacancy-actions a, .vacancy-actions button { min-height: 31px; display: inline-flex; align-items: center; padding: 0 9px; color: #536b7c; background: white; border: 1px solid #dce3e9; border-radius: 6px; font-size: 9px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.vacancy-actions a { color: white; background: var(--admin-navy); border-color: var(--admin-navy); }
+.vacancy-actions .department-delete-button { color: #9d4139; background: #fff4f2; border-color: #f3d8d4; }
+.vacancy-actions button:disabled { color: #a3aab0; background: #f5f6f7; border-color: #e5e8ea; cursor: not-allowed; }
+.vacancy-form-card { margin-bottom: 18px; }
+.vacancy-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 20px 23px 23px; }
+.vacancy-form-grid label, .vacancy-text-fields label { color: #526474; font-size: 10px; font-weight: 750; }
+.vacancy-form-grid input, .vacancy-form-grid select, .vacancy-text-fields textarea { width: 100%; min-height: 42px; display: block; margin-top: 7px; padding: 9px 11px; color: #3d5062; background: white; border: 1px solid #dce3e9; border-radius: 7px; font: inherit; font-size: 11px; outline: 0; }
+.vacancy-form-grid input:focus, .vacancy-form-grid select:focus, .vacancy-text-fields textarea:focus { border-color: #f49a69; box-shadow: 0 0 0 3px rgba(248,118,56,.09); }
+.vacancy-wide-field { grid-column: 1 / -1; }
+.vacancy-text-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px 23px 23px; }
+.vacancy-text-fields label:first-child { grid-column: 1 / -1; }
+.vacancy-text-fields textarea { resize: vertical; line-height: 1.55; }
+.vacancy-form-grid .vacancy-checkbox { display: flex; align-items: center; gap: 8px; align-self: end; min-height: 42px; }
+.vacancy-form-grid .vacancy-checkbox input { width: 15px; min-height: 15px; display: inline-block; margin: 0; accent-color: var(--admin-orange); }
+.vacancy-form-submit { display: flex; justify-content: flex-end; gap: 9px; padding: 0 23px 23px; }
+.vacancy-form-submit a, .vacancy-form-submit button, .screening-toolbar button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.vacancy-form-submit a { color: #657582; background: white; border: 1px solid #dce3e9; }
+.vacancy-form-submit button, .screening-toolbar button { color: white; background: var(--admin-orange); border: 0; }
+.screening-toolbar { display: flex; justify-content: flex-end; padding: 13px 18px; border-bottom: 1px solid #e9edf0; }
+.vacancy-question-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.vacancy-question-form > strong, .vacancy-question-form .screening-edit-question { grid-column: 1 / -1; }
+.vacancy-question-form .screening-flags { margin: 4px 0; }
 
 @media (max-width: 900px) {
     .login-shell { grid-template-columns: 1fr; }
@@ -439,6 +480,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .department-create-form, .department-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .department-table-edit-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .recruitment-table-edit-form, .screening-table-edit-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vacancy-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vacancy-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 680px) {
@@ -483,6 +526,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .department-table-edit-form { grid-template-columns: 1fr; }
     .recruitment-table-edit-form, .screening-table-edit-form { grid-template-columns: 1fr; }
     .screening-table-edit-form .screening-edit-question { grid-column: auto; }
+    .vacancy-filter-form, .vacancy-form-grid, .vacancy-text-fields, .vacancy-question-form { grid-template-columns: 1fr; }
+    .vacancy-filter-form { padding-inline: 14px; }
+    .vacancy-wide-field, .vacancy-text-fields label:first-child, .vacancy-question-form > strong, .vacancy-question-form .screening-edit-question { grid-column: auto; }
+    .vacancy-form-grid, .vacancy-text-fields { padding-inline: 18px; }
+    .vacancy-form-submit { align-items: stretch; flex-direction: column; padding-inline: 18px; }
     .department-edit-buttons a, .department-edit-buttons button { flex: 1; }
 }
 

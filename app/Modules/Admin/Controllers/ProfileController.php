@@ -21,6 +21,7 @@ class ProfileController extends BaseController
             'user'           => $user,
             'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
+            'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
             'activeSessions' => Services::hrdSession()->activeSessions($userId),
             'loginHistory'   => Services::hrdSession()->loginHistory($userId),
             'success'        => session()->getFlashdata('profile_success'),

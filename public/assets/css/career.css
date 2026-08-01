@@ -280,6 +280,7 @@ h1 em { color: var(--orange); font-style: normal; }
 .job-opening-details p, .job-opening-details li { color: var(--muted); font-size: 11px; line-height: 1.7; }
 .job-opening-details p { margin: 0; }
 .job-opening-details ul { margin: 0; padding-left: 17px; }
+.job-opening-details .job-salary { grid-column: 1 / -1; padding: 12px 15px; color: #245f45; background: #eaf6ef; border-radius: 8px; font-weight: 800; }
 .job-opening-details .button { grid-column: 1 / -1; justify-self: start; min-height: 44px; }
 .jobs-empty { padding: 60px 25px; color: var(--muted); border: 1px dashed #d6ded9; border-radius: 17px; text-align: center; }
 .jobs-empty > span { display: block; margin-bottom: 10px; color: var(--orange); font-size: 35px; }

@@ -15,15 +15,25 @@ class VacancyModel extends Model
     protected $allowedFields = [
         'code',
         'title',
+        'summary',
+        'job_description',
+        'responsibilities',
+        'qualifications',
         'department_id',
         'location',
         'employment_type',
         'minimum_education',
         'minimum_age',
         'maximum_age',
+        'headcount',
+        'salary_min',
+        'salary_max',
+        'show_salary',
         'status',
         'opened_at',
         'closed_at',
+        'created_by',
+        'updated_by',
     ];
 
     /**

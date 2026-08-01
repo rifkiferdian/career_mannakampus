@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Lowongan Kerja | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=18">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=19">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>

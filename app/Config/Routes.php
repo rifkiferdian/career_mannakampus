@@ -34,6 +34,17 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('departemen/(:num)', 'DepartmentController::update/$1', ['filter' => 'permission:departments.manage', 'as' => 'hrd.departments.update']);
     $routes->post('departemen/(:num)/status', 'DepartmentController::toggle/$1', ['filter' => 'permission:departments.manage', 'as' => 'hrd.departments.status']);
     $routes->post('departemen/(:num)/hapus', 'DepartmentController::delete/$1', ['filter' => 'permission:departments.delete', 'as' => 'hrd.departments.delete']);
+    $routes->get('lowongan', 'VacancyManagementController::index', ['filter' => 'permission:vacancies.view', 'as' => 'hrd.vacancies']);
+    $routes->get('lowongan/baru', 'VacancyManagementController::create', ['filter' => 'permission:vacancies.create', 'as' => 'hrd.vacancies.create']);
+    $routes->post('lowongan', 'VacancyManagementController::store', ['filter' => 'permission:vacancies.create', 'as' => 'hrd.vacancies.store']);
+    $routes->get('lowongan/(:num)/edit', 'VacancyManagementController::edit/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.edit']);
+    $routes->post('lowongan/(:num)', 'VacancyManagementController::update/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.update']);
+    $routes->post('lowongan/(:num)/status', 'VacancyManagementController::changeStatus/$1', ['filter' => 'permission:vacancies.publish', 'as' => 'hrd.vacancies.status']);
+    $routes->post('lowongan/(:num)/hapus', 'VacancyManagementController::delete/$1', ['filter' => 'permission:vacancies.delete', 'as' => 'hrd.vacancies.delete']);
+    $routes->post('lowongan/(:num)/screening/default', 'VacancyManagementController::copyScreeningDefaults/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.defaults']);
+    $routes->post('lowongan/(:num)/screening', 'VacancyManagementController::createQuestion/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.create']);
+    $routes->post('lowongan/(:num)/screening/(:num)', 'VacancyManagementController::updateQuestion/$1/$2', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.update']);
+    $routes->post('lowongan/(:num)/screening/(:num)/hapus', 'VacancyManagementController::deleteQuestion/$1/$2', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.delete']);
     $routes->get('pengaturan-rekrutmen', 'RecruitmentSettingsController::index', ['filter' => 'permission:recruitment.settings.view', 'as' => 'hrd.recruitment.settings']);
     $routes->post('pengaturan-rekrutmen/tahapan', 'RecruitmentSettingsController::updateStages', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.stages']);
     $routes->post('pengaturan-rekrutmen/tahapan/(:num)', 'RecruitmentSettingsController::updateStage/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.stages.update']);

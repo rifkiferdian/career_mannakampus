@@ -37,6 +37,7 @@ class DepartmentController extends BaseController
             'canManage' => Services::authorization()->can($userId, 'departments.manage'),
             'canDelete' => Services::authorization()->can($userId, 'departments.delete'),
             'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
+            'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
             'success' => session()->getFlashdata('department_success'),
             'error' => session()->getFlashdata('department_error'),
         ]);

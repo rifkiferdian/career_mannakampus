@@ -19,6 +19,7 @@ class RecruitmentSettingsController extends BaseController
             'auth'               => $auth,
             'canManage'          => Services::authorization()->can($userId, 'recruitment.settings.manage'),
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
+            'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
             'stages'             => $database->table('recruitment_stages')->orderBy('display_order', 'ASC')->get()->getResultArray(),
             'rejectionTemplates' => $database->table('rejection_reason_templates')->orderBy('display_order', 'ASC')->get()->getResultArray(),
             'screeningQuestions' => $database->table('default_screening_questions')->orderBy('display_order', 'ASC')->get()->getResultArray(),

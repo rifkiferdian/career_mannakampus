@@ -22,6 +22,7 @@ class DashboardController extends BaseController
             'auth'               => $auth,
             'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
+            'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
             'openVacancies'      => $this->countOpenVacancies($database),
             'applicantCount'     => $database->table('applicants')->where('deleted_at', null)->countAllResults(),
             'applicationCount'   => $database->table('application_batches')->countAllResults(),

@@ -15,11 +15,13 @@ class ScreeningQuestionModel extends Model
         'question_code',
         'question_text',
         'answer_type',
+        'answer_options',
         'is_required',
         'is_knockout',
         'expected_value',
         'comparison_operator',
         'display_order',
+        'is_active',
     ];
 
     /**
@@ -34,10 +36,11 @@ class ScreeningQuestionModel extends Model
         }
 
         return $this->select(
-            'id, vacancy_id, question_code, question_text, answer_type, '
-            . 'is_required, is_knockout, expected_value, comparison_operator, display_order',
+            'id, vacancy_id, question_code, question_text, answer_type, answer_options, '
+            . 'is_required, is_knockout, expected_value, comparison_operator, display_order, is_active',
         )
             ->whereIn('vacancy_id', $vacancyIds)
+            ->where('is_active', 1)
             ->orderBy('display_order', 'ASC')
             ->findAll();
     }

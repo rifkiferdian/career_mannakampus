@@ -264,6 +264,10 @@
                                             <option value="1" <?= $oldAnswer === '1' ? 'selected' : '' ?>>Ya</option>
                                             <option value="0" <?= $oldAnswer === '0' ? 'selected' : '' ?>>Tidak</option>
                                         </select>
+                                    <?php elseif ($question['answer_type'] === 'yes_no'): ?>
+                                        <select id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" <?= (int) $question['is_required'] === 1 ? 'required' : '' ?> <?= $isSelected ? '' : 'disabled' ?>>
+                                            <option value="">Pilih jawaban</option><option value="YA" <?= $oldAnswer === 'YA' ? 'selected' : '' ?>>Ya</option><option value="TIDAK" <?= $oldAnswer === 'TIDAK' ? 'selected' : '' ?>>Tidak</option>
+                                        </select>
                                     <?php elseif ($question['answer_type'] === 'education_level'): ?>
                                         <select id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" data-autofill="education" <?= (int) $question['is_required'] === 1 ? 'required' : '' ?> <?= $isSelected ? '' : 'disabled' ?>>
                                             <option value="">Pilih pendidikan</option>
@@ -275,6 +279,9 @@
                                         <select id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" data-autofill="gender" required <?= $isSelected ? '' : 'disabled' ?>><option value="">Pilih jenis kelamin</option><option value="PRIA">Pria</option><option value="WANITA">Wanita</option></select>
                                     <?php elseif ($question['question_code'] === 'marital_status'): ?>
                                         <select id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" data-autofill="marital_status" required <?= $isSelected ? '' : 'disabled' ?>><option value="">Pilih status</option><option value="BELUM MENIKAH">Belum Menikah</option><option value="MENIKAH">Menikah</option><option value="CERAI">Cerai</option></select>
+                                    <?php elseif ($question['answer_type'] === 'choice'): ?>
+                                        <?php $answerOptions = json_decode((string) ($question['answer_options'] ?? ''), true); $answerOptions = is_array($answerOptions) ? $answerOptions : []; ?>
+                                        <select id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" <?= (int) $question['is_required'] === 1 ? 'required' : '' ?> <?= $isSelected ? '' : 'disabled' ?>><option value="">Pilih jawaban</option><?php foreach ($answerOptions as $option): ?><option value="<?= esc((string) $option, 'attr') ?>" <?= $oldAnswer === (string) $option ? 'selected' : '' ?>><?= esc((string) $option) ?></option><?php endforeach ?></select>
                                     <?php else: ?>
                                         <input id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" type="<?= $question['answer_type'] === 'number' ? 'number' : 'text' ?>" value="<?= esc($oldAnswer, 'attr') ?>" <?= $question['question_code'] === 'age' ? 'data-autofill="age" readonly' : '' ?> <?= (int) $question['is_required'] === 1 ? 'required' : '' ?> <?= $isSelected ? '' : 'disabled' ?>>
                                     <?php endif ?>
