@@ -4,6 +4,7 @@ namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
 use CodeIgniter\Database\BaseConnection;
+use Config\Services;
 
 class DashboardController extends BaseController
 {
@@ -14,9 +15,13 @@ class DashboardController extends BaseController
             ->setHeader('Pragma', 'no-cache');
 
         $database = db_connect();
+        $auth = session()->get('hrd_auth');
+        $userId = (int) ($auth['user_id'] ?? 0);
 
         return view('admin/dashboard', [
-            'auth'               => session()->get('hrd_auth'),
+            'auth'               => $auth,
+            'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
+            'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
             'openVacancies'      => $this->countOpenVacancies($database),
             'applicantCount'     => $database->table('applicants')->where('deleted_at', null)->countAllResults(),
             'applicationCount'   => $database->table('application_batches')->countAllResults(),

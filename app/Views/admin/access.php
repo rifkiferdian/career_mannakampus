@@ -29,6 +29,14 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 7h5M18.5 4.5v5M15 15h6M18 12v6"/></svg>
                     User &amp; Akses
                 </a>
+                <a href="<?= site_url('adminhrdmannakampus/departemen') ?>">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h2M14 10h2"/></svg>
+                    Departemen
+                </a>
+                <a href="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen') ?>">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+                    Pengaturan Rekrutmen
+                </a>
                 <span class="admin-nav-disabled" title="Segera tersedia">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
                     Kandidat <small>Segera</small>
