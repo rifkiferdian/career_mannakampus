@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Modules\Admin\Services\ExcelWorkbookBuilder;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\HTTP\DownloadResponse;
+use Config\Services;
 use DateTimeImmutable;
 
 class ApplicantReportController extends BaseController
@@ -42,14 +43,17 @@ class ApplicantReportController extends BaseController
         $filters = $this->filters();
         $applications = $this->reportRows($filters);
         $applicantIds = array_unique(array_map('intval', array_column($applications, 'applicant_id')));
+        $auth = session()->get('hrd_auth');
+        $userId = (int) ($auth['user_id'] ?? 0);
 
         return view('admin/applicant_report', [
-            'auth' => session()->get('hrd_auth'),
+            'auth' => $auth,
             'applications' => $applications,
             'filters' => $filters,
             'vacancies' => db_connect()->table('vacancies')->select('id, title')->where('deleted_at', null)->orderBy('title')->get()->getResultArray(),
             'departments' => db_connect()->table('departments')->select('id, name')->orderBy('name')->get()->getResultArray(),
             'statusLabels' => self::STATUS_LABELS,
+            'canViewCandidate' => Services::authorization()->can($userId, 'candidates.view'),
             'summary' => [
                 'applicants' => count($applicantIds),
                 'applications' => count($applications),
