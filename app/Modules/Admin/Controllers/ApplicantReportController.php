@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
+use App\Modules\Admin\Services\ExcelWorkbookBuilder;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\HTTP\DownloadResponse;
 use DateTimeImmutable;
@@ -62,11 +63,8 @@ class ApplicantReportController extends BaseController
     {
         $this->disableClientCaching();
         $rows = $this->reportRows($this->filters());
-        $stream = fopen('php://temp', 'r+');
-        fputcsv($stream, ['No. Lamaran', 'Nama Pelamar', 'Email', 'WhatsApp', 'Posisi', 'Departemen', 'Tanggal Daftar', 'Status Screening', 'Nilai Screening', 'Status Lamaran']);
-
-        foreach ($rows as $row) {
-            fputcsv($stream, array_map([$this, 'safeCsvValue'], [
+        $excelRows = array_map(function (array $row): array {
+            return [
                 $row['application_number'],
                 $row['full_name'],
                 $row['email'],
@@ -77,14 +75,15 @@ class ApplicantReportController extends BaseController
                 $this->screeningLabel((string) $row['screening_status']),
                 $row['screening_score'] === null ? '-' : number_format((float) $row['screening_score'], 2, ',', '.'),
                 $this->statusLabel((string) $row['application_status']),
-            ]));
-        }
+            ];
+        }, $rows);
+        $workbook = (new ExcelWorkbookBuilder())->build(
+            'Laporan Pelamar Manna Kampus',
+            ['No. Lamaran', 'Nama Pelamar', 'Email', 'WhatsApp', 'Posisi', 'Departemen', 'Tanggal Daftar', 'Status Screening', 'Nilai Screening', 'Status Lamaran'],
+            $excelRows,
+        );
 
-        rewind($stream);
-        $csv = "\xEF\xBB\xBF" . stream_get_contents($stream);
-        fclose($stream);
-
-        return $this->response->download('laporan-pelamar-' . date('Ymd-His') . '.csv', $csv);
+        return $this->response->download('laporan-pelamar-' . date('Ymd-His') . '.xlsx', $workbook, true);
     }
 
     /** @return array{keyword: string, vacancy_id: int, department_id: int, status: string, date_from: string, date_to: string} */
@@ -191,13 +190,6 @@ class ApplicantReportController extends BaseController
         }
 
         return ucwords(str_replace('_', ' ', $status));
-    }
-
-    private function safeCsvValue(mixed $value): string
-    {
-        $value = (string) $value;
-
-        return preg_match('/^[=+\-@]/', $value) === 1 ? "'" . $value : $value;
     }
 
     private function disableClientCaching(): void

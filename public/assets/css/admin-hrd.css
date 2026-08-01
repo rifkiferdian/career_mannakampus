@@ -180,10 +180,17 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .new-user-jump { min-height: 42px; display: inline-flex; align-items: center; padding: 0 16px; color: white; background: var(--admin-orange); border-radius: 8px; font-size: 10px; font-weight: 800; text-decoration: none; box-shadow: 0 8px 20px rgba(248,118,56,.18); }
 .new-user-jump:hover { background: var(--admin-orange-dark); }
 .access-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-.access-summary article { padding: 19px 20px; background: white; border: 1px solid var(--admin-line); border-radius: 11px; }
+.access-summary article { position: relative; min-height: 92px; padding: 19px 72px 19px 20px; background: white; border: 1px solid var(--admin-line); border-radius: 11px; overflow: hidden; }
 .access-summary strong, .access-summary span { display: block; }
 .access-summary strong { color: var(--admin-navy); font-size: 24px; line-height: 1; }
 .access-summary span { margin-top: 7px; color: #83909a; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.summary-card-icon { position: absolute; top: 50%; right: 18px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 11px; transform: translateY(-50%); }
+.summary-card-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.summary-card-icon.icon-blue { color: #426d91; background: #edf4fa; }
+.summary-card-icon.icon-green { color: #27775b; background: #e8f5ef; }
+.summary-card-icon.icon-orange { color: #c86130; background: #fff0e8; }
+.summary-card-icon.icon-purple { color: #705a9b; background: #f1edfa; }
+.summary-card-icon.icon-red { color: #a34f47; background: #fff0ed; }
 .access-users-card { margin-bottom: 20px; }
 .access-table-wrap { overflow-x: auto; }
 .access-table { width: 100%; border-collapse: collapse; }
@@ -482,6 +489,81 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .report-score { margin-top: 5px; color: #7c8993; font-size: 8px; }
 .report-application-status { color: #405f75; background: #edf3f7; }
 .report-number { color: #677783; font-size: 9px; white-space: nowrap; }
+
+/* Slightly larger typography for primary admin data pages */
+.access-content .dashboard-welcome p,
+.department-content .dashboard-welcome p,
+.vacancy-content .dashboard-welcome p,
+.report-content .dashboard-welcome p { font-size: 12px; }
+.access-content .access-summary strong,
+.department-content .access-summary strong,
+.vacancy-content .access-summary strong,
+.report-content .access-summary strong { font-size: 26px; }
+.department-content .access-summary span,
+.vacancy-content .access-summary span,
+.report-content .access-summary span { font-size: 10px; }
+.access-content .access-summary span { font-size: 12px; }
+.department-content .department-search input,
+.vacancy-content .vacancy-filter-form input,
+.vacancy-content .vacancy-filter-form select,
+.report-content .report-filter-form > input,
+.report-content .report-filter-form select,
+.report-content .report-filter-form label input { font-size: 12px; }
+.department-content .department-search button,
+.department-content .department-search a,
+.vacancy-content .vacancy-filter-form button,
+.vacancy-content .vacancy-filter-form a,
+.report-content .report-filter-form button,
+.report-content .report-filter-form > a { font-size: 11px; }
+.report-content .report-filter-form label { font-size: 9px; }
+.department-content .department-table th,
+.vacancy-content .department-table th,
+.report-content .department-table th { font-size: 10px; }
+.department-content .department-table td,
+.vacancy-content .vacancy-table td,
+.report-content .report-table td { font-size: 11px; }
+.department-content .department-name-cell strong,
+.vacancy-content .department-name-cell strong,
+.report-content .department-name-cell strong,
+.report-content .report-applicant strong { font-size: 13px; }
+.department-content .department-name-cell code,
+.vacancy-content .department-name-cell code,
+.report-content .department-name-cell code,
+.report-content .report-number { font-size: 10px; }
+.department-content .department-description-cell,
+.report-content .report-applicant a { font-size: 11px; }
+.vacancy-content .vacancy-table-subtext,
+.vacancy-content .vacancy-period small,
+.report-content .report-applicant small,
+.report-content .report-date small,
+.report-content .report-score { font-size: 9px; }
+.department-content .department-vacancy-count,
+.vacancy-content .vacancy-status,
+.vacancy-content .vacancy-actions a,
+.vacancy-content .vacancy-actions button,
+.report-content .report-screening,
+.report-content .report-application-status { font-size: 10px; }
+.access-content .access-table th { font-size: 11px; }
+.access-content .access-table td { font-size: 12px; }
+.access-content .access-user-cell strong { font-size: 13px; }
+.access-content .access-user-cell small { font-size: 11px; }
+.access-content .role-pill,
+.access-content .inline-role-form select,
+.access-content .inline-role-form button,
+.access-content .account-status,
+.access-content .status-action,
+.access-content .protected-label,
+.access-content .never-login { font-size: 11px; }
+.access-content .new-user-form label,
+.access-content .new-user-form .admin-input input,
+.access-content .admin-select select,
+.access-content .permission-heading p { font-size: 13px; }
+.access-content .role-card-heading h3 { font-size: 18px; }
+.access-content .role-card-heading p { font-size: 11px; }
+.access-content .permission-options strong { font-size: 12px; }
+.access-content .permission-options small { font-size: 10px; }
+.access-content .save-permissions,
+.access-content .all-access-note { font-size: 12px; }
 
 @media (max-width: 900px) {
     .login-shell { grid-template-columns: 1fr; }

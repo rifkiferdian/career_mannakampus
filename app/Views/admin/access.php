@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#102a43">
     <title>User &amp; Akses | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=6">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=13">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
@@ -30,10 +30,10 @@
                 </section>
 
                 <section class="access-summary" aria-label="Ringkasan akses">
-                    <article><strong><?= count($users) ?></strong><span>Total akun internal</span></article>
-                    <article><strong><?= count(array_filter($users, static fn (array $user): bool => (bool) $user['is_active'])) ?></strong><span>Akun aktif</span></article>
-                    <article><strong><?= count($roles) ?></strong><span>Role sistem</span></article>
-                    <article><strong><?= count($permissions) ?></strong><span>Permission rekrutmen</span></article>
+                    <article><i class="summary-card-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M17 9h4M19 7v4"/></svg></i><strong><?= count($users) ?></strong><span>Total akun internal</span></article>
+                    <article><i class="summary-card-icon icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0m2-5 2 2 4-5"/></svg></i><strong><?= count(array_filter($users, static fn (array $user): bool => (bool) $user['is_active'])) ?></strong><span>Akun aktif</span></article>
+                    <article><i class="summary-card-icon icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 4.8 3.3 7.7 8 9 4.7-1.3 8-4.2 8-9V7l-8-4Z"/><path d="M9 12h6M12 9v6"/></svg></i><strong><?= count($roles) ?></strong><span>Role sistem</span></article>
+                    <article><i class="summary-card-icon icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="3"/><path d="M11 12h10M17 12v3M20 12v2"/></svg></i><strong><?= count($permissions) ?></strong><span>Permission rekrutmen</span></article>
                 </section>
 
                 <section class="settings-card access-users-card" aria-labelledby="users-title">

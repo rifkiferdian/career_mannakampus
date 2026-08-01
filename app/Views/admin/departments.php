@@ -11,7 +11,7 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
     <meta name="theme-color" content="#102a43">
     <title>Departemen | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=8">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=13">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
@@ -34,10 +34,10 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
                 </section>
 
                 <section class="access-summary department-summary" aria-label="Ringkasan departemen">
-                    <article><strong><?= count($departments) ?></strong><span>Hasil ditampilkan</span></article>
-                    <article><strong><?= $activeCount ?></strong><span>Departemen aktif</span></article>
-                    <article><strong><?= count($departments) - $activeCount ?></strong><span>Nonaktif</span></article>
-                    <article><strong><?= $vacancyCount ?></strong><span>Lowongan terkait</span></article>
+                    <article><i class="summary-card-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h2M14 10h2"/></svg></i><strong><?= count($departments) ?></strong><span>Hasil ditampilkan</span></article>
+                    <article><i class="summary-card-icon icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5"/><path d="m9 11 2 2 4-4"/></svg></i><strong><?= $activeCount ?></strong><span>Departemen aktif</span></article>
+                    <article><i class="summary-card-icon icon-red" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M9 11h6"/></svg></i><strong><?= count($departments) - $activeCount ?></strong><span>Nonaktif</span></article>
+                    <article><i class="summary-card-icon icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="2"/><path d="M9 7V5h6v2M4 12h16"/></svg></i><strong><?= $vacancyCount ?></strong><span>Lowongan terkait</span></article>
                 </section>
 
                 <section class="settings-card department-toolbar-card">
