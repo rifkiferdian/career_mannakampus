@@ -2,6 +2,7 @@
 
 namespace App\Modules\Admin\Models;
 
+use App\Modules\Admin\Services\AuthorizationService;
 use CodeIgniter\Model;
 
 class UserModel extends Model
@@ -53,12 +54,13 @@ class UserModel extends Model
             ->where($field, $value)
             ->where('users.is_active', 1)
             ->where('users.deleted_at', null)
-            ->where('roles.code', 'HRD')
+            ->whereIn('roles.code', AuthorizationService::PORTAL_ROLES)
             ->where('roles.is_active', 1)
             ->groupStart()
                 ->where('user_roles.expires_at', null)
                 ->orWhere('user_roles.expires_at >', date('Y-m-d H:i:s'))
             ->groupEnd()
+            ->orderBy("CASE roles.code WHEN 'SUPER_ADMIN' THEN 1 WHEN 'HRD_MANAGER' THEN 2 WHEN 'RECRUITER' THEN 3 ELSE 4 END", '', false)
             ->get()
             ->getRowArray();
     }

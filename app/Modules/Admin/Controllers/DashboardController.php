@@ -22,6 +22,7 @@ class DashboardController extends BaseController
             'applicationCount'   => $database->table('application_batches')->countAllResults(),
             'recentApplications' => $this->recentApplications($database),
             'success'            => session()->getFlashdata('auth_success'),
+            'error'              => session()->getFlashdata('access_error'),
         ]);
     }
 

@@ -14,7 +14,7 @@ $formatJakarta = static function (string $date, string $format): string {
     <meta name="theme-color" content="#102a43">
     <title>Profil &amp; Keamanan | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=3">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=4">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
@@ -33,6 +33,12 @@ $formatJakarta = static function (string $date, string $format): string {
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
                     Profil &amp; Keamanan
                 </a>
+                <?php if (($auth['role'] ?? '') === 'SUPER_ADMIN'): ?>
+                    <a href="<?= site_url('adminhrdmannakampus/akses') ?>">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 7h5M18.5 4.5v5M15 15h6M18 12v6"/></svg>
+                        User &amp; Akses
+                    </a>
+                <?php endif ?>
                 <span class="admin-nav-disabled" title="Segera tersedia">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
                     Kandidat <small>Segera</small>

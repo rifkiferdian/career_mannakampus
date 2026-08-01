@@ -174,6 +174,100 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .history-item div > span { margin-top: 3px; color: #8a959e; font-size: 8px; }
 .history-item time { color: #7c8994; font-size: 8px; white-space: nowrap; }
 
+.access-content { max-width: 1280px; }
+.access-heading { align-items: center; }
+.access-heading h1 { font-size: clamp(31px, 3vw, 43px); }
+.new-user-jump { min-height: 42px; display: inline-flex; align-items: center; padding: 0 16px; color: white; background: var(--admin-orange); border-radius: 8px; font-size: 10px; font-weight: 800; text-decoration: none; box-shadow: 0 8px 20px rgba(248,118,56,.18); }
+.new-user-jump:hover { background: var(--admin-orange-dark); }
+.access-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.access-summary article { padding: 19px 20px; background: white; border: 1px solid var(--admin-line); border-radius: 11px; }
+.access-summary strong, .access-summary span { display: block; }
+.access-summary strong { color: var(--admin-navy); font-size: 24px; line-height: 1; }
+.access-summary span { margin-top: 7px; color: #83909a; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.access-users-card { margin-bottom: 20px; }
+.access-table-wrap { overflow-x: auto; }
+.access-table { width: 100%; border-collapse: collapse; }
+.access-table th, .access-table td { padding: 15px 20px; border-bottom: 1px solid #edf0f3; text-align: left; white-space: nowrap; }
+.access-table th { color: #8b959e; background: #fbfcfd; font-size: 8px; letter-spacing: .07em; text-transform: uppercase; }
+.access-table td { color: #64717d; font-size: 9px; }
+.access-table tbody tr:last-child td { border-bottom: 0; }
+.access-user-cell { display: flex; align-items: center; gap: 10px; }
+.access-user-cell > i { width: 34px; height: 34px; display: grid; place-items: center; color: white; background: var(--admin-navy); border-radius: 9px; font-size: 11px; font-style: normal; font-weight: 800; }
+.access-user-cell strong, .access-user-cell small { display: block; }
+.access-user-cell strong { color: var(--admin-ink); font-size: 10px; }
+.access-user-cell small { margin-top: 3px; color: #929ca5; font-size: 8px; }
+.role-pill { display: inline-flex; padding: 6px 8px; color: #315873; background: #edf3f7; border-radius: 6px; font-size: 8px; font-weight: 750; }
+.role-super_admin { color: #8a461e; background: #fff0e7; }
+.role-hrd_manager { color: #2b6550; background: #e8f5ef; }
+.inline-role-form { display: flex; align-items: center; gap: 6px; }
+.inline-role-form select, .admin-select select { height: 34px; padding: 0 28px 0 9px; color: #425465; background: white; border: 1px solid #dce3e9; border-radius: 6px; outline: 0; font-size: 8px; }
+.inline-role-form button { height: 34px; padding: 0 9px; color: white; background: var(--admin-navy); border: 0; border-radius: 6px; font-size: 8px; font-weight: 700; cursor: pointer; }
+.account-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 999px; font-size: 8px; font-weight: 750; }
+.account-status i { width: 6px; height: 6px; border-radius: 50%; }
+.account-status.active { color: #256849; background: #e8f5ef; }
+.account-status.active i { background: #36966b; }
+.account-status.inactive { color: #855c58; background: #f4eeee; }
+.account-status.inactive i { background: #9b6d68; }
+.status-action { padding: 7px 9px; border-radius: 6px; font-size: 8px; font-weight: 750; cursor: pointer; }
+.status-action.deactivate { color: #9d4139; background: #fff4f2; border: 1px solid #f3d8d4; }
+.status-action.activate { color: #256849; background: #e8f5ef; border: 1px solid #cce7da; }
+.protected-label, .never-login { color: #9aa3ab; font-size: 8px; font-style: italic; }
+.new-user-card { margin-bottom: 48px; scroll-margin-top: 25px; }
+.new-user-form { display: grid; grid-template-columns: repeat(4, 1fr); align-items: start; gap: 14px; padding: 20px 23px 24px; }
+.new-user-form label { display: block; margin-bottom: 7px; color: #425468; font-size: 10px; font-weight: 750; }
+.new-user-form .admin-input { min-height: 44px; }
+.new-user-form .admin-input input { height: 42px; font-size: 10px; }
+.admin-select { padding: 0; }
+.admin-select select { width: 100%; height: 42px; padding-left: 12px; border: 0; background: transparent; font-size: 10px; }
+.new-user-password { grid-column: span 2; }
+.new-user-submit { align-self: end; min-height: 44px; margin-top: 22px; }
+.permission-section { scroll-margin-top: 25px; }
+.permission-heading { margin-bottom: 20px; }
+.permission-heading h2 { margin: 7px 0 5px; color: var(--admin-navy); font-size: 25px; letter-spacing: -.03em; }
+.permission-heading p { margin: 0; color: #7e8a94; font-size: 10px; }
+.role-permission-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 16px; }
+.role-permission-card { overflow: hidden; padding: 21px; background: white; border: 1px solid var(--admin-line); border-radius: 13px; box-shadow: 0 8px 24px rgba(18,42,63,.035); }
+.super-role-card { background: linear-gradient(145deg, #fff, #fff9f5); border-color: #f1d9cb; }
+.role-card-heading { min-height: 62px; display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: start; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #edf0f3; }
+.role-mark { width: 42px; height: 42px; display: grid; place-items: center; color: white; background: var(--admin-navy); border-radius: 10px; font-size: 10px; font-weight: 850; text-transform: uppercase; }
+.super-role-card .role-mark { background: var(--admin-orange); }
+.role-card-heading h3 { margin: 1px 0 4px; color: var(--admin-navy); font-size: 14px; }
+.role-card-heading p { margin: 0; color: #84909a; font-size: 8px; line-height: 1.5; }
+.permission-options { display: grid; gap: 1px; padding: 12px 0; }
+.permission-options label { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 9px; padding: 8px 5px; border-radius: 7px; cursor: pointer; }
+.permission-options label:hover { background: #f7f9fa; }
+.permission-options input { width: 14px; height: 14px; margin: 1px 0 0; accent-color: var(--admin-orange); }
+.permission-options strong, .permission-options small { display: block; }
+.permission-options strong { color: #35495b; font-size: 9px; }
+.permission-options small { margin-top: 2px; color: #929ca5; font-size: 7px; line-height: 1.45; }
+.save-permissions { width: 100%; min-height: 39px; color: white; background: var(--admin-navy); border: 0; border-radius: 8px; font-size: 9px; font-weight: 750; cursor: pointer; }
+.save-permissions:hover { background: var(--admin-navy-dark); }
+.all-access-note { min-height: 39px; display: flex; align-items: center; justify-content: center; color: #a15125; background: #fff0e7; border-radius: 8px; font-size: 9px; font-weight: 800; }
+
+/* Slightly larger typography for User & Access */
+.access-content .access-summary span { font-size: 11px; }
+.access-content .access-table th { font-size: 10px; }
+.access-content .access-table td { font-size: 11px; }
+.access-content .access-user-cell strong { font-size: 12px; }
+.access-content .access-user-cell small { font-size: 10px; }
+.access-content .role-pill,
+.access-content .inline-role-form select,
+.access-content .inline-role-form button,
+.access-content .account-status,
+.access-content .status-action,
+.access-content .protected-label,
+.access-content .never-login { font-size: 10px; }
+.access-content .new-user-form label { font-size: 12px; }
+.access-content .new-user-form .admin-input input,
+.access-content .admin-select select { font-size: 12px; }
+.access-content .permission-heading p { font-size: 12px; }
+.access-content .role-card-heading h3 { font-size: 17px; }
+.access-content .role-card-heading p { font-size: 10px; }
+.access-content .permission-options strong { font-size: 11px; }
+.access-content .permission-options small { font-size: 9px; }
+.access-content .save-permissions,
+.access-content .all-access-note { font-size: 11px; }
+
 @media (max-width: 900px) {
     .login-shell { grid-template-columns: 1fr; }
     .login-brand-panel { display: none; }
@@ -187,6 +281,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .admin-topbar { justify-content: flex-start; }
     .view-career-link { margin-left: auto; }
     .profile-grid { grid-template-columns: 1fr; }
+    .new-user-form { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 680px) {
@@ -202,6 +297,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .revoke-all-form { align-items: flex-start; flex-direction: column; margin-inline: 18px; }
     .device-item { grid-template-columns: 36px minmax(0, 1fr); }
     .device-item form { grid-column: 2; }
+    .access-heading { align-items: flex-start; }
+    .access-summary { grid-template-columns: repeat(2, 1fr); }
+    .new-user-form, .role-permission-grid { grid-template-columns: 1fr; }
+    .new-user-password { grid-column: auto; }
+    .new-user-submit { margin-top: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

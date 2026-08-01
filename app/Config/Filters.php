@@ -3,6 +3,8 @@
 namespace Config;
 
 use App\Filters\HrdAuthFilter;
+use App\Filters\PermissionFilter;
+use App\Filters\SuperAdminFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -36,6 +38,8 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'hrd-auth'      => HrdAuthFilter::class,
+        'permission'    => PermissionFilter::class,
+        'super-admin'   => SuperAdminFilter::class,
     ];
 
     /**

@@ -18,11 +18,16 @@ $routes->get('tahapan-seleksi', 'Home::selectionProcess');
 $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Controllers'], static function ($routes): void {
     $routes->get('', 'AuthController::login', ['as' => 'hrd.login']);
     $routes->post('', 'AuthController::authenticate', ['as' => 'hrd.authenticate']);
-    $routes->get('dashboard', 'DashboardController::index', ['filter' => 'hrd-auth', 'as' => 'hrd.dashboard']);
+    $routes->get('dashboard', 'DashboardController::index', ['filter' => 'permission:dashboard.admin.view', 'as' => 'hrd.dashboard']);
     $routes->get('profil', 'ProfileController::index', ['filter' => 'hrd-auth', 'as' => 'hrd.profile']);
     $routes->post('profil', 'ProfileController::update', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.update']);
     $routes->post('profil/password', 'ProfileController::updatePassword', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.password']);
     $routes->post('profil/perangkat/(:num)/revoke', 'ProfileController::revokeSession/$1', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.session.revoke']);
     $routes->post('profil/perangkat/revoke-all', 'ProfileController::revokeAllSessions', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.sessions.revoke']);
+    $routes->get('akses', 'AccessController::index', ['filter' => 'super-admin', 'as' => 'hrd.access']);
+    $routes->post('akses/users', 'AccessController::createUser', ['filter' => 'super-admin', 'as' => 'hrd.access.users.create']);
+    $routes->post('akses/users/(:num)/status', 'AccessController::updateStatus/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.users.status']);
+    $routes->post('akses/users/(:num)/role', 'AccessController::updateRole/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.users.role']);
+    $routes->post('akses/roles/(:num)/permissions', 'AccessController::updatePermissions/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.permissions']);
     $routes->post('logout', 'AuthController::logout', ['filter' => 'hrd-auth', 'as' => 'hrd.logout']);
 });
