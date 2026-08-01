@@ -8,6 +8,7 @@ $canViewDepartments = $authorization->can($userId, 'departments.view');
 $canViewVacancies = $authorization->can($userId, 'vacancies.view');
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
 $canViewReports = $authorization->can($userId, 'reports.view');
+$canViewCandidates = $authorization->can($userId, 'candidates.view');
 $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' class="active"' : '';
 ?>
 <aside class="admin-sidebar" id="admin-sidebar">
@@ -55,10 +56,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 Laporan Pelamar
             </a>
         <?php endif ?>
-        <span class="admin-nav-disabled" title="Segera tersedia">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
-            Kandidat <small>Segera</small>
-        </span>
+        <?php if ($canViewCandidates): ?>
+            <a<?= $activeClass('candidates') ?> href="<?= site_url('adminhrdmannakampus/kandidat') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
+                Kandidat
+            </a>
+        <?php endif ?>
     </nav>
 
     <div class="sidebar-user">

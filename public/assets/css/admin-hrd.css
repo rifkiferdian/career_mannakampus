@@ -637,6 +637,44 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-detail-content .settings-card-heading p { font-size: 11px; }
 .candidate-detail-content .report-application-status,
 .candidate-detail-content .account-status { font-size: 11px; }
+.candidates-content { max-width: 1380px; padding-bottom: 60px; }
+.candidates-content .dashboard-welcome p { font-size: 12px; }
+.candidate-summary strong { font-size: 26px; }
+.candidate-summary span { font-size: 10px; }
+.candidate-filter-form { display: grid; grid-template-columns: minmax(230px, 1.3fr) minmax(155px, .8fr) minmax(150px, .75fr) minmax(150px, .75fr) auto auto; gap: 9px; padding: 15px 18px; }
+.candidate-filter-form input, .candidate-filter-form select { min-width: 0; height: 42px; padding: 0 11px; color: #3d5062; background: #fbfcfd; border: 1px solid #dce3e9; border-radius: 8px; font-size: 11px; outline: 0; }
+.candidate-filter-form button, .candidate-filter-form > a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 11px; font-weight: 800; text-decoration: none; }
+.candidate-filter-form button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
+.candidate-filter-form > a { color: #657582; background: white; border: 1px solid #dce3e9; }
+.candidate-table { min-width: 1080px; }
+.candidate-table th { font-size: 10px; }
+.candidate-table td { color: #5f707d; font-size: 11px; }
+.candidate-table .report-applicant strong, .candidate-table .department-name-cell strong { font-size: 13px; }
+.candidate-table .report-applicant a, .candidate-table .report-applicant small, .candidate-table .department-name-cell code { font-size: 10px; }
+.candidate-stage-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; color: var(--candidate-color); background: color-mix(in srgb, var(--candidate-color) 11%, white); border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
+.candidate-stage-pill i { width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
+.candidate-stage-age { color: #536879; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.candidate-stage-age.overdue { color: #a34c43; }
+.candidate-sla { display: block; margin-top: 4px; color: #929ca4; font-size: 9px; }
+.candidate-table-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.candidate-table-actions a { min-height: 32px; display: inline-flex; align-items: center; padding: 0 10px; color: white; background: var(--admin-navy); border: 1px solid var(--admin-navy); border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; }
+.candidate-table-actions .candidate-process-link { color: #a95027; background: #fff5ef; border-color: #f0d6c8; }
+.candidate-process-row { display: none; }
+.candidate-process-row:target { display: table-row; }
+.candidate-process-row > td { padding: 0 16px 17px; background: #fffaf7; }
+.candidate-process-form { display: grid; grid-template-columns: 1.1fr 1fr 1fr; align-items: end; gap: 12px; padding: 17px; border: 1px solid #f0d9cc; border-radius: 10px; }
+.candidate-process-title { grid-column: 1 / -1; padding-bottom: 11px; border-bottom: 1px solid #f0e1d8; }
+.candidate-process-title strong, .candidate-process-title span { display: block; }
+.candidate-process-title strong { color: var(--admin-navy); font-size: 14px; }
+.candidate-process-title span { margin-top: 4px; color: #81909a; font-size: 10px; }
+.candidate-process-form label { color: #526474; font-size: 11px; font-weight: 750; }
+.candidate-process-form select, .candidate-process-form textarea { width: 100%; min-height: 42px; display: block; margin-top: 7px; padding: 9px 11px; color: #3d5062; background: white; border: 1px solid #dce3e9; border-radius: 7px; font: inherit; font-size: 11px; outline: 0; }
+.candidate-process-form textarea { resize: vertical; line-height: 1.5; }
+.candidate-process-note { grid-column: 1 / -1; }
+.candidate-process-buttons { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; }
+.candidate-process-buttons a, .candidate-process-buttons button { min-height: 39px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.candidate-process-buttons a { color: #687783; background: white; border: 1px solid #dce3e9; }
+.candidate-process-buttons button { color: white; background: var(--admin-orange); border: 0; }
 
 @media (max-width: 900px) {
     .login-shell { grid-template-columns: 1fr; }
@@ -662,6 +700,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .report-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .candidate-detail-grid, .candidate-application-columns { grid-template-columns: 1fr; }
     .candidate-application-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .candidate-filter-form, .candidate-process-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .vacancy-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -724,6 +763,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .candidate-document-list { padding-inline: 15px; }
     .candidate-document-list article { grid-template-columns: 40px minmax(0, 1fr); }
     .candidate-document-list article > a, .candidate-document-list article > .protected-label { grid-column: 2; justify-self: start; }
+    .candidate-filter-form, .candidate-process-form { grid-template-columns: 1fr; padding-inline: 14px; }
+    .candidate-process-title, .candidate-process-note, .candidate-process-buttons { grid-column: auto; }
+    .candidate-process-buttons { align-items: stretch; flex-direction: column; }
     .vacancy-filter-form { padding-inline: 14px; }
     .vacancy-wide-field, .vacancy-text-fields label:first-child, .vacancy-question-form > strong, .vacancy-question-form .screening-edit-question { grid-column: auto; }
     .vacancy-form-grid, .vacancy-text-fields { padding-inline: 18px; }

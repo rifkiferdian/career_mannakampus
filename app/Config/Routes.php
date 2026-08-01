@@ -49,6 +49,8 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('laporan-pelamar/export', 'ApplicantReportController::export', ['filter' => 'permission:reports.view', 'as' => 'hrd.applicant.report.export']);
     $routes->get('pelamar/(:num)', 'ApplicantDetailController::show/$1', ['filter' => 'permission:candidates.view', 'as' => 'hrd.applicant.detail']);
     $routes->get('pelamar/(:num)/dokumen/(:num)', 'ApplicantDetailController::downloadDocument/$1/$2', ['filter' => 'permission:candidates.cv.download', 'as' => 'hrd.applicant.document']);
+    $routes->get('kandidat', 'CandidateController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates']);
+    $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);
     $routes->get('pengaturan-rekrutmen', 'RecruitmentSettingsController::index', ['filter' => 'permission:recruitment.settings.view', 'as' => 'hrd.recruitment.settings']);
     $routes->post('pengaturan-rekrutmen/tahapan', 'RecruitmentSettingsController::updateStages', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.stages']);
     $routes->post('pengaturan-rekrutmen/tahapan/(:num)', 'RecruitmentSettingsController::updateStage/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.stages.update']);

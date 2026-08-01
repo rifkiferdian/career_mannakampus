@@ -31,7 +31,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
-    <?= view('admin/partials/sidebar', ['auth' => $auth, 'activeMenu' => 'reports']) ?>
+    <?= view('admin/partials/sidebar', ['auth' => $auth, 'activeMenu' => 'candidates']) ?>
     <main class="admin-main">
         <header class="admin-topbar">
             <button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button>
