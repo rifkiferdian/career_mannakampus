@@ -166,6 +166,7 @@ class ProfileController extends BaseController
 
         if ($revokedCurrent) {
             session()->remove('hrd_auth');
+            Services::hrdSession()->clearCurrentToken();
             session()->regenerate(true);
 
             return redirect()->to(site_url('adminhrdmannakampus'))
@@ -190,6 +191,7 @@ class ProfileController extends BaseController
         );
         Services::hrdSession()->revokeAll($userId);
         session()->remove('hrd_auth');
+        Services::hrdSession()->clearCurrentToken();
         session()->regenerate(true);
 
         return redirect()->to(site_url('adminhrdmannakampus'))

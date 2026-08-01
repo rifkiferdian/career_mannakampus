@@ -104,6 +104,8 @@ class AuthController extends BaseController
             ]);
         }
 
+        // A successful login must always start with a fresh device token.
+        Services::hrdSession()->clearCurrentToken();
         session()->regenerate(true);
         session()->set('hrd_auth', [
             'user_id' => (int) $user['id'],
@@ -145,6 +147,7 @@ class AuthController extends BaseController
         }
 
         session()->remove('hrd_auth');
+        Services::hrdSession()->clearCurrentToken();
         session()->regenerate(true);
 
         return redirect()->to(site_url('adminhrdmannakampus'))

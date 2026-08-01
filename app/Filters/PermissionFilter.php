@@ -19,6 +19,7 @@ class PermissionFilter implements FilterInterface
 
         if ($user === null || ! Services::hrdSession()->validateAndTouch($userId)) {
             session()->remove('hrd_auth');
+            Services::hrdSession()->clearCurrentToken();
 
             return redirect()->to(site_url('adminhrdmannakampus'))
                 ->with('auth_error', 'Silakan masuk menggunakan akun admin yang aktif.');

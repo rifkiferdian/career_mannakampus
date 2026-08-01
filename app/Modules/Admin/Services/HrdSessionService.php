@@ -7,6 +7,8 @@ use Config\Session as SessionConfig;
 
 class HrdSessionService
 {
+    private const TOKEN_SESSION_KEY = 'hrd_session_token';
+
     public function __construct(
         private readonly BaseConnection $database,
     ) {
@@ -15,7 +17,7 @@ class HrdSessionService
     public function register(int $userId, string $email, string $ipAddress, string $userAgent): void
     {
         $now = date('Y-m-d H:i:s');
-        $sessionHash = $this->currentSessionHash();
+        $sessionHash = $this->issueStableSessionHash();
         $data = [
             'user_id'          => $userId,
             'session_hash'     => $sessionHash,
@@ -48,6 +50,7 @@ class HrdSessionService
     public function validateAndTouch(int $userId): bool
     {
         $now = date('Y-m-d H:i:s');
+        $hasStableToken = $this->hasStableToken();
         $session = $this->database->table('user_sessions')
             ->select('id, last_activity_at')
             ->where('user_id', $userId)
@@ -59,6 +62,16 @@ class HrdSessionService
 
         if ($session === null) {
             return false;
+        }
+
+        // Upgrade sessions created before stable tokens were introduced. Once
+        // upgraded, CodeIgniter may rotate its own session ID without logging
+        // the HRD user out of the portal.
+        if (! $hasStableToken) {
+            $this->database->table('user_sessions')->where('id', $session['id'])->update([
+                'session_hash' => $this->issueStableSessionHash(),
+                'updated_at' => $now,
+            ]);
         }
 
         if (strtotime((string) $session['last_activity_at']) < time() - 60) {
@@ -79,6 +92,11 @@ class HrdSessionService
             ->where('session_hash', $this->currentSessionHash())
             ->where('revoked_at', null)
             ->update(['revoked_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
+    }
+
+    public function clearCurrentToken(): void
+    {
+        session()->remove(self::TOKEN_SESSION_KEY);
     }
 
     public function revokeAll(int $userId): void
@@ -182,7 +200,33 @@ class HrdSessionService
 
     private function currentSessionHash(): string
     {
+        $token = session()->get(self::TOKEN_SESSION_KEY);
+        if ($this->validToken($token)) {
+            return hash('sha256', $token);
+        }
+
         return hash('sha256', session_id());
+    }
+
+    private function issueStableSessionHash(): string
+    {
+        $token = session()->get(self::TOKEN_SESSION_KEY);
+        if (! $this->validToken($token)) {
+            $token = bin2hex(random_bytes(32));
+            session()->set(self::TOKEN_SESSION_KEY, $token);
+        }
+
+        return hash('sha256', $token);
+    }
+
+    private function hasStableToken(): bool
+    {
+        return $this->validToken(session()->get(self::TOKEN_SESSION_KEY));
+    }
+
+    private function validToken(mixed $token): bool
+    {
+        return is_string($token) && preg_match('/\A[a-f0-9]{64}\z/', $token) === 1;
     }
 
     private function expirationTime(): string
