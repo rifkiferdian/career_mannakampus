@@ -459,6 +459,29 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .vacancy-question-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .vacancy-question-form > strong, .vacancy-question-form .screening-edit-question { grid-column: 1 / -1; }
 .vacancy-question-form .screening-flags { margin: 4px 0; }
+.report-content { max-width: 1380px; padding-bottom: 60px; }
+.report-export-link { color: white; background: var(--admin-orange); border-color: var(--admin-orange); }
+.report-filter-form { display: grid; grid-template-columns: minmax(210px, 1.3fr) minmax(135px, .8fr) minmax(130px, .75fr) minmax(130px, .75fr) 115px 115px 76px 56px; align-items: end; gap: 9px; padding: 15px 18px; }
+.report-filter-form > input, .report-filter-form select, .report-filter-form label input { width: 100%; min-width: 0; height: 42px; padding: 0 11px; color: #3d5062; background: #fbfcfd; border: 1px solid #dce3e9; border-radius: 8px; font-size: 10px; outline: 0; }
+.report-filter-form label { color: #6c7b87; font-size: 8px; font-weight: 800; }
+.report-filter-form label span { display: block; margin-bottom: 4px; }
+.report-filter-form button, .report-filter-form > a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.report-filter-form button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
+.report-filter-form > a { color: #657582; background: white; border: 1px solid #dce3e9; }
+.report-table { min-width: 1100px; }
+.report-table td { color: #60717e; font-size: 10px; }
+.report-applicant strong, .report-applicant a, .report-applicant small, .report-date small, .report-score { display: block; }
+.report-applicant strong { color: var(--admin-ink); font-size: 12px; white-space: nowrap; }
+.report-applicant a { margin-top: 4px; color: #42677e; font-size: 9px; text-decoration: none; }
+.report-applicant small, .report-date small { margin-top: 3px; color: #8b97a0; font-size: 8px; }
+.report-date { white-space: nowrap; }
+.report-screening, .report-application-status { display: inline-flex; padding: 6px 9px; border-radius: 999px; font-size: 9px; font-weight: 850; white-space: nowrap; }
+.screening-passed { color: #256849; background: #e8f5ef; }
+.screening-failed { color: #954c43; background: #fff0ed; }
+.screening-pending { color: #75602e; background: #fff7df; }
+.report-score { margin-top: 5px; color: #7c8993; font-size: 8px; }
+.report-application-status { color: #405f75; background: #edf3f7; }
+.report-number { color: #677783; font-size: 9px; white-space: nowrap; }
 
 @media (max-width: 900px) {
     .login-shell { grid-template-columns: 1fr; }
@@ -481,6 +504,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .department-table-edit-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .recruitment-table-edit-form, .screening-table-edit-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .vacancy-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .report-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .vacancy-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -527,6 +551,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .recruitment-table-edit-form, .screening-table-edit-form { grid-template-columns: 1fr; }
     .screening-table-edit-form .screening-edit-question { grid-column: auto; }
     .vacancy-filter-form, .vacancy-form-grid, .vacancy-text-fields, .vacancy-question-form { grid-template-columns: 1fr; }
+    .report-filter-form { grid-template-columns: 1fr; padding-inline: 14px; }
     .vacancy-filter-form { padding-inline: 14px; }
     .vacancy-wide-field, .vacancy-text-fields label:first-child, .vacancy-question-form > strong, .vacancy-question-form .screening-edit-question { grid-column: auto; }
     .vacancy-form-grid, .vacancy-text-fields { padding-inline: 18px; }

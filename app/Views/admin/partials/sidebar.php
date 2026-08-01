@@ -7,6 +7,7 @@ $isSuperAdmin = $authorization->isSuperAdmin($userId);
 $canViewDepartments = $authorization->can($userId, 'departments.view');
 $canViewVacancies = $authorization->can($userId, 'vacancies.view');
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
+$canViewReports = $authorization->can($userId, 'reports.view');
 $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' class="active"' : '';
 ?>
 <aside class="admin-sidebar" id="admin-sidebar">
@@ -46,6 +47,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('recruitment-settings') ?> href="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
                 Pengaturan Rekrutmen
+            </a>
+        <?php endif ?>
+        <?php if ($canViewReports): ?>
+            <a<?= $activeClass('reports') ?> href="<?= site_url('adminhrdmannakampus/laporan-pelamar') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7M3 20h18"/></svg>
+                Laporan Pelamar
             </a>
         <?php endif ?>
         <span class="admin-nav-disabled" title="Segera tersedia">
