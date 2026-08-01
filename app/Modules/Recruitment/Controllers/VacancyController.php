@@ -12,7 +12,16 @@ class VacancyController extends BaseController
     public function index(): string
     {
         try {
-            return view('jobs', Services::vacancyCatalog()->catalogPageData());
+            $keyword = mb_substr(trim((string) $this->request->getGet('keyword')), 0, 100);
+            $data = Services::vacancyCatalog()->catalogPageData();
+
+            if ($keyword !== '') {
+                $data['vacancies'] = Services::vacancyCatalog()->searchOpenVacancies($keyword);
+            }
+
+            $data['keyword'] = $keyword;
+
+            return view('jobs', $data);
         } catch (Throwable $exception) {
             log_message('error', '[Recruitment] Gagal memuat katalog lowongan: {message}', [
                 'message'   => $exception->getMessage(),

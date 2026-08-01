@@ -43,7 +43,7 @@
                     <label class="job-search-field" for="job-keyword">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
                         <span class="sr-only">Cari posisi, lokasi, atau pendidikan</span>
-                        <input id="job-keyword" name="keyword" type="search" placeholder="Posisi, lokasi, atau pendidikan..." autocomplete="off">
+                        <input id="job-keyword" name="keyword" type="search" value="<?= esc($keyword ?? '', 'attr') ?>" placeholder="Posisi, lokasi, atau pendidikan..." autocomplete="off">
                     </label>
                     <div class="job-search-field job-department-field custom-select" id="department-select">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h6v-6H4v6Zm10 0h6v-6h-6v6ZM9 10h6L12 4l-3 6Z"/></svg>

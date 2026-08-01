@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=18">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=19">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -35,58 +35,64 @@
 
     <main id="main-content">
         <section class="hero" aria-labelledby="hero-title">
-            <div class="hero-orb hero-orb-one" aria-hidden="true"></div>
-            <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
             <div class="container hero-grid">
                 <div class="hero-copy reveal">
-                    <span class="eyebrow"><span></span> Karier di Manna Kampus</span>
-                    <h1 id="hero-title">Tumbuh bersama,<br><em>hadirkan layanan terbaik.</em></h1>
-                    <p>Di Manna Kampus, setiap peran ikut menghadirkan pengalaman belanja yang nyaman dan terpercaya. Kami mencari pribadi yang sigap, peduli, dan siap berkembang bersama dunia retail.</p>
+                    <span class="hero-badge">#GrowWithManna</span>
+                    <h1 id="hero-title">Temukan Karier Terbaik<br>Bersama <em>Manna Kampus</em></h1>
+                    <p>Bergabunglah dengan ekosistem retail modern yang dinamis. Kami mencari talenta berbakat untuk memberikan pengalaman berbelanja terbaik bagi masyarakat.</p>
                     <div class="hero-actions">
-                        <a class="button button-primary" href="#lowongan">Lihat Lowongan <span aria-hidden="true">→</span></a>
-                        <a class="text-link" href="<?= site_url('tahapan-seleksi') ?>">Kenali proses kami <span aria-hidden="true">↘</span></a>
+                        <a class="button button-primary" href="#lowongan">Lihat Lowongan</a>
+                        <a class="button hero-status-button" href="<?= site_url('lamaran/status') ?>">Cek Status Lamaran</a>
                     </div>
-                    <div class="hero-notes" aria-label="Nilai utama">
-                        <span><i aria-hidden="true">✓</i> Lingkungan suportif</span>
-                        <span><i aria-hidden="true">✓</i> Kesempatan berkembang</span>
-                    </div>
+
                 </div>
 
-                <div class="hero-visual reveal" aria-label="Ilustrasi kolaborasi tim">
-                    <div class="visual-card main-card">
-                        <div class="card-topline">
-                            <span class="mini-logo">M</span>
-                            <span class="status"><i></i> We're hiring</span>
-                        </div>
-                        <div class="portrait-area">
-                            <span class="shape shape-one"></span>
-                            <span class="shape shape-two"></span>
-                            <div class="person person-one"><span></span></div>
-                            <div class="person person-two"><span></span></div>
-                            <div class="person person-three"><span></span></div>
-                        </div>
-                        <div class="card-caption">
-                            <strong>Temukan peran terbaikmu.</strong>
-                            <span>Bawa ide, energi, dan keunikanmu.</span>
-                        </div>
-                    </div>
-                    <div class="floating-card floating-role">
-                        <span class="floating-icon">✦</span>
-                        <span><small>Open position</small><strong>Grow with us</strong></span>
-                    </div>
-                    <div class="floating-card floating-people">
-                        <div class="avatar-stack"><i></i><i></i><i></i></div>
-                        <span><strong>One team</strong><small>one purpose</small></span>
-                    </div>
+                <div class="hero-visual reveal">
+                    <img src="<?= base_url('assets/img/career-hero-team.webp') ?>" alt="Empat profesional Manna Kampus berdiri bersama di kantor modern" width="900" height="1897" fetchpriority="high">
                 </div>
             </div>
         </section>
 
-        <section class="values-strip" aria-label="Kriteria staf Manna Kampus">
-            <div class="container values-grid">
-                <div><strong>Integritas &amp; Tanggung Jawab</strong><span class="value-description">Jujur, disiplin, dan dapat dipercaya dalam menjalankan setiap tugas.</span></div>
-                <div><strong>Siap Belajar &amp; Berkembang</strong><span class="value-description">Adaptif, memiliki inisiatif, dan terbuka terhadap tantangan serta hal baru.</span></div>
-                <div><strong>Kolaboratif &amp; Melayani</strong><span class="value-description">Mampu bekerja dalam tim, berkomunikasi dengan baik, dan memberikan pelayanan terbaik.</span></div>
+        <section class="section jobs-section" id="lowongan" aria-labelledby="jobs-title">
+            <div class="container">
+                <div class="section-heading reveal">
+                    <div>
+                        <span class="eyebrow"><span></span> Peluang Karier</span>
+                        <h2 id="jobs-title">Temukan posisi yang<br>sesuai denganmu.</h2>
+                    </div>
+                    <div class="section-heading-action">
+                        <p>Jadilah bagian dari tim yang dinamis dan bantu kami menghadirkan pengalaman belanja yang lebih baik bagi setiap pelanggan.</p>
+                        <a class="button button-outline" href="<?= site_url('lowongan') ?>">Lihat Semua Lowongan <span aria-hidden="true">→</span></a>
+                    </div>
+                </div>
+
+                <div class="job-list">
+                    <?php foreach ($vacancies ?? [] as $vacancy): ?>
+                        <article class="job-card reveal">
+                            <div class="job-icon <?= esc($vacancy['icon_class'], 'attr') ?>" aria-hidden="true"><?= esc($vacancy['icon_text']) ?></div>
+                            <div class="job-main">
+                                <div class="job-meta">
+                                    <span><?= esc($vacancy['department'] ?: 'Umum') ?></span>
+                                    <span><?= esc($vacancy['employment_type'] ?: 'Full-time') ?></span>
+                                </div>
+                                <h3><?= esc($vacancy['title']) ?></h3>
+                                <p>Bergabung dan berkembang bersama tim <?= esc($vacancy['department'] ?: 'Manna Kampus') ?>.</p>
+                                <div class="job-requirements" aria-label="Persyaratan minimum">
+                                    <span><?= esc($vacancy['age_requirement']) ?></span>
+                                    <span><?= esc($vacancy['education_requirement']) ?></span>
+                                </div>
+                            </div>
+                            <div class="job-location"><span aria-hidden="true">⌖</span> <?= esc($vacancy['location'] ?: 'Yogyakarta') ?></div>
+                            <a class="job-arrow" href="<?= site_url('lowongan') ?>#vacancy-<?= esc($vacancy['code'], 'attr') ?>" aria-label="Lihat detail lowongan <?= esc($vacancy['title'], 'attr') ?>">↗</a>
+                        </article>
+                    <?php endforeach ?>
+                </div>
+
+                <?php if (($vacancies ?? []) === []): ?>
+                    <p class="jobs-note reveal">Belum ada lowongan yang sedang dibuka. Tetap pantau halaman ini untuk peluang berikutnya.</p>
+                <?php else: ?>
+                    <p class="jobs-note reveal">Belum menemukan posisi yang cocok? Tetap pantau halaman ini untuk peluang berikutnya.</p>
+                <?php endif ?>
             </div>
         </section>
 
@@ -185,49 +191,6 @@
                     <div class="wellbeing-photo wellbeing-photo-employee" role="img" aria-label="Karyawan berdiskusi dalam pertemuan"></div>
                     <div class="wellbeing-photo wellbeing-photo-office" role="img" aria-label="Tim berkolaborasi di ruang kerja modern"></div>
                 </div>
-            </div>
-        </section>
-
-        <section class="section jobs-section" id="lowongan" aria-labelledby="jobs-title">
-            <div class="container">
-                <div class="section-heading reveal">
-                    <div>
-                        <span class="eyebrow"><span></span> Peluang Karier</span>
-                        <h2 id="jobs-title">Temukan posisi yang<br>sesuai denganmu.</h2>
-                    </div>
-                    <div class="section-heading-action">
-                        <p>Jadilah bagian dari tim yang dinamis dan bantu kami menghadirkan pengalaman belanja yang lebih baik bagi setiap pelanggan.</p>
-                        <a class="button button-outline" href="<?= site_url('lowongan') ?>">Lihat Semua Lowongan <span aria-hidden="true">→</span></a>
-                    </div>
-                </div>
-
-                <div class="job-list">
-                    <?php foreach ($vacancies ?? [] as $vacancy): ?>
-                        <article class="job-card reveal">
-                            <div class="job-icon <?= esc($vacancy['icon_class'], 'attr') ?>" aria-hidden="true"><?= esc($vacancy['icon_text']) ?></div>
-                            <div class="job-main">
-                                <div class="job-meta">
-                                    <span><?= esc($vacancy['department'] ?: 'Umum') ?></span>
-                                    <span><?= esc($vacancy['employment_type'] ?: 'Full-time') ?></span>
-                                </div>
-                                <h3><?= esc($vacancy['title']) ?></h3>
-                                <p>Bergabung dan berkembang bersama tim <?= esc($vacancy['department'] ?: 'Manna Kampus') ?>.</p>
-                                <div class="job-requirements" aria-label="Persyaratan minimum">
-                                    <span><?= esc($vacancy['age_requirement']) ?></span>
-                                    <span><?= esc($vacancy['education_requirement']) ?></span>
-                                </div>
-                            </div>
-                            <div class="job-location"><span aria-hidden="true">⌖</span> <?= esc($vacancy['location'] ?: 'Yogyakarta') ?></div>
-                            <a class="job-arrow" href="<?= site_url('lowongan') ?>#vacancy-<?= esc($vacancy['code'], 'attr') ?>" aria-label="Lihat detail lowongan <?= esc($vacancy['title'], 'attr') ?>">↗</a>
-                        </article>
-                    <?php endforeach ?>
-                </div>
-
-                <?php if (($vacancies ?? []) === []): ?>
-                    <p class="jobs-note reveal">Belum ada lowongan yang sedang dibuka. Tetap pantau halaman ini untuk peluang berikutnya.</p>
-                <?php else: ?>
-                    <p class="jobs-note reveal">Belum menemukan posisi yang cocok? Tetap pantau halaman ini untuk peluang berikutnya.</p>
-                <?php endif ?>
             </div>
         </section>
 
