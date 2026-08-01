@@ -71,6 +71,7 @@ class AuthController extends BaseController
 
         $userModel = new UserModel();
         $user = $userModel->findActiveHrdByEmail($email);
+        $userAgent = (string) $this->request->getUserAgent();
         $passwordHash = (string) ($user['password_hash'] ?? self::DUMMY_PASSWORD_HASH);
         $passwordMatches = password_verify($password, $passwordHash);
         $isLocked = $user !== null
@@ -87,6 +88,15 @@ class AuthController extends BaseController
                         : null,
                 ]);
             }
+
+            Services::hrdSession()->recordEvent(
+                $user !== null ? (int) $user['id'] : null,
+                $email,
+                'login',
+                false,
+                $this->request->getIPAddress(),
+                $userAgent,
+            );
 
             return view('admin/auth/login', [
                 'error' => 'Email atau password tidak sesuai.',
@@ -108,6 +118,12 @@ class AuthController extends BaseController
             'failed_login_attempts' => 0,
             'locked_until'          => null,
         ]);
+        Services::hrdSession()->register(
+            (int) $user['id'],
+            (string) $user['email'],
+            $this->request->getIPAddress(),
+            $userAgent,
+        );
 
         return redirect()->to(site_url('adminhrdmannakampus/dashboard'))
             ->with('auth_success', 'Selamat datang kembali, ' . $user['name'] . '.');
@@ -115,6 +131,19 @@ class AuthController extends BaseController
 
     public function logout(): RedirectResponse
     {
+        $auth = session()->get('hrd_auth');
+        if (is_array($auth) && ! empty($auth['user_id'])) {
+            Services::hrdSession()->recordEvent(
+                (int) $auth['user_id'],
+                (string) ($auth['email'] ?? ''),
+                'logout',
+                true,
+                $this->request->getIPAddress(),
+                (string) $this->request->getUserAgent(),
+            );
+            Services::hrdSession()->revokeCurrent((int) $auth['user_id']);
+        }
+
         session()->remove('hrd_auth');
         session()->regenerate(true);
 

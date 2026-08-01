@@ -15,6 +15,7 @@ use App\Modules\Recruitment\Presenters\ApplicationStatusPresenter;
 use App\Modules\Recruitment\Services\ApplicationStatusLookupService;
 use App\Modules\Recruitment\Services\ApplicationSubmissionService;
 use App\Modules\Recruitment\Services\VacancyCatalogService;
+use App\Modules\Admin\Services\HrdSessionService;
 use CodeIgniter\Config\BaseService;
 
 /**
@@ -32,6 +33,15 @@ use CodeIgniter\Config\BaseService;
  */
 class Services extends BaseService
 {
+    public static function hrdSession(bool $getShared = true): HrdSessionService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('hrdSession');
+        }
+
+        return new HrdSessionService(db_connect());
+    }
+
     public static function vacancyCatalog(bool $getShared = true): VacancyCatalogService
     {
         if ($getShared) {

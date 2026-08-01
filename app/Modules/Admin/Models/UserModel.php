@@ -14,6 +14,7 @@ class UserModel extends Model
     protected $allowedFields = [
         'full_name',
         'email',
+        'phone',
         'password_hash',
         'is_active',
         'last_login_at',
@@ -46,7 +47,7 @@ class UserModel extends Model
     private function findActiveHrd(string $field, $value): ?array
     {
         return $this->builder()
-            ->select('users.id, users.full_name AS name, users.email, users.password_hash, users.failed_login_attempts, users.locked_until, roles.code AS role')
+            ->select('users.id, users.full_name AS name, users.email, users.phone, users.password_hash, users.failed_login_attempts, users.locked_until, roles.code AS role')
             ->join('user_roles', 'user_roles.user_id = users.id')
             ->join('roles', 'roles.id = user_roles.role_id')
             ->where($field, $value)

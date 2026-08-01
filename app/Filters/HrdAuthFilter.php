@@ -6,6 +6,7 @@ use App\Modules\Admin\Models\UserModel;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use Config\Services;
 
 class HrdAuthFilter implements FilterInterface
 {
@@ -15,7 +16,7 @@ class HrdAuthFilter implements FilterInterface
         $userId = is_array($auth) ? (int) ($auth['user_id'] ?? 0) : 0;
         $user = $userId > 0 ? (new UserModel())->findActiveHrdById($userId) : null;
 
-        if ($user === null) {
+        if ($user === null || ! Services::hrdSession()->validateAndTouch($userId)) {
             session()->remove('hrd_auth');
 
             return redirect()->to(site_url('adminhrdmannakampus'))

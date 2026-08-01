@@ -1,15 +1,16 @@
 (() => {
     'use strict';
 
-    const passwordInput = document.querySelector('#password');
-    const passwordToggle = document.querySelector('.password-toggle');
-
-    passwordToggle?.addEventListener('click', () => {
-        const willShow = passwordInput?.type === 'password';
-        if (!passwordInput) return;
-        passwordInput.type = willShow ? 'text' : 'password';
-        passwordToggle.setAttribute('aria-pressed', String(willShow));
-        passwordToggle.setAttribute('aria-label', willShow ? 'Sembunyikan password' : 'Tampilkan password');
+    document.querySelectorAll('.password-toggle').forEach((passwordToggle) => {
+        passwordToggle.addEventListener('click', () => {
+            const targetId = passwordToggle.dataset.passwordToggle || 'password';
+            const passwordInput = document.getElementById(targetId);
+            const willShow = passwordInput?.type === 'password';
+            if (!passwordInput) return;
+            passwordInput.type = willShow ? 'text' : 'password';
+            passwordToggle.setAttribute('aria-pressed', String(willShow));
+            passwordToggle.setAttribute('aria-label', willShow ? 'Sembunyikan password' : 'Tampilkan password');
+        });
     });
 
     const sidebar = document.querySelector('#admin-sidebar');
@@ -27,5 +28,11 @@
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') closeSidebar();
+    });
+
+    document.querySelectorAll('[data-confirm]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            if (!window.confirm(button.dataset.confirm)) event.preventDefault();
+        });
     });
 })();

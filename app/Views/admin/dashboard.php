@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#102a43">
     <title>Dashboard HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=2">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=3">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
@@ -21,6 +21,10 @@
                 <a class="active" href="<?= site_url('adminhrdmannakampus/dashboard') ?>">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-3H4v3Zm10-13h6V4h-6v3Z"/></svg>
                     Dashboard
+                </a>
+                <a href="<?= site_url('adminhrdmannakampus/profil') ?>">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+                    Profil &amp; Keamanan
                 </a>
                 <span class="admin-nav-disabled" title="Segera tersedia">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
