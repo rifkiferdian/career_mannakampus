@@ -14,7 +14,7 @@ $formatJakarta = static function (string $date, string $format): string {
     <meta name="theme-color" content="#102a43">
     <title>Profil &amp; Keamanan | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=5">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=20">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
