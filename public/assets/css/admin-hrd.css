@@ -191,8 +191,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .access-content { max-width: 1280px; }
 .access-heading { align-items: center; }
 .access-heading h1 { font-size: clamp(31px, 3vw, 43px); }
-.new-user-jump { min-height: 42px; display: inline-flex; align-items: center; padding: 0 16px; color: white; background: var(--admin-orange); border-radius: 8px; font-size: 10px; font-weight: 800; text-decoration: none; box-shadow: 0 8px 20px rgba(248,118,56,.18); }
-.new-user-jump:hover { background: var(--admin-orange-dark); }
+.new-user-jump { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 16px; color: white; background: var(--admin-orange); border: 0; border-radius: 8px; appearance: none; font-family: inherit; font-size: 10px; font-weight: 800; line-height: 1; text-decoration: none; box-shadow: 0 8px 20px rgba(248,118,56,.18); cursor: pointer; transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.new-user-jump:hover { color: white; background: var(--admin-orange-dark); box-shadow: 0 10px 22px rgba(248,118,56,.24); transform: translateY(-1px); }
+.new-user-jump:focus-visible { outline: 3px solid rgba(248,118,56,.24); outline-offset: 2px; }
 .access-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
 .access-summary article { position: relative; min-height: 92px; padding: 19px 72px 19px 20px; background: white; border: 1px solid var(--admin-line); border-radius: 11px; overflow: hidden; }
 .access-summary strong, .access-summary span { display: block; }

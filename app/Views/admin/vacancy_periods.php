@@ -30,7 +30,7 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
     <meta name="theme-color" content="#102a43">
     <title>Sesi Lowongan | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=26">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=27">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
