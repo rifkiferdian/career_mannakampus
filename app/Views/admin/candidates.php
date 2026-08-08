@@ -10,7 +10,7 @@ $screeningLabels = ['passed' => 'Lolos', 'failed' => 'Tidak lolos', 'pending' =>
     <meta name="theme-color" content="#102a43">
     <title>Kandidat | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=21">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=22">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">

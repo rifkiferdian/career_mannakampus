@@ -552,3 +552,18 @@
         text-align: left;
     }
 }
+
+/* Balanced type scale for the application tracking page. */
+.status-intro h1 { font-size: clamp(40px, 5.5vw, 62px); }
+.status-form-heading h2, .status-result-heading h2 { font-size: clamp(25px, 3.5vw, 34px); }
+.status-form-heading > span, .status-summary dt, .status-position-heading > span,
+.status-priority small, .status-department, .status-application-main > small,
+.status-application-meta small { font-size: 10px; }
+.status-security-note span, .status-form-heading p, .status-field > span,
+.status-field small, .status-field em, .status-alert, .status-application-main > p,
+.status-application-note { font-size: 12px; }
+.status-summary dd, .status-badge, .status-application-meta span { font-size: 11px; }
+
+@media (max-width: 660px) {
+    .status-intro h1 { font-size: clamp(36px, 12vw, 50px); }
+}

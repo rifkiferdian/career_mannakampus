@@ -958,3 +958,31 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* Consistent, readable typography for every admin screen and modal. */
+body { font-size: 14px; line-height: 1.5; }
+.login-brand-content h1 { font-size: clamp(36px, 3.8vw, 52px); }
+.login-card h2 { font-size: clamp(29px, 2.8vw, 37px); }
+.dashboard-welcome h1, .profile-heading h1 { font-size: clamp(29px, 3vw, 40px); }
+.admin-nav a, .admin-nav-disabled { font-size: 13px; }
+.admin-topbar > div strong, .settings-card-heading h2 { font-size: 15px; }
+.panel-heading h2 { font-size: 18px; }
+.application-table th, .department-table th, .recruitment-table th,
+.screening-table th, .candidate-table th, .vacancy-table th,
+.report-table th, .dashboard-follow-table th { font-size: 10px; }
+.application-table td, .department-table td, .recruitment-table td,
+.screening-table td, .candidate-table td, .vacancy-table td,
+.report-table td, .dashboard-follow-table td { font-size: 12px; }
+.settings-card-heading p, .dashboard-empty p, .password-hint,
+.device-item div > span, .sidebar-user small, .admin-topbar > div span,
+.application-table td small { font-size: 10px; }
+label, .settings-form label { font-size: 12px; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 13px !important; }
+button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
+.settings-modal-title h2, .screening-modal-title h2 { font-size: clamp(20px, 2vw, 24px); }
+.screening-form-guide strong { font-size: 12px; }
+.screening-form-guide span, .screening-form-guide small { font-size: 11px; }
+
+@media (max-width: 680px) {
+    .dashboard-welcome h1, .profile-heading h1 { font-size: clamp(27px, 8vw, 35px); }
+}

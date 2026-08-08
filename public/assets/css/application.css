@@ -183,3 +183,22 @@ button, label, select { -webkit-tap-highlight-color: transparent; }
     .application-footer-inner > span { grid-column: auto; line-height: 1.7; }
     .success-card { padding: 35px 22px; }
 }
+
+/* Comfortable reading scale for application forms and confirmation pages. */
+body { font-size: 14px; }
+.panel-heading h1, .panel-heading h2 { font-size: clamp(24px, 3.5vw, 30px); }
+.panel-heading p, .form-alert, .success-card > p { font-size: 13px; }
+.application-vacancy span, .wizard-progress small, .panel-eyebrow, .save-status,
+.position-selection > div:first-child span, .position-counter, .photo-upload strong small,
+.photo-upload em, .photo-upload b, .field > small, .screening-position-heading span,
+.document-upload em, .document-upload small, .review-item span, .wizard-actions > span,
+.application-number span, .submitted-applications small, .submitted-applications b,
+.application-footer-inner > span, .position-option small, .priority-badge,
+.wizard-progress em { font-size: 10px; }
+.field > span, .field legend, .radio-field label, .screening-question label,
+.review-item strong, .consent-field, .submitted-applications strong,
+.application-footer p, .application-footer a { font-size: 12px; }
+.field input, .field select, .field textarea, .screening-question input,
+.screening-question select { font-size: 13px; }
+.button-primary, .button-secondary { font-size: 12px; }
+.success-note { font-size: 11px !important; }

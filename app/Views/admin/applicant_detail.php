@@ -27,7 +27,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     <meta name="theme-color" content="#102a43">
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=21">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=22">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">

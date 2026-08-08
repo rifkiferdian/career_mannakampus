@@ -2,7 +2,7 @@
 $screeningLabels = ['passed' => 'Lolos', 'failed' => 'Tidak lolos', 'pending' => 'Belum dinilai'];
 $query = array_filter($filters, static fn ($value): bool => $value !== '' && $value !== 0);
 ?>
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#102a43"><title>Laporan Pelamar | HRD Manna Kampus</title><link rel="icon" href="<?= base_url('favicon.ico') ?>"><link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=21"></head>
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#102a43"><title>Laporan Pelamar | HRD Manna Kampus</title><link rel="icon" href="<?= base_url('favicon.ico') ?>"><link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=22"></head>
 <body class="admin-dashboard-page"><div class="dashboard-shell">
 <?= view('admin/partials/sidebar', ['auth' => $auth, 'activeMenu' => 'reports']) ?>
 <main class="admin-main"><header class="admin-topbar"><button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button><div><span>Recruitment Analytics</span><strong>Laporan Pelamar</strong></div><a class="view-career-link" href="<?= site_url('lowongan') ?>" target="_blank" rel="noopener">Lihat halaman karier</a></header>

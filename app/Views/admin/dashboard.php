@@ -36,7 +36,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
     <meta name="theme-color" content="#102a43">
     <title>Dashboard HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=21">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=22">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
