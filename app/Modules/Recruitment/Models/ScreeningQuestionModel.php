@@ -12,6 +12,7 @@ class ScreeningQuestionModel extends Model
     protected $useTimestamps = true;
     protected $allowedFields = [
         'vacancy_id',
+        'source_default_question_id',
         'question_code',
         'question_text',
         'answer_type',

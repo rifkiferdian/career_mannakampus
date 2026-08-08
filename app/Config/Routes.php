@@ -41,10 +41,14 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('lowongan/(:num)', 'VacancyManagementController::update/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.update']);
     $routes->post('lowongan/(:num)/status', 'VacancyManagementController::changeStatus/$1', ['filter' => 'permission:vacancies.publish', 'as' => 'hrd.vacancies.status']);
     $routes->post('lowongan/(:num)/hapus', 'VacancyManagementController::delete/$1', ['filter' => 'permission:vacancies.delete', 'as' => 'hrd.vacancies.delete']);
-    $routes->post('lowongan/(:num)/screening/default', 'VacancyManagementController::copyScreeningDefaults/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.defaults']);
-    $routes->post('lowongan/(:num)/screening', 'VacancyManagementController::createQuestion/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.create']);
-    $routes->post('lowongan/(:num)/screening/(:num)', 'VacancyManagementController::updateQuestion/$1/$2', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.update']);
-    $routes->post('lowongan/(:num)/screening/(:num)/hapus', 'VacancyManagementController::deleteQuestion/$1/$2', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.screening.delete']);
+    $routes->get('pertanyaan-screening', 'ScreeningQuestionController::index', ['filter' => 'permission:screening.questions.view', 'as' => 'hrd.screening.questions']);
+    $routes->post('pertanyaan-screening/default', 'ScreeningQuestionController::createDefault', ['filter' => 'permission:screening.defaults.manage', 'as' => 'hrd.screening.defaults.create']);
+    $routes->post('pertanyaan-screening/default/(:num)', 'ScreeningQuestionController::updateDefault/$1', ['filter' => 'permission:screening.defaults.manage', 'as' => 'hrd.screening.defaults.update']);
+    $routes->post('pertanyaan-screening/default/(:num)/hapus', 'ScreeningQuestionController::deleteDefault/$1', ['filter' => 'permission:screening.defaults.manage', 'as' => 'hrd.screening.defaults.delete']);
+    $routes->post('pertanyaan-screening/lowongan/(:num)/salin-default', 'ScreeningQuestionController::copyDefaults/$1', ['filter' => 'permission:screening.vacancies.manage', 'as' => 'hrd.screening.vacancies.copy']);
+    $routes->post('pertanyaan-screening/lowongan/(:num)', 'ScreeningQuestionController::createVacancyQuestion/$1', ['filter' => 'permission:screening.vacancies.manage', 'as' => 'hrd.screening.vacancies.create']);
+    $routes->post('pertanyaan-screening/lowongan/(:num)/(:num)', 'ScreeningQuestionController::updateVacancyQuestion/$1/$2', ['filter' => 'permission:screening.vacancies.manage', 'as' => 'hrd.screening.vacancies.update']);
+    $routes->post('pertanyaan-screening/lowongan/(:num)/(:num)/hapus', 'ScreeningQuestionController::deleteVacancyQuestion/$1/$2', ['filter' => 'permission:screening.vacancies.manage', 'as' => 'hrd.screening.vacancies.delete']);
     $routes->get('laporan-pelamar', 'ApplicantReportController::index', ['filter' => 'permission:reports.view', 'as' => 'hrd.applicant.report']);
     $routes->get('laporan-pelamar/export', 'ApplicantReportController::export', ['filter' => 'permission:reports.view', 'as' => 'hrd.applicant.report.export']);
     $routes->get('pelamar/(:num)', 'ApplicantDetailController::show/$1', ['filter' => 'permission:candidates.view', 'as' => 'hrd.applicant.detail']);
@@ -58,9 +62,5 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)', 'RecruitmentSettingsController::updateRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.update']);
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)/status', 'RecruitmentSettingsController::toggleRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.status']);
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)/hapus', 'RecruitmentSettingsController::deleteRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.delete']);
-    $routes->post('pengaturan-rekrutmen/screening', 'RecruitmentSettingsController::createScreeningQuestion', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.screening.create']);
-    $routes->post('pengaturan-rekrutmen/screening/(:num)', 'RecruitmentSettingsController::updateScreeningQuestion/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.screening.update']);
-    $routes->post('pengaturan-rekrutmen/screening/(:num)/status', 'RecruitmentSettingsController::toggleScreeningQuestion/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.screening.status']);
-    $routes->post('pengaturan-rekrutmen/screening/(:num)/hapus', 'RecruitmentSettingsController::deleteScreeningQuestion/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.screening.delete']);
     $routes->post('logout', 'AuthController::logout', ['filter' => 'hrd-auth', 'as' => 'hrd.logout']);
 });

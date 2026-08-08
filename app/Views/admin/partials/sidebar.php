@@ -7,6 +7,7 @@ $isSuperAdmin = $authorization->isSuperAdmin($userId);
 $canViewDepartments = $authorization->can($userId, 'departments.view');
 $canViewVacancies = $authorization->can($userId, 'vacancies.view');
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
+$canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.view');
 $canViewReports = $authorization->can($userId, 'reports.view');
 $canViewCandidates = $authorization->can($userId, 'candidates.view');
 $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' class="active"' : '';
@@ -48,6 +49,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('recruitment-settings') ?> href="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
                 Pengaturan Rekrutmen
+            </a>
+        <?php endif ?>
+        <?php if ($canViewScreeningQuestions): ?>
+            <a<?= $activeClass('screening-questions') ?> href="<?= site_url('adminhrdmannakampus/pertanyaan-screening') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
+                Pertanyaan Screening
             </a>
         <?php endif ?>
         <?php if ($canViewReports): ?>

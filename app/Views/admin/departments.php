@@ -11,7 +11,7 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
     <meta name="theme-color" content="#102a43">
     <title>Departemen | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=13">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=14">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
@@ -30,7 +30,11 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
 
                 <section class="dashboard-welcome department-heading" aria-labelledby="department-title">
                     <div><span class="login-eyebrow">Organization Structure</span><h1 id="department-title">Departemen</h1><p>Kelola departemen yang digunakan untuk mengelompokkan lowongan pekerjaan.</p></div>
-                    <?php if (! $canManage): ?><span class="read-only-badge">Mode lihat saja</span><?php endif ?>
+                    <?php if ($canManage): ?>
+                        <button class="new-user-jump department-create-trigger" type="button" data-admin-modal-open="create-department-modal">+ Tambah departemen</button>
+                    <?php else: ?>
+                        <span class="read-only-badge">Mode lihat saja</span>
+                    <?php endif ?>
                 </section>
 
                 <section class="access-summary department-summary" aria-label="Ringkasan departemen">
@@ -49,18 +53,24 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
                 </section>
 
                 <?php if ($canManage): ?>
-                    <section class="settings-card department-create-card" aria-labelledby="create-department-title">
-                        <div class="settings-card-heading"><span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><div><h2 id="create-department-title">Tambah departemen</h2><p>Kode digunakan sebagai identitas pada filter lowongan.</p></div></div>
+                    <dialog class="admin-modal department-create-modal" id="create-department-modal" aria-labelledby="create-department-title" <?= $openCreateModal ? 'data-auto-open' : '' ?>>
+                        <div class="admin-modal-panel">
+                            <div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><div><h2 id="create-department-title">Tambah departemen</h2><p>Kode digunakan sebagai identitas pada filter lowongan.</p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
                         <form class="department-create-form" action="<?= site_url('adminhrdmannakampus/departemen') ?>" method="post">
                             <?= csrf_field() ?>
-                            <label>Nama departemen<input type="text" name="name" maxlength="100" placeholder="Contoh: Customer Experience" required></label>
-                            <label>Kode<input type="text" name="code" maxlength="50" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="customer-experience" required></label>
-                            <label>Urutan<input type="number" name="display_order" min="0" max="999" value="<?= count($departments) + 1 ?>" required></label>
-                            <label class="department-description-field">Deskripsi<textarea name="description" rows="3" maxlength="500" placeholder="Jelaskan ruang lingkup departemen"></textarea></label>
-                            <label class="department-active-check"><input type="checkbox" name="is_active" value="1" checked> Aktif</label>
-                            <button type="submit">Tambah departemen</button>
+                            <input type="hidden" name="form_origin" value="create">
+                            <label>Nama departemen<input type="text" name="name" value="<?= esc((string) old('name'), 'attr') ?>" maxlength="100" placeholder="Contoh: Customer Experience" autocomplete="organization" required autofocus></label>
+                            <label>Kode<input type="text" name="code" value="<?= esc((string) old('code'), 'attr') ?>" maxlength="50" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="customer-experience" required></label>
+                            <label>Urutan<input type="number" name="display_order" min="0" max="999" value="<?= esc((string) (old('display_order') ?? count($departments) + 1), 'attr') ?>" required></label>
+                            <label class="department-description-field">Deskripsi<textarea name="description" rows="3" maxlength="500" placeholder="Jelaskan ruang lingkup departemen"><?= esc((string) old('description')) ?></textarea></label>
+                            <div class="department-modal-actions">
+                                <label class="department-active-check"><input type="checkbox" name="is_active" value="1" <?= old('form_origin') === 'create' ? (old('is_active') === '1' ? 'checked' : '') : 'checked' ?>> Aktif</label>
+                                <button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button>
+                                <button type="submit">Tambah departemen</button>
+                            </div>
                         </form>
-                    </section>
+                        </div>
+                    </dialog>
                 <?php endif ?>
 
                 <section class="settings-card department-list-card" aria-labelledby="department-list-title">
@@ -72,7 +82,7 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
                                 <?php if ($departments === []): ?><tr><td class="department-empty" colspan="6">Departemen tidak ditemukan.</td></tr><?php endif ?>
                                 <?php foreach ($departments as $department): ?>
                                     <tr class="<?= (int) $department['is_active'] === 0 ? 'department-row-inactive' : '' ?>">
-                                        <td><span class="department-order"><?= esc((string) $department['display_order']) ?></span></td>
+                                        <td><?= esc((string) $department['display_order']) ?></td>
                                         <td><div class="department-name-cell"><strong><?= esc($department['name']) ?></strong><code><?= esc($department['code']) ?></code></div></td>
                                         <td class="department-description-cell"><?= esc((string) ($department['description'] ?: '-')) ?></td>
                                         <td><span class="department-vacancy-count"><?= esc((string) $department['vacancy_count']) ?> lowongan</span></td>
@@ -110,6 +120,6 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
             </div>
         </main>
     </div>
-    <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
+    <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=3" defer></script>
 </body>
 </html>

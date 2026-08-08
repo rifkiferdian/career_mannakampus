@@ -22,9 +22,9 @@ class RecruitmentSettingsController extends BaseController
             'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
             'stages'             => $database->table('recruitment_stages')->orderBy('display_order', 'ASC')->get()->getResultArray(),
             'rejectionTemplates' => $database->table('rejection_reason_templates')->orderBy('display_order', 'ASC')->get()->getResultArray(),
-            'screeningQuestions' => $database->table('default_screening_questions')->orderBy('display_order', 'ASC')->get()->getResultArray(),
             'success'            => session()->getFlashdata('settings_success'),
             'error'              => session()->getFlashdata('settings_error'),
+            'openSettingsModal'  => (string) (session()->getFlashdata('settings_form') ?? ''),
         ]);
     }
 
@@ -315,7 +315,15 @@ class RecruitmentSettingsController extends BaseController
 
     private function settingsError(string $message, string $anchor): RedirectResponse
     {
-        return redirect()->to(site_url('adminhrdmannakampus/pengaturan-rekrutmen') . $anchor)->with('settings_error', $message);
+        $redirect = redirect()->to(site_url('adminhrdmannakampus/pengaturan-rekrutmen') . $anchor)
+            ->with('settings_error', $message);
+        $form = trim((string) $this->request->getPost('settings_form'));
+
+        if (preg_match('/^(rejection|screening)-(create|edit-[0-9]+)$/', $form) === 1) {
+            $redirect->with('settings_form', $form)->withInput();
+        }
+
+        return $redirect;
     }
 
     private function disableClientCaching(): void

@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#102a43">
     <title>Pengaturan Rekrutmen | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=9">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=14">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
@@ -25,12 +25,12 @@
                 <?php if (! empty($error)): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
 
                 <section class="dashboard-welcome recruitment-settings-heading" aria-labelledby="settings-title">
-                    <div><span class="login-eyebrow">Recruitment Workflow</span><h1 id="settings-title">Pengaturan Rekrutmen</h1><p>Atur tahapan seleksi, batas waktu proses, alasan penolakan, dan pertanyaan screening standar.</p></div>
+                    <div><span class="login-eyebrow">Recruitment Workflow</span><h1 id="settings-title">Pengaturan Rekrutmen</h1><p>Atur tahapan seleksi, batas waktu proses, dan alasan penolakan kandidat.</p></div>
                     <?php if (! $canManage): ?><span class="read-only-badge">Mode lihat saja</span><?php endif ?>
                 </section>
 
                 <nav class="settings-anchor-nav" aria-label="Bagian pengaturan rekrutmen">
-                    <a href="#stages">Tahapan seleksi</a><a href="#rejections">Alasan penolakan</a><a href="#screening">Screening default</a>
+                    <a href="#stages">Tahapan seleksi</a><a href="#rejections">Alasan penolakan</a><a href="<?= site_url('adminhrdmannakampus/pertanyaan-screening') ?>">Pertanyaan screening</a>
                 </nav>
 
                 <section class="settings-card recruitment-config-card" id="stages" aria-labelledby="stages-title">
@@ -43,7 +43,7 @@
                         <thead><tr><th>Urutan</th><th>Tahapan</th><th>Warna</th><th>Batas waktu</th><th>Status</th><th>Aksi</th></tr></thead>
                         <tbody><?php foreach ($stages as $stage): ?>
                             <tr class="<?= (int) $stage['is_active'] === 0 ? 'department-row-inactive' : '' ?>">
-                                <td><span class="department-order"><?= esc((string) $stage['display_order']) ?></span></td>
+                                <td><?= esc((string) $stage['display_order']) ?></td>
                                 <td><div class="department-name-cell"><strong><?= esc($stage['name']) ?></strong><code><?= esc($stage['code']) ?></code></div></td>
                                 <td><span class="stage-color-value"><i style="--stage-color: <?= esc($stage['color_hex'], 'attr') ?>"></i><?= esc($stage['color_hex']) ?></span></td>
                                 <td><?= (int) $stage['is_terminal'] === 1 ? '-' : esc((string) $stage['sla_days']) . ' hari' ?></td>
@@ -63,50 +63,104 @@
                     <div class="settings-card-heading settings-heading-action">
                         <span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 13h6"/></svg></span>
                         <div><h2 id="rejections-title">Template alasan penolakan</h2><p>Pesan standar yang dapat dipilih saat menolak kandidat.</p></div>
-                        <span class="device-count"><?= count($rejectionTemplates) ?></span>
+                        <div class="settings-heading-tools"><span class="device-count"><?= count($rejectionTemplates) ?></span><?php if ($canManage): ?><button type="button" data-admin-modal-open="create-rejection-modal">+ Tambah template</button><?php endif ?></div>
                     </div>
                     <div class="department-table-wrap"><table class="department-table recruitment-table">
                         <thead><tr><th>Urutan</th><th>Template</th><th>Alasan penolakan</th><th>Status</th><th>Aksi</th></tr></thead>
                         <tbody><?php foreach ($rejectionTemplates as $template): ?>
-                            <tr class="<?= ! $template['is_active'] ? 'department-row-inactive' : '' ?>"><td><span class="department-order"><?= esc((string) $template['display_order']) ?></span></td><td><div class="department-name-cell"><strong><?= esc($template['title']) ?></strong></div></td><td class="department-description-cell"><?= esc($template['reason_text']) ?></td><td><span class="account-status <?= $template['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $template['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td><td><div class="department-table-actions"><?php if ($canManage): ?><a href="#edit-rejection-<?= esc((string) $template['id'], 'attr') ?>">Edit</a><form action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/penolakan/' . $template['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus template alasan penolakan ini?')"><?= csrf_field() ?><button class="department-delete-button" type="submit">Delete</button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td></tr>
-                            <?php if ($canManage): ?><tr class="department-edit-table-row" id="edit-rejection-<?= esc((string) $template['id'], 'attr') ?>"><td colspan="5"><form class="department-table-edit-form rejection-table-edit-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/penolakan/' . $template['id']) ?>" method="post"><?= csrf_field() ?><label>Judul<input type="text" name="title" value="<?= esc($template['title'], 'attr') ?>" maxlength="150" required></label><label>Urutan<input type="number" name="display_order" value="<?= esc((string) $template['display_order'], 'attr') ?>" min="1" max="999" required></label><label class="department-description-field">Isi alasan<textarea name="reason_text" rows="3" maxlength="1000" required><?= esc($template['reason_text']) ?></textarea></label><label class="department-active-check"><input type="checkbox" name="is_active" value="1" <?= $template['is_active'] ? 'checked' : '' ?>> Aktif</label><div class="department-edit-buttons"><a href="#rejections-title">Batal</a><button type="submit">Simpan</button></div></form></td></tr><?php endif ?>
+                            <tr class="<?= ! $template['is_active'] ? 'department-row-inactive' : '' ?>"><td><?= esc((string) $template['display_order']) ?></td><td><div class="department-name-cell"><strong><?= esc($template['title']) ?></strong></div></td><td class="department-description-cell"><?= esc($template['reason_text']) ?></td><td><span class="account-status <?= $template['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $template['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td><td><div class="department-table-actions"><?php if ($canManage): ?><button class="settings-edit-trigger" type="button" data-admin-modal-open="edit-rejection-modal-<?= (int) $template['id'] ?>">Edit</button><form action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/penolakan/' . $template['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus template alasan penolakan ini?')"><?= csrf_field() ?><button class="department-delete-button" type="submit">Delete</button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td></tr>
                         <?php endforeach ?></tbody>
                     </table></div>
                     <?php if ($canManage): ?>
-                        <form class="new-config-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/penolakan') ?>" method="post">
-                            <?= csrf_field() ?><strong>Tambah template baru</strong>
-                            <div class="new-template-grid"><input type="number" name="display_order" value="<?= count($rejectionTemplates) + 1 ?>" min="1" max="999" aria-label="Urutan"><input type="text" name="title" placeholder="Judul alasan" maxlength="150" required><label><input type="checkbox" name="is_active" value="1" checked> Aktif</label></div>
-                            <textarea name="reason_text" rows="3" placeholder="Pesan alasan penolakan yang akan disampaikan kepada kandidat" maxlength="1000" required></textarea><button type="submit">Tambah template</button>
-                        </form>
+                        <dialog class="admin-modal settings-form-modal" id="create-rejection-modal" aria-labelledby="create-rejection-title" <?= $openSettingsModal === 'rejection-create' ? 'data-auto-open' : '' ?>>
+                            <div class="admin-modal-panel">
+                                <div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><div><h2 id="create-rejection-title">Tambah template penolakan</h2><p>Buat pesan standar untuk kandidat yang tidak dilanjutkan.</p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
+                                <form class="department-table-edit-form settings-modal-form rejection-modal-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/penolakan') ?>" method="post">
+                                    <?= csrf_field() ?><input type="hidden" name="settings_form" value="rejection-create">
+                                    <label>Judul<input type="text" name="title" value="<?= $openSettingsModal === 'rejection-create' ? esc((string) old('title'), 'attr') : '' ?>" maxlength="150" required autofocus></label>
+                                    <label>Urutan<input type="number" name="display_order" value="<?= $openSettingsModal === 'rejection-create' ? esc((string) old('display_order'), 'attr') : count($rejectionTemplates) + 1 ?>" min="1" max="999" required></label>
+                                    <label class="settings-modal-wide">Isi alasan<textarea name="reason_text" rows="5" maxlength="1000" required><?= $openSettingsModal === 'rejection-create' ? esc((string) old('reason_text')) : '' ?></textarea></label>
+                                    <div class="screening-flags settings-modal-wide"><label><input type="checkbox" name="is_active" value="1" <?= $openSettingsModal === 'rejection-create' ? (old('is_active') === '1' ? 'checked' : '') : 'checked' ?>> Aktif</label></div>
+                                    <div class="department-modal-actions settings-modal-wide"><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit">Tambah template</button></div>
+                                </form>
+                            </div>
+                        </dialog>
+                        <?php foreach ($rejectionTemplates as $template): ?><?php $rejectionModalKey = 'rejection-edit-' . $template['id']; ?>
+                            <dialog class="admin-modal settings-form-modal" id="edit-rejection-modal-<?= (int) $template['id'] ?>" aria-labelledby="edit-rejection-title-<?= (int) $template['id'] ?>" <?= $openSettingsModal === $rejectionModalKey ? 'data-auto-open' : '' ?>>
+                                <div class="admin-modal-panel">
+                                    <div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11-4-4L4 16v4ZM13 7l4 4"/></svg></span><div><h2 id="edit-rejection-title-<?= (int) $template['id'] ?>">Edit template penolakan</h2><p><?= esc($template['title']) ?></p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
+                                    <form class="department-table-edit-form settings-modal-form rejection-modal-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/penolakan/' . $template['id']) ?>" method="post">
+                                        <?= csrf_field() ?><input type="hidden" name="settings_form" value="<?= esc($rejectionModalKey, 'attr') ?>">
+                                        <label>Judul<input type="text" name="title" value="<?= esc((string) ($openSettingsModal === $rejectionModalKey ? old('title') : $template['title']), 'attr') ?>" maxlength="150" required></label>
+                                        <label>Urutan<input type="number" name="display_order" value="<?= esc((string) ($openSettingsModal === $rejectionModalKey ? old('display_order') : $template['display_order']), 'attr') ?>" min="1" max="999" required></label>
+                                        <label class="settings-modal-wide">Isi alasan<textarea name="reason_text" rows="5" maxlength="1000" required><?= esc((string) ($openSettingsModal === $rejectionModalKey ? old('reason_text') : $template['reason_text'])) ?></textarea></label>
+                                        <div class="screening-flags settings-modal-wide"><label><input type="checkbox" name="is_active" value="1" <?= ($openSettingsModal === $rejectionModalKey ? old('is_active') === '1' : (bool) $template['is_active']) ? 'checked' : '' ?>> Aktif</label></div>
+                                        <div class="department-modal-actions settings-modal-wide"><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit">Simpan perubahan</button></div>
+                                    </form>
+                                </div>
+                            </dialog>
+                        <?php endforeach ?>
                     <?php endif ?>
                 </section>
 
-                <section class="settings-card recruitment-config-card" id="screening" aria-labelledby="screening-title">
+                <?php if (false): ?><section class="settings-card recruitment-config-card" id="screening" aria-labelledby="screening-title">
                     <div class="settings-card-heading settings-heading-action">
                         <span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span>
                         <div><h2 id="screening-title">Pertanyaan screening default</h2><p>Bank pertanyaan untuk digunakan ketika membuat lowongan baru.</p></div>
-                        <span class="device-count"><?= count($screeningQuestions) ?></span>
+                        <div class="settings-heading-tools"><span class="device-count"><?= count($screeningQuestions) ?></span><?php if ($canManage): ?><button type="button" data-admin-modal-open="create-screening-modal">+ Tambah pertanyaan</button><?php endif ?></div>
                     </div>
                     <div class="department-table-wrap"><table class="department-table recruitment-table screening-table">
                         <thead><tr><th>Urutan</th><th>Pertanyaan</th><th>Tipe</th><th>Evaluasi</th><th>Status</th><th>Aksi</th></tr></thead>
                         <tbody><?php foreach ($screeningQuestions as $question): ?>
                             <?php $decodedOptions = json_decode((string) ($question['answer_options'] ?? ''), true); $optionsText = is_array($decodedOptions) ? implode(', ', $decodedOptions) : ''; ?>
-                            <tr class="<?= ! $question['is_active'] ? 'department-row-inactive' : '' ?>"><td><span class="department-order"><?= esc((string) $question['display_order']) ?></span></td><td><div class="department-name-cell screening-question-cell"><strong><?= esc($question['question_text']) ?></strong><code><?= esc($question['question_code']) ?></code></div></td><td><span class="screening-type-badge"><?= esc($question['answer_type']) ?></span></td><td class="screening-evaluation-cell"><?= $question['is_required'] ? 'Wajib' : 'Opsional' ?><?= $question['is_knockout'] ? ' · Knockout' : '' ?><?php if (! empty($question['expected_value'])): ?><small>Jawaban: <?= esc($question['expected_value']) ?></small><?php endif ?></td><td><span class="account-status <?= $question['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $question['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td><td><div class="department-table-actions"><?php if ($canManage): ?><a href="#edit-screening-<?= esc((string) $question['id'], 'attr') ?>">Edit</a><form action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/screening/' . $question['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus pertanyaan screening ini?')"><?= csrf_field() ?><button class="department-delete-button" type="submit">Delete</button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td></tr>
-                            <?php if ($canManage): ?><tr class="department-edit-table-row" id="edit-screening-<?= esc((string) $question['id'], 'attr') ?>"><td colspan="6"><form class="department-table-edit-form screening-table-edit-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/screening/' . $question['id']) ?>" method="post"><?= csrf_field() ?><label class="screening-edit-question">Pertanyaan<input type="text" name="question_text" value="<?= esc($question['question_text'], 'attr') ?>" maxlength="500" required></label><label>Tipe<select name="answer_type"><?php foreach (['text' => 'Teks', 'number' => 'Angka', 'yes_no' => 'Ya / Tidak', 'choice' => 'Pilihan'] as $value => $label): ?><option value="<?= esc($value, 'attr') ?>" <?= $question['answer_type'] === $value ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label><label>Operator<select name="comparison_operator"><?php foreach (['' => 'Tanpa evaluasi', 'equals' => 'Sama dengan', 'between' => 'Di antara', 'greater_than_or_equal' => 'Minimal', 'minimum_education' => 'Pendidikan minimal'] as $value => $label): ?><option value="<?= esc($value, 'attr') ?>" <?= ($question['comparison_operator'] ?? '') === $value ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label><label>Jawaban harapan<input type="text" name="expected_value" value="<?= esc((string) ($question['expected_value'] ?? ''), 'attr') ?>" maxlength="255"></label><label>Opsi<input type="text" name="answer_options" value="<?= esc($optionsText, 'attr') ?>"></label><label>Urutan<input type="number" name="display_order" value="<?= esc((string) $question['display_order'], 'attr') ?>" min="1" max="999" required></label><div class="screening-flags"><label><input type="checkbox" name="is_required" value="1" <?= $question['is_required'] ? 'checked' : '' ?>> Wajib</label><label><input type="checkbox" name="is_knockout" value="1" <?= $question['is_knockout'] ? 'checked' : '' ?>> Knockout</label><label><input type="checkbox" name="is_active" value="1" <?= $question['is_active'] ? 'checked' : '' ?>> Aktif</label></div><div class="department-edit-buttons"><a href="#screening-title">Batal</a><button type="submit">Simpan</button></div></form></td></tr><?php endif ?>
+                            <tr class="<?= ! $question['is_active'] ? 'department-row-inactive' : '' ?>"><td><?= esc((string) $question['display_order']) ?></td><td><div class="department-name-cell screening-question-cell"><strong><?= esc($question['question_text']) ?></strong><code><?= esc($question['question_code']) ?></code></div></td><td><span class="screening-type-badge"><?= esc($question['answer_type']) ?></span></td><td class="screening-evaluation-cell"><?= $question['is_required'] ? 'Wajib' : 'Opsional' ?><?= $question['is_knockout'] ? ' · Knockout' : '' ?><?php if (! empty($question['expected_value'])): ?><small>Jawaban: <?= esc($question['expected_value']) ?></small><?php endif ?></td><td><span class="account-status <?= $question['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $question['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td><td><div class="department-table-actions"><?php if ($canManage): ?><button class="settings-edit-trigger" type="button" data-admin-modal-open="edit-screening-modal-<?= (int) $question['id'] ?>">Edit</button><form action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/screening/' . $question['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus pertanyaan screening ini?')"><?= csrf_field() ?><button class="department-delete-button" type="submit">Delete</button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td></tr>
                         <?php endforeach ?></tbody>
                     </table></div>
                     <?php if ($canManage): ?>
-                        <form class="new-config-form new-screening-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/screening') ?>" method="post">
-                            <?= csrf_field() ?><strong>Tambah pertanyaan default</strong>
-                            <input type="text" name="question_text" placeholder="Tulis pertanyaan screening" maxlength="500" required>
-                            <div class="new-screening-grid"><select name="answer_type"><option value="text">Teks</option><option value="number">Angka</option><option value="yes_no">Ya / Tidak</option><option value="choice">Pilihan</option></select><select name="comparison_operator"><option value="">Tanpa evaluasi</option><option value="equals">Sama dengan</option><option value="between">Di antara</option><option value="greater_than_or_equal">Minimal</option><option value="minimum_education">Pendidikan minimal</option></select><input type="text" name="expected_value" placeholder="Jawaban harapan"><input type="text" name="answer_options" placeholder="Opsi dipisahkan koma"><input type="number" name="display_order" value="<?= count($screeningQuestions) + 1 ?>" min="1" max="999" aria-label="Urutan"></div>
-                            <div class="screening-flags"><label><input type="checkbox" name="is_required" value="1" checked> Wajib</label><label><input type="checkbox" name="is_knockout" value="1"> Knockout</label><label><input type="checkbox" name="is_active" value="1" checked> Aktif</label></div><button type="submit">Tambah pertanyaan</button>
-                        </form>
+                        <?php
+                            $answerTypes = ['text' => 'Teks', 'number' => 'Angka', 'yes_no' => 'Ya / Tidak', 'choice' => 'Pilihan'];
+                            $operators = ['' => 'Tanpa evaluasi', 'equals' => 'Sama dengan', 'between' => 'Di antara', 'greater_than_or_equal' => 'Minimal', 'minimum_education' => 'Pendidikan minimal'];
+                        ?>
+                        <dialog class="admin-modal settings-form-modal" id="create-screening-modal" aria-labelledby="create-screening-title" <?= $openSettingsModal === 'screening-create' ? 'data-auto-open' : '' ?>>
+                            <div class="admin-modal-panel">
+                                <div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><div><h2 id="create-screening-title">Tambah pertanyaan screening</h2><p>Buat pertanyaan default untuk lowongan baru.</p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
+                                <form class="department-table-edit-form screening-table-edit-form settings-modal-form screening-modal-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/screening') ?>" method="post">
+                                    <?= csrf_field() ?><input type="hidden" name="settings_form" value="screening-create">
+                                    <label class="screening-edit-question">Pertanyaan<input type="text" name="question_text" value="<?= $openSettingsModal === 'screening-create' ? esc((string) old('question_text'), 'attr') : '' ?>" maxlength="500" required autofocus></label>
+                                    <label>Tipe<select name="answer_type"><?php foreach ($answerTypes as $value => $label): ?><option value="<?= esc($value, 'attr') ?>" <?= ($openSettingsModal === 'screening-create' ? old('answer_type') : 'text') === $value ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label>
+                                    <label>Operator<select name="comparison_operator"><?php foreach ($operators as $value => $label): ?><option value="<?= esc($value, 'attr') ?>" <?= ($openSettingsModal === 'screening-create' ? (string) old('comparison_operator') : '') === $value ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label>
+                                    <label>Jawaban harapan<input type="text" name="expected_value" value="<?= $openSettingsModal === 'screening-create' ? esc((string) old('expected_value'), 'attr') : '' ?>" maxlength="255"></label>
+                                    <label>Opsi pilihan<input type="text" name="answer_options" value="<?= $openSettingsModal === 'screening-create' ? esc((string) old('answer_options'), 'attr') : '' ?>" placeholder="Pisahkan dengan koma"></label>
+                                    <label>Urutan<input type="number" name="display_order" value="<?= $openSettingsModal === 'screening-create' ? esc((string) old('display_order'), 'attr') : count($screeningQuestions) + 1 ?>" min="1" max="999" required></label>
+                                    <div class="screening-flags settings-modal-wide"><label><input type="checkbox" name="is_required" value="1" <?= $openSettingsModal === 'screening-create' ? (old('is_required') === '1' ? 'checked' : '') : 'checked' ?>> Wajib</label><label><input type="checkbox" name="is_knockout" value="1" <?= $openSettingsModal === 'screening-create' && old('is_knockout') === '1' ? 'checked' : '' ?>> Knockout</label><label><input type="checkbox" name="is_active" value="1" <?= $openSettingsModal === 'screening-create' ? (old('is_active') === '1' ? 'checked' : '') : 'checked' ?>> Aktif</label></div>
+                                    <div class="department-modal-actions settings-modal-wide"><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit">Tambah pertanyaan</button></div>
+                                </form>
+                            </div>
+                        </dialog>
+                        <?php foreach ($screeningQuestions as $question): ?>
+                            <?php $screeningModalKey = 'screening-edit-' . $question['id']; $decodedOptions = json_decode((string) ($question['answer_options'] ?? ''), true); $optionsText = is_array($decodedOptions) ? implode(', ', $decodedOptions) : ''; ?>
+                            <dialog class="admin-modal settings-form-modal" id="edit-screening-modal-<?= (int) $question['id'] ?>" aria-labelledby="edit-screening-title-<?= (int) $question['id'] ?>" <?= $openSettingsModal === $screeningModalKey ? 'data-auto-open' : '' ?>>
+                                <div class="admin-modal-panel">
+                                    <div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11-4-4L4 16v4ZM13 7l4 4"/></svg></span><div><h2 id="edit-screening-title-<?= (int) $question['id'] ?>">Edit pertanyaan screening</h2><p><?= esc($question['question_code']) ?></p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
+                                    <form class="department-table-edit-form screening-table-edit-form settings-modal-form screening-modal-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/screening/' . $question['id']) ?>" method="post">
+                                        <?= csrf_field() ?><input type="hidden" name="settings_form" value="<?= esc($screeningModalKey, 'attr') ?>">
+                                        <label class="screening-edit-question">Pertanyaan<input type="text" name="question_text" value="<?= esc((string) ($openSettingsModal === $screeningModalKey ? old('question_text') : $question['question_text']), 'attr') ?>" maxlength="500" required></label>
+                                        <label>Tipe<select name="answer_type"><?php foreach ($answerTypes as $value => $label): ?><option value="<?= esc($value, 'attr') ?>" <?= ($openSettingsModal === $screeningModalKey ? old('answer_type') : $question['answer_type']) === $value ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label>
+                                        <label>Operator<select name="comparison_operator"><?php foreach ($operators as $value => $label): ?><option value="<?= esc($value, 'attr') ?>" <?= ($openSettingsModal === $screeningModalKey ? (string) old('comparison_operator') : (string) ($question['comparison_operator'] ?? '')) === $value ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label>
+                                        <label>Jawaban harapan<input type="text" name="expected_value" value="<?= esc((string) ($openSettingsModal === $screeningModalKey ? old('expected_value') : ($question['expected_value'] ?? '')), 'attr') ?>" maxlength="255"></label>
+                                        <label>Opsi pilihan<input type="text" name="answer_options" value="<?= esc((string) ($openSettingsModal === $screeningModalKey ? old('answer_options') : $optionsText), 'attr') ?>" placeholder="Pisahkan dengan koma"></label>
+                                        <label>Urutan<input type="number" name="display_order" value="<?= esc((string) ($openSettingsModal === $screeningModalKey ? old('display_order') : $question['display_order']), 'attr') ?>" min="1" max="999" required></label>
+                                        <div class="screening-flags settings-modal-wide"><label><input type="checkbox" name="is_required" value="1" <?= ($openSettingsModal === $screeningModalKey ? old('is_required') === '1' : (bool) $question['is_required']) ? 'checked' : '' ?>> Wajib</label><label><input type="checkbox" name="is_knockout" value="1" <?= ($openSettingsModal === $screeningModalKey ? old('is_knockout') === '1' : (bool) $question['is_knockout']) ? 'checked' : '' ?>> Knockout</label><label><input type="checkbox" name="is_active" value="1" <?= ($openSettingsModal === $screeningModalKey ? old('is_active') === '1' : (bool) $question['is_active']) ? 'checked' : '' ?>> Aktif</label></div>
+                                        <div class="department-modal-actions settings-modal-wide"><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit">Simpan perubahan</button></div>
+                                    </form>
+                                </div>
+                            </dialog>
+                        <?php endforeach ?>
                     <?php endif ?>
-                </section>
+                </section><?php endif ?>
             </div>
         </main>
     </div>
-    <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
+    <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=3" defer></script>
 </body>
 </html>

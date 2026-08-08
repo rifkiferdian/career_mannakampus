@@ -53,6 +53,7 @@ class VacancyManagementController extends BaseController
             'canDelete' => Services::authorization()->can($userId, 'vacancies.delete'),
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
             'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
+            'canViewScreeningQuestions' => Services::authorization()->can($userId, 'screening.questions.view'),
             'success' => session()->getFlashdata('vacancy_success'),
             'error' => session()->getFlashdata('vacancy_error'),
         ]);
@@ -311,7 +312,7 @@ class VacancyManagementController extends BaseController
         $existingCodes = array_column($database->table('vacancy_screening_questions')->select('question_code')->where('vacancy_id', $vacancyId)->get()->getResultArray(), 'question_code');
         foreach ($database->table('default_screening_questions')->where('is_active', 1)->orderBy('display_order', 'ASC')->get()->getResultArray() as $question) {
             if (in_array($question['question_code'], $existingCodes, true)) { continue; }
-            $database->table('vacancy_screening_questions')->insert(['vacancy_id' => $vacancyId, 'question_code' => $question['question_code'], 'question_text' => $question['question_text'], 'answer_type' => $question['answer_type'], 'answer_options' => $question['answer_options'], 'is_required' => $question['is_required'], 'is_knockout' => $question['is_knockout'], 'expected_value' => $question['expected_value'], 'comparison_operator' => $question['comparison_operator'], 'display_order' => $question['display_order'], 'is_active' => 1, 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
+            $database->table('vacancy_screening_questions')->insert(['vacancy_id' => $vacancyId, 'source_default_question_id' => $question['id'], 'question_code' => $question['question_code'], 'question_text' => $question['question_text'], 'answer_type' => $question['answer_type'], 'answer_options' => $question['answer_options'], 'is_required' => $question['is_required'], 'is_knockout' => $question['is_knockout'], 'expected_value' => $question['expected_value'], 'comparison_operator' => $question['comparison_operator'], 'display_order' => $question['display_order'], 'is_active' => 1, 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
             $added++;
         }
         return $added;

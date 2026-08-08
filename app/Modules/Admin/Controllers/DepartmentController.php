@@ -40,6 +40,7 @@ class DepartmentController extends BaseController
             'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
             'success' => session()->getFlashdata('department_success'),
             'error' => session()->getFlashdata('department_error'),
+            'openCreateModal' => session()->getFlashdata('department_form') === 'create',
         ]);
     }
 
@@ -174,7 +175,14 @@ class DepartmentController extends BaseController
 
     private function departmentError(string $message): RedirectResponse
     {
-        return redirect()->to(site_url('adminhrdmannakampus/departemen'))->with('department_error', $message);
+        $redirect = redirect()->to(site_url('adminhrdmannakampus/departemen'))
+            ->with('department_error', $message);
+
+        if ($this->request->getPost('form_origin') === 'create') {
+            $redirect->with('department_form', 'create')->withInput();
+        }
+
+        return $redirect;
     }
 
     private function disableClientCaching(): void

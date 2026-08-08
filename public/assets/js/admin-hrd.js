@@ -35,4 +35,23 @@
             if (!window.confirm(button.dataset.confirm)) event.preventDefault();
         });
     });
+
+    document.querySelectorAll('[data-admin-modal-open]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const modal = document.getElementById(button.dataset.adminModalOpen || '');
+            if (modal instanceof HTMLDialogElement && !modal.open) modal.showModal();
+        });
+    });
+
+    document.querySelectorAll('.admin-modal').forEach((modal) => {
+        if (!(modal instanceof HTMLDialogElement)) return;
+
+        modal.querySelectorAll('[data-admin-modal-close]').forEach((button) => {
+            button.addEventListener('click', () => modal.close());
+        });
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) modal.close();
+        });
+        if (modal.hasAttribute('data-auto-open')) modal.showModal();
+    });
 })();
