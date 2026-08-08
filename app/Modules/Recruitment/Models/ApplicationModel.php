@@ -18,6 +18,7 @@ class ApplicationModel extends Model
         'batch_id',
         'applicant_id',
         'vacancy_id',
+        'vacancy_period_id',
         'preference_order',
         'cv_path',
         'document_bundle_path',

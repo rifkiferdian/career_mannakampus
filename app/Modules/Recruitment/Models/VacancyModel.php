@@ -48,25 +48,31 @@ class VacancyModel extends Model
     {
         $builder = $this->builder()
             ->select(
-                'vacancies.*, departments.code AS department_code, departments.name AS department, '
+                'vacancies.*, periods.id AS vacancy_period_id, periods.period_name AS recruitment_period_name, '
+                . 'periods.period_code AS recruitment_period_code, periods.headcount AS period_headcount, '
+                . 'periods.opened_at AS period_opened_at, periods.closed_at AS period_closed_at, '
+                . 'departments.code AS department_code, departments.name AS department, '
                 . 'requirement_groups.code AS requirement_group_code, requirement_groups.name AS requirement_group_name, '
                 . 'requirement_groups.max_positions',
             )
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('requirement_groups', 'requirement_groups.id = vacancies.requirement_group_id')
-            ->where('vacancies.status', 'open')
+            ->join('vacancy_recruitment_periods AS periods', 'periods.vacancy_id = vacancies.id')
+            ->whereIn('periods.status', ['open', 'scheduled'])
+            ->where('periods.deleted_at', null)
             ->where('vacancies.deleted_at', null)
+            ->where('vacancies.status !=', 'archived')
             ->where('departments.is_active', 1)
             ->where('requirement_groups.is_active', 1)
             ->groupStart()
-                ->where('vacancies.opened_at', null)
-                ->orWhere('vacancies.opened_at <=', $now->format('Y-m-d H:i:s'))
+                ->where('periods.opened_at', null)
+                ->orWhere('periods.opened_at <=', $now->format('Y-m-d H:i:s'))
             ->groupEnd()
             ->groupStart()
-                ->where('vacancies.closed_at', null)
-                ->orWhere('vacancies.closed_at >=', $now->format('Y-m-d H:i:s'))
+                ->where('periods.closed_at', null)
+                ->orWhere('periods.closed_at >=', $now->format('Y-m-d H:i:s'))
             ->groupEnd()
-            ->orderBy('vacancies.opened_at', 'DESC')
+            ->orderBy('periods.opened_at', 'DESC')
             ->orderBy('vacancies.title', 'ASC');
 
         if ($keyword !== '') {

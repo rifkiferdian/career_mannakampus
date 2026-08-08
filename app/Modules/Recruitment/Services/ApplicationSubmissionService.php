@@ -114,26 +114,34 @@ class ApplicationSubmissionService
                 $this->applicantModel->update($applicantId, $applicantData);
             }
 
-            $selectedVacancyIds = array_map(
-                static fn (array $vacancy): int => (int) $vacancy['id'],
+            $selectedPeriodIds = array_map(
+                static fn (array $vacancy): int => (int) $vacancy['vacancy_period_id'],
                 $vacancies,
             );
             $existingApplication = $this->applicationModel
                 ->withDeleted()
                 ->where('applicant_id', $applicantId)
-                ->whereIn('vacancy_id', $selectedVacancyIds)
+                ->whereIn('vacancy_period_id', $selectedPeriodIds)
                 ->first();
 
             if ($existingApplication !== null) {
-                throw new DomainException('Salah satu posisi yang dipilih sudah pernah Anda lamar.');
+                throw new DomainException('Salah satu posisi yang dipilih sudah pernah Anda lamar pada sesi ini.');
             }
 
             $activeApplicationCount = $this->database->table('applications AS applications')
-                ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+                ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
                 ->where('applications.applicant_id', $applicantId)
                 ->where('applications.deleted_at', null)
-                ->where('vacancies.status', 'open')
-                ->where('vacancies.deleted_at', null)
+                ->whereIn('periods.status', ['open', 'scheduled'])
+                ->where('periods.deleted_at', null)
+                ->groupStart()
+                    ->where('periods.opened_at', null)
+                    ->orWhere('periods.opened_at <=', $now)
+                ->groupEnd()
+                ->groupStart()
+                    ->where('periods.closed_at', null)
+                    ->orWhere('periods.closed_at >=', $now)
+                ->groupEnd()
                 ->countAllResults();
 
             if ($activeApplicationCount + count($vacancies) > 3) {
@@ -190,6 +198,7 @@ class ApplicationSubmissionService
                     'batch_id'             => $batchId,
                     'applicant_id'         => $applicantId,
                     'vacancy_id'           => (int) $vacancy['id'],
+                    'vacancy_period_id'    => (int) $vacancy['vacancy_period_id'],
                     'preference_order'      => (int) $vacancy['preference_order'],
                     'cv_path'              => null,
                     'document_bundle_path' => null,

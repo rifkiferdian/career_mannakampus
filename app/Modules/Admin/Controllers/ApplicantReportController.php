@@ -51,6 +51,7 @@ class ApplicantReportController extends BaseController
             'applications' => $applications,
             'filters' => $filters,
             'vacancies' => db_connect()->table('vacancies')->select('id, title')->where('deleted_at', null)->orderBy('title')->get()->getResultArray(),
+            'periods' => db_connect()->table('vacancy_recruitment_periods AS periods')->select('periods.id, periods.period_name, vacancies.title AS vacancy_title')->join('vacancies', 'vacancies.id = periods.vacancy_id')->where('periods.deleted_at', null)->orderBy('periods.opened_at', 'DESC')->get()->getResultArray(),
             'departments' => db_connect()->table('departments')->select('id, name')->orderBy('name')->get()->getResultArray(),
             'statusLabels' => self::STATUS_LABELS,
             'canViewCandidate' => Services::authorization()->can($userId, 'candidates.view'),
@@ -74,6 +75,7 @@ class ApplicantReportController extends BaseController
                 $row['email'],
                 $row['phone'],
                 $row['vacancy_title'],
+                $row['period_name'],
                 $row['department_name'],
                 $this->formatDate((string) $row['submitted_at']),
                 $this->screeningLabel((string) $row['screening_status']),
@@ -83,14 +85,14 @@ class ApplicantReportController extends BaseController
         }, $rows);
         $workbook = (new ExcelWorkbookBuilder())->build(
             'Laporan Pelamar Manna Kampus',
-            ['No. Lamaran', 'Nama Pelamar', 'Email', 'WhatsApp', 'Posisi', 'Departemen', 'Tanggal Daftar', 'Status Screening', 'Nilai Screening', 'Status Lamaran'],
+            ['No. Lamaran', 'Nama Pelamar', 'Email', 'WhatsApp', 'Posisi', 'Sesi Lowongan', 'Departemen', 'Tanggal Daftar', 'Status Screening', 'Nilai Screening', 'Status Lamaran'],
             $excelRows,
         );
 
         return $this->response->download('laporan-pelamar-' . date('Ymd-His') . '.xlsx', $workbook, true);
     }
 
-    /** @return array{keyword: string, vacancy_id: int, department_id: int, status: string, date_from: string, date_to: string} */
+    /** @return array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} */
     private function filters(): array
     {
         $status = trim((string) $this->request->getGet('status'));
@@ -101,6 +103,7 @@ class ApplicantReportController extends BaseController
         return [
             'keyword' => mb_substr(trim((string) $this->request->getGet('keyword')), 0, 100),
             'vacancy_id' => max(0, (int) $this->request->getGet('vacancy_id')),
+            'vacancy_period_id' => max(0, (int) $this->request->getGet('vacancy_period_id')),
             'department_id' => max(0, (int) $this->request->getGet('department_id')),
             'status' => $status,
             'date_from' => $this->validDate((string) $this->request->getGet('date_from')),
@@ -108,15 +111,16 @@ class ApplicantReportController extends BaseController
         ];
     }
 
-    /** @param array{keyword: string, vacancy_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters
+    /** @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters
      * @return list<array<string, mixed>>
      */
     private function reportRows(array $filters): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select('applications.application_number, applications.applicant_id, applications.screening_status, applications.screening_score, applications.application_status, applications.submitted_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, departments.name AS department_name')
+            ->select('applications.application_number, applications.applicant_id, applications.screening_status, applications.screening_score, applications.application_status, applications.submitted_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, periods.period_name, departments.name AS department_name')
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+            ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
@@ -131,7 +135,7 @@ class ApplicantReportController extends BaseController
         }, $rows);
     }
 
-    /** @param array{keyword: string, vacancy_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters */
+    /** @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters */
     private function applyFilters(BaseBuilder $builder, array $filters): void
     {
         if ($filters['keyword'] !== '') {
@@ -144,6 +148,9 @@ class ApplicantReportController extends BaseController
         }
         if ($filters['vacancy_id'] > 0) {
             $builder->where('applications.vacancy_id', $filters['vacancy_id']);
+        }
+        if ($filters['vacancy_period_id'] > 0) {
+            $builder->where('applications.vacancy_period_id', $filters['vacancy_period_id']);
         }
         if ($filters['department_id'] > 0) {
             $builder->where('vacancies.department_id', $filters['department_id']);

@@ -122,7 +122,7 @@ class DashboardController extends BaseController
     private function applicationRows(array $filters): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.application_status, applications.screening_status, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, vacancies.title AS vacancy_title, vacancies.department_id, departments.name AS department_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.vacancy_period_id, applications.application_number, applications.application_status, applications.screening_status, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, vacancies.title AS vacancy_title, vacancies.department_id, departments.name AS department_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('departments', 'departments.id = vacancies.department_id')
@@ -251,21 +251,26 @@ class DashboardController extends BaseController
      */
     private function openVacancies(array $filters, array $applications): array
     {
-        $counts = array_count_values(array_map('intval', array_column($applications, 'vacancy_id')));
+        $counts = array_count_values(array_map('intval', array_column($applications, 'vacancy_period_id')));
+        $now = date('Y-m-d H:i:s');
         $builder = db_connect()->table('vacancies AS vacancies')
-            ->select('vacancies.id, vacancies.title, vacancies.headcount, vacancies.opened_at, vacancies.closed_at, departments.name AS department_name')
+            ->select('vacancies.id, vacancies.title, periods.id AS vacancy_period_id, periods.headcount, periods.opened_at, periods.closed_at, periods.period_name, departments.name AS department_name')
             ->join('departments', 'departments.id = vacancies.department_id')
-            ->where('vacancies.status', 'open')
-            ->where('vacancies.deleted_at', null);
+            ->join('vacancy_recruitment_periods AS periods', 'periods.vacancy_id = vacancies.id')
+            ->whereIn('periods.status', ['open', 'scheduled'])
+            ->where('periods.deleted_at', null)
+            ->where('vacancies.deleted_at', null)
+            ->groupStart()->where('periods.opened_at', null)->orWhere('periods.opened_at <=', $now)->groupEnd()
+            ->groupStart()->where('periods.closed_at', null)->orWhere('periods.closed_at >=', $now)->groupEnd();
         if ($filters['department_id'] > 0) {
             $builder->where('vacancies.department_id', $filters['department_id']);
         }
         if ($filters['vacancy_id'] > 0) {
             $builder->where('vacancies.id', $filters['vacancy_id']);
         }
-        $rows = $builder->orderBy('vacancies.opened_at', 'DESC')->get()->getResultArray();
+        $rows = $builder->orderBy('periods.opened_at', 'DESC')->get()->getResultArray();
         foreach ($rows as &$row) {
-            $row['application_count'] = (int) ($counts[(int) $row['id']] ?? 0);
+            $row['application_count'] = (int) ($counts[(int) $row['vacancy_period_id']] ?? 0);
         }
         unset($row);
         usort($rows, static fn (array $left, array $right): int => (int) $right['application_count'] <=> (int) $left['application_count']);

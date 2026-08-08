@@ -16,7 +16,7 @@
                 <img src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
             </a>
             <div class="application-vacancy">
-                <span>Posisi yang dilamar</span>
+                <span>Posisi yang dilamar · <?= esc($vacancy['recruitment_period_name'] ?? 'Sesi aktif') ?></span>
                 <strong><?= esc($vacancy['title']) ?></strong>
             </div>
             <a class="application-close" href="<?= site_url('lowongan') ?>" aria-label="Tutup formulir">×</a>
@@ -113,7 +113,7 @@
                                 >
                                 <span>
                                     <strong><?= esc($compatibleVacancy['title']) ?></strong>
-                                    <small><?= esc($compatibleVacancy['department']) ?> · <?= esc($compatibleVacancy['location']) ?></small>
+                                    <small><?= esc($compatibleVacancy['department']) ?> · <?= esc($compatibleVacancy['location']) ?> · <?= esc($compatibleVacancy['recruitment_period_name'] ?? 'Sesi aktif') ?></small>
                                 </span>
                                 <?php $priority = (int) ($positionPriorities[(int) $compatibleVacancy['id']] ?? 0); ?>
                                 <b class="priority-badge" data-priority-badge="<?= (int) $compatibleVacancy['id'] ?>" <?= $priority > 0 ? '' : 'hidden' ?>>

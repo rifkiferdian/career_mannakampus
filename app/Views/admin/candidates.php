@@ -10,7 +10,7 @@ $screeningLabels = ['passed' => 'Lolos', 'failed' => 'Tidak lolos', 'pending' =>
     <meta name="theme-color" content="#102a43">
     <title>Kandidat | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=23">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -42,6 +42,7 @@ $screeningLabels = ['passed' => 'Lolos', 'failed' => 'Tidak lolos', 'pending' =>
                 <form class="candidate-filter-form" action="<?= site_url('adminhrdmannakampus/kandidat') ?>" method="get">
                     <input type="search" name="keyword" value="<?= esc($filters['keyword'], 'attr') ?>" placeholder="Cari nama, email, WA, atau nomor lamaran">
                     <select name="vacancy_id"><option value="">Semua posisi</option><?php foreach ($vacancies as $vacancy): ?><option value="<?= (int) $vacancy['id'] ?>" <?= $filters['vacancy_id'] === (int) $vacancy['id'] ? 'selected' : '' ?>><?= esc($vacancy['title']) ?></option><?php endforeach ?></select>
+                    <select name="vacancy_period_id"><option value="">Semua sesi</option><?php foreach ($periods as $period): ?><option value="<?= (int) $period['id'] ?>" <?= $filters['vacancy_period_id'] === (int) $period['id'] ? 'selected' : '' ?>><?= esc($period['vacancy_title'] . ' — ' . $period['period_name']) ?></option><?php endforeach ?></select>
                     <select name="department_id"><option value="">Semua departemen</option><?php foreach ($departments as $department): ?><option value="<?= (int) $department['id'] ?>" <?= $filters['department_id'] === (int) $department['id'] ? 'selected' : '' ?>><?= esc($department['name']) ?></option><?php endforeach ?></select>
                     <select name="status"><option value="">Semua tahapan</option><?php foreach ($statusOptions as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $filters['status'] === $code ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select>
                     <button type="submit">Terapkan</button><a href="<?= site_url('adminhrdmannakampus/kandidat') ?>">Reset</a>
@@ -59,7 +60,7 @@ $screeningLabels = ['passed' => 'Lolos', 'failed' => 'Tidak lolos', 'pending' =>
                                 <tr>
                                     <td class="candidate-order"><?= $index + 1 ?></td>
                                     <td><div class="report-applicant"><strong><?= esc($application['full_name']) ?></strong><a href="mailto:<?= esc($application['email'], 'attr') ?>"><?= esc($application['email']) ?></a><small><?= esc($application['phone']) ?></small></div></td>
-                                    <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['department_name']) ?></code></div></td>
+                                    <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code></div></td>
                                     <td><span class="report-screening screening-<?= esc($screening, 'attr') ?>"><?= esc($screeningLabels[$screening] ?? 'Belum dinilai') ?></span><small class="report-score"><?= $application['screening_score'] !== null ? esc(number_format((float) $application['screening_score'], 2, ',', '.')) : '-' ?></small></td>
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span></td>
                                     <td><span class="candidate-stage-age <?= $application['is_overdue'] ? 'overdue' : '' ?>"><?= (int) $application['days_in_stage'] ?> hari</span><?php if ((int) $application['sla_days'] > 0): ?><small class="candidate-sla">SLA <?= (int) $application['sla_days'] ?> hari</small><?php endif ?></td>

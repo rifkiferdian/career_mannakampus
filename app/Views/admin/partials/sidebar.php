@@ -6,6 +6,7 @@ $authorization = \Config\Services::authorization();
 $isSuperAdmin = $authorization->isSuperAdmin($userId);
 $canViewDepartments = $authorization->can($userId, 'departments.view');
 $canViewVacancies = $authorization->can($userId, 'vacancies.view');
+$canViewVacancyPeriods = $authorization->can($userId, 'vacancy.periods.view');
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
 $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.view');
 $canViewReports = $authorization->can($userId, 'reports.view');
@@ -43,6 +44,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('vacancies') ?> href="<?= site_url('adminhrdmannakampus/lowongan') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="2"/><path d="M9 7V5h6v2M4 12h16"/></svg>
                 Lowongan
+            </a>
+        <?php endif ?>
+        <?php if ($canViewVacancyPeriods): ?>
+            <a<?= $activeClass('vacancy-periods') ?> href="<?= site_url('adminhrdmannakampus/sesi-lowongan') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M13 14h3"/></svg>
+                Sesi Lowongan
             </a>
         <?php endif ?>
         <?php if ($canViewRecruitmentSettings): ?>

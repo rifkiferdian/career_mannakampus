@@ -355,6 +355,17 @@ class SampleApplicantJourneySeeder extends Seeder
         $notes = $passed
             ? 'Semua kriteria knockout terpenuhi.'
             : 'Tidak memenuhi: ' . implode(', ', $failedKnockout);
+        $period = $this->db->table('vacancy_recruitment_periods')
+            ->select('id')
+            ->where('vacancy_id', (int) $vacancy['id'])
+            ->where('deleted_at', null)
+            ->orderBy('status = "open"', 'DESC', false)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getRowArray();
+        if ($period === null) {
+            throw new RuntimeException('Sesi lowongan belum tersedia untuk ' . $vacancy['title'] . '.');
+        }
 
         $this->db->table('applications')->insert([
             'uuid'                 => $uuid,
@@ -363,6 +374,7 @@ class SampleApplicantJourneySeeder extends Seeder
             'batch_id'             => $batchId,
             'applicant_id'         => $applicantId,
             'vacancy_id'           => (int) $vacancy['id'],
+            'vacancy_period_id'    => (int) $period['id'],
             'preference_order'     => $preferenceOrder,
             'cv_path'              => null,
             'document_bundle_path' => null,

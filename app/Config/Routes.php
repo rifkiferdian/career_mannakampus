@@ -41,6 +41,11 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('lowongan/(:num)', 'VacancyManagementController::update/$1', ['filter' => 'permission:vacancies.update', 'as' => 'hrd.vacancies.update']);
     $routes->post('lowongan/(:num)/status', 'VacancyManagementController::changeStatus/$1', ['filter' => 'permission:vacancies.publish', 'as' => 'hrd.vacancies.status']);
     $routes->post('lowongan/(:num)/hapus', 'VacancyManagementController::delete/$1', ['filter' => 'permission:vacancies.delete', 'as' => 'hrd.vacancies.delete']);
+    $routes->get('sesi-lowongan', 'VacancyPeriodController::index', ['filter' => 'permission:vacancy.periods.view', 'as' => 'hrd.vacancy.periods']);
+    $routes->post('sesi-lowongan', 'VacancyPeriodController::create', ['filter' => 'permission:vacancy.periods.manage', 'as' => 'hrd.vacancy.periods.create']);
+    $routes->post('sesi-lowongan/(:num)', 'VacancyPeriodController::update/$1', ['filter' => 'permission:vacancy.periods.manage', 'as' => 'hrd.vacancy.periods.update']);
+    $routes->post('sesi-lowongan/(:num)/status', 'VacancyPeriodController::changeStatus/$1', ['filter' => 'permission:vacancy.periods.publish', 'as' => 'hrd.vacancy.periods.status']);
+    $routes->post('sesi-lowongan/(:num)/hapus', 'VacancyPeriodController::delete/$1', ['filter' => 'permission:vacancy.periods.manage', 'as' => 'hrd.vacancy.periods.delete']);
     $routes->get('pertanyaan-screening', 'ScreeningQuestionController::index', ['filter' => 'permission:screening.questions.view', 'as' => 'hrd.screening.questions']);
     $routes->post('pertanyaan-screening/default', 'ScreeningQuestionController::createDefault', ['filter' => 'permission:screening.defaults.manage', 'as' => 'hrd.screening.defaults.create']);
     $routes->post('pertanyaan-screening/default/(:num)', 'ScreeningQuestionController::updateDefault/$1', ['filter' => 'permission:screening.defaults.manage', 'as' => 'hrd.screening.defaults.update']);

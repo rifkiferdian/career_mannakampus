@@ -24,6 +24,12 @@ final class VacancyPresenterTest extends CIUnitTestCase
                 'department' => 'Digital Marketing',
                 'minimum_age' => 18,
                 'minimum_education' => 'D3/S1',
+                'headcount' => 2,
+                'period_headcount' => 8,
+                'opened_at' => null,
+                'period_opened_at' => '2026-10-01 08:00:00',
+                'closed_at' => null,
+                'period_closed_at' => '2026-12-31 23:59:00',
             ],
         ], $questions);
 
@@ -32,6 +38,9 @@ final class VacancyPresenterTest extends CIUnitTestCase
         $this->assertSame('job-icon-marketing', $result[0]['icon_class']);
         $this->assertSame('Min. usia 18 tahun', $result[0]['age_requirement']);
         $this->assertSame('Min. pendidikan D3/S1', $result[0]['education_requirement']);
+        $this->assertSame(8, $result[0]['headcount']);
+        $this->assertSame('2026-10-01 08:00:00', $result[0]['opened_at']);
+        $this->assertSame('2026-12-31 23:59:00', $result[0]['closed_at']);
         $this->assertSame($questions[10], $result[0]['screening_questions']);
     }
 

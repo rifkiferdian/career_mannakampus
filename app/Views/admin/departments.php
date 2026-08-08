@@ -11,7 +11,7 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
     <meta name="theme-color" content="#102a43">
     <title>Departemen | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=22">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=26">
 </head>
 <body class="admin-dashboard-page">
     <div class="dashboard-shell">
@@ -90,9 +90,9 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
                                         <td>
                                             <div class="department-table-actions">
                                                 <?php if ($canManage): ?>
-                                                    <a href="#edit-department-<?= esc((string) $department['id'], 'attr') ?>">Edit</a>
+                                                    <a class="table-action-icon table-action-edit" href="#edit-department-<?= esc((string) $department['id'], 'attr') ?>" aria-label="Edit departemen" title="Edit departemen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></a>
                                                 <?php endif ?>
-                                                <?php if ($canDelete): ?><form action="<?= site_url('adminhrdmannakampus/departemen/' . $department['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus departemen ini? Tindakan ini tidak dapat dibatalkan.')"><?= csrf_field() ?><button class="department-delete-button" type="submit" <?= (int) $department['vacancy_count'] > 0 ? 'disabled title="Masih digunakan oleh lowongan"' : '' ?>>Delete</button></form><?php endif ?>
+                                                <?php if ($canDelete): ?><form action="<?= site_url('adminhrdmannakampus/departemen/' . $department['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus departemen ini? Tindakan ini tidak dapat dibatalkan.')"><?= csrf_field() ?><button class="department-delete-button table-action-icon table-action-delete" type="submit" aria-label="Hapus departemen" <?= (int) $department['vacancy_count'] > 0 ? 'disabled title="Masih digunakan oleh lowongan"' : 'title="Hapus departemen"' ?>><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form><?php endif ?>
                                                 <?php if (! $canManage && ! $canDelete): ?><span class="protected-label">Lihat saja</span><?php endif ?>
                                             </div>
                                         </td>

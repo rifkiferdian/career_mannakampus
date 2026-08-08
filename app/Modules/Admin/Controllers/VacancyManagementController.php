@@ -54,6 +54,7 @@ class VacancyManagementController extends BaseController
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
             'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
             'canViewScreeningQuestions' => Services::authorization()->can($userId, 'screening.questions.view'),
+            'canViewVacancyPeriods' => Services::authorization()->can($userId, 'vacancy.periods.view'),
             'success' => session()->getFlashdata('vacancy_success'),
             'error' => session()->getFlashdata('vacancy_error'),
         ]);
@@ -76,6 +77,21 @@ class VacancyManagementController extends BaseController
         $database->transStart();
         $database->table('vacancies')->insert($data + ['created_by' => $userId, 'updated_by' => $userId, 'created_at' => $now, 'updated_at' => $now]);
         $vacancyId = (int) $database->insertID();
+        $database->table('vacancy_recruitment_periods')->insert([
+            'vacancy_id' => $vacancyId,
+            'period_name' => 'Periode Awal',
+            'period_code' => 'awal-' . $vacancyId,
+            'opened_at' => $data['opened_at'],
+            'closed_at' => $data['closed_at'],
+            'headcount' => $data['headcount'],
+            'status' => $data['status'],
+            'notes' => 'Dibuat otomatis saat lowongan dibuat.',
+            'is_initial' => 1,
+            'created_by' => $userId,
+            'updated_by' => $userId,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
         if ($this->request->getPost('use_default_screening') !== null) {
             $this->copyDefaultQuestions($vacancyId);
         }
@@ -224,6 +240,7 @@ class VacancyManagementController extends BaseController
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
             'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
             'canViewScreeningQuestions' => Services::authorization()->can($userId, 'screening.questions.view'),
+            'canViewVacancyPeriods' => Services::authorization()->can($userId, 'vacancy.periods.view'),
             'success' => session()->getFlashdata('vacancy_success'),
             'error' => session()->getFlashdata('vacancy_error'),
         ]);

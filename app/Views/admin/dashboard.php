@@ -36,7 +36,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
     <meta name="theme-color" content="#102a43">
     <title>Dashboard HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=22">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -112,7 +112,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
 
             <section class="dashboard-bottom-grid">
                 <article class="analytics-card activity-card"><header><div><span>Recent Activity</span><h2>Aktivitas rekrutmen</h2><p>Perubahan tahapan kandidat terbaru.</p></div></header><div class="dashboard-activity-list"><?php if ($activities === []): ?><p class="analytics-empty">Belum ada aktivitas pada periode ini.</p><?php endif ?><?php foreach ($activities as $activity): ?><div><i style="--activity-color: <?= esc($activity['stage_color'], 'attr') ?>"></i><p><strong><?= esc($activity['full_name']) ?></strong><span><?= esc($activity['status_label']) ?> untuk <?= esc($activity['vacancy_title']) ?></span><small><?= esc(date('d M Y, H:i', strtotime($activity['created_at']))) ?> · <?= esc($activity['changed_by_name'] ?: 'Sistem') ?></small></p></div><?php endforeach ?></div></article>
-                <article class="analytics-card active-vacancy-card"><header><div><span>Vacancy Monitor</span><h2>Lowongan aktif</h2><p>Kebutuhan dan jumlah lamaran pada periode terpilih.</p></div></header><div class="dashboard-vacancy-list"><?php if ($openVacancyRows === []): ?><p class="analytics-empty">Belum ada lowongan aktif.</p><?php endif ?><?php foreach ($openVacancyRows as $vacancy): ?><div><p><strong><?= esc($vacancy['title']) ?></strong><span><?= esc($vacancy['department_name']) ?> · kebutuhan <?= (int) $vacancy['headcount'] ?> orang</span></p><strong><?= (int) $vacancy['application_count'] ?><small>lamaran</small></strong></div><?php endforeach ?></div></article>
+                <article class="analytics-card active-vacancy-card"><header><div><span>Vacancy Monitor</span><h2>Lowongan aktif</h2><p>Kebutuhan dan jumlah lamaran pada periode terpilih.</p></div></header><div class="dashboard-vacancy-list"><?php if ($openVacancyRows === []): ?><p class="analytics-empty">Belum ada lowongan aktif.</p><?php endif ?><?php foreach ($openVacancyRows as $vacancy): ?><div><p><strong><?= esc($vacancy['title']) ?></strong><span><?= esc($vacancy['period_name']) ?> · <?= esc($vacancy['department_name']) ?> · kebutuhan <?= (int) $vacancy['headcount'] ?> orang</span></p><strong><?= (int) $vacancy['application_count'] ?><small>lamaran</small></strong></div><?php endforeach ?></div></article>
             </section>
         </div>
     </main>

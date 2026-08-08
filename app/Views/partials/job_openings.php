@@ -7,7 +7,7 @@
         <summary>
             <span class="job-icon <?= esc($vacancy['icon_class'], 'attr') ?>" aria-hidden="true"><?= esc($vacancy['icon_text']) ?></span>
             <span class="job-opening-title">
-                <small><?= esc($vacancy['department'] ?: 'Umum') ?> · <?= esc($vacancy['employment_type'] ?: 'Full-time') ?></small>
+                <small><?= esc($vacancy['department'] ?: 'Umum') ?> · <?= esc($vacancy['employment_type'] ?: 'Full-time') ?> · <?= esc($vacancy['recruitment_period_name'] ?? 'Sesi aktif') ?></small>
                 <strong><?= esc($vacancy['title']) ?></strong>
                 <em><?= esc($vacancy['location'] ?: 'Yogyakarta') ?></em>
                 <span class="job-opening-requirements">

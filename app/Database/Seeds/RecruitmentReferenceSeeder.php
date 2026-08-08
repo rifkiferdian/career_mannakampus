@@ -76,6 +76,30 @@ class RecruitmentReferenceSeeder extends Seeder
             }
         }
 
+        $periodBuilder = $this->db->table('vacancy_recruitment_periods');
+        foreach ($vacancyIds as $vacancyId) {
+            $existingPeriod = $periodBuilder->select('id')->where('vacancy_id', $vacancyId)->where('deleted_at', null)->get()->getRowArray();
+            if ($existingPeriod !== null) {
+                continue;
+            }
+            $periodBuilder->insert([
+                'vacancy_id' => $vacancyId,
+                'period_name' => 'Periode Awal',
+                'period_code' => 'awal-' . $vacancyId,
+                'opened_at' => $now,
+                'closed_at' => null,
+                'headcount' => 1,
+                'status' => 'open',
+                'notes' => 'Dibuat oleh seeder referensi rekrutmen.',
+                'is_initial' => 1,
+                'created_by' => null,
+                'updated_by' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+                'deleted_at' => null,
+            ]);
+        }
+
         $genericQuestions = [
             ['willing_shift', 'Apakah Anda bersedia bekerja dengan sistem shift?', 'boolean', 1, 1, '1', 'equals', 900],
             ['willing_yogyakarta_placement', 'Apakah Anda bersedia ditempatkan di seluruh cabang Manna Kampus Yogyakarta?', 'boolean', 1, 1, '1', 'equals', 910],

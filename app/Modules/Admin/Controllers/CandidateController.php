@@ -52,6 +52,7 @@ class CandidateController extends BaseController
             'statusOptions' => $statusOptions,
             'filters' => $filters,
             'vacancies' => $database->table('vacancies')->select('id, title')->where('deleted_at', null)->orderBy('title')->get()->getResultArray(),
+            'periods' => $database->table('vacancy_recruitment_periods AS periods')->select('periods.id, periods.period_name, vacancies.title AS vacancy_title')->join('vacancies', 'vacancies.id = periods.vacancy_id')->where('periods.deleted_at', null)->orderBy('periods.opened_at', 'DESC')->get()->getResultArray(),
             'departments' => $database->table('departments')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray(),
             'rejectionTemplates' => $database->table('rejection_reason_templates')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray(),
             'canUpdateStatus' => Services::authorization()->can($userId, 'candidates.status.update'),
@@ -123,9 +124,10 @@ class CandidateController extends BaseController
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, departments.name AS department_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, periods.period_name, departments.name AS department_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+            ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('recruitment_stages AS stages', 'stages.code = applications.application_status', 'left')
             ->where('applications.deleted_at', null)
@@ -133,7 +135,7 @@ class CandidateController extends BaseController
     }
 
     /** @param list<string> $statuses
-     * @return array{keyword: string, vacancy_id: int, department_id: int, status: string}
+     * @return array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string}
      */
     private function filters(array $statuses): array
     {
@@ -142,12 +144,13 @@ class CandidateController extends BaseController
         return [
             'keyword' => mb_substr(trim((string) $this->request->getGet('keyword')), 0, 100),
             'vacancy_id' => max(0, (int) $this->request->getGet('vacancy_id')),
+            'vacancy_period_id' => max(0, (int) $this->request->getGet('vacancy_period_id')),
             'department_id' => max(0, (int) $this->request->getGet('department_id')),
             'status' => in_array($status, $statuses, true) ? $status : '',
         ];
     }
 
-    /** @param array{keyword: string, vacancy_id: int, department_id: int, status: string} $filters */
+    /** @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string} $filters */
     private function applyFilters(BaseBuilder $builder, array $filters): void
     {
         if ($filters['keyword'] !== '') {
@@ -155,6 +158,9 @@ class CandidateController extends BaseController
         }
         if ($filters['vacancy_id'] > 0) {
             $builder->where('applications.vacancy_id', $filters['vacancy_id']);
+        }
+        if ($filters['vacancy_period_id'] > 0) {
+            $builder->where('applications.vacancy_period_id', $filters['vacancy_period_id']);
         }
         if ($filters['department_id'] > 0) {
             $builder->where('vacancies.department_id', $filters['department_id']);

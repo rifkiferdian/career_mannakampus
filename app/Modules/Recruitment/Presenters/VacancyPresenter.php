@@ -21,6 +21,9 @@ class VacancyPresenter
             $vacancy['icon_class'] = $this->iconClass($department);
             $vacancy['age_requirement'] = $this->ageRequirement($vacancy['minimum_age'] ?? null);
             $vacancy['education_requirement'] = $this->educationRequirement($vacancy['minimum_education'] ?? null);
+            $vacancy['headcount'] = (int) ($vacancy['period_headcount'] ?? $vacancy['headcount'] ?? 1);
+            $vacancy['opened_at'] = $vacancy['period_opened_at'] ?? $vacancy['opened_at'] ?? null;
+            $vacancy['closed_at'] = $vacancy['period_closed_at'] ?? $vacancy['closed_at'] ?? null;
             $vacancy['screening_questions'] = $questionsByVacancy[(int) $vacancy['id']] ?? [];
         }
         unset($vacancy);
