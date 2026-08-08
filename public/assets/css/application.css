@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap');
+
 :root {
     --orange: #b64a00;
     --orange-bright: #d76416;
@@ -12,7 +14,7 @@
 
 * { box-sizing: border-box; }
 html { max-width: 100%; scroll-behavior: smooth; overflow-x: hidden; }
-body { margin: 0; color: var(--ink); background: var(--page); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body { margin: 0; color: var(--ink); background: var(--page); font-family: 'Roboto', Arial, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { font: inherit; }
 button, label, select { -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }

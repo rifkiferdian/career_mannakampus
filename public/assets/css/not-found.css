@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap');
 
 .not-found-nav { display: flex; align-items: center; gap: 8px; }
 .not-found-nav > a { padding: 10px 12px; color: #596862; font-size: 13px; font-weight: 700; text-decoration: none; }
@@ -11,7 +11,7 @@
 .not-found-copy { max-width: 590px; }
 .not-found-eyebrow { display: inline-flex; align-items: center; gap: 9px; color: #d85c28; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
 .not-found-eyebrow i { width: 25px; height: 2px; background: currentColor; }
-.not-found-copy h1 { margin: 18px 0 23px; color: #0d2d22; font-family: 'Manrope', sans-serif; font-size: clamp(45px, 5vw, 69px); line-height: 1.12; letter-spacing: -.05em; }
+.not-found-copy h1 { margin: 18px 0 23px; color: #0d2d22; font-family: 'Roboto', sans-serif; font-size: clamp(45px, 5vw, 69px); line-height: 1.12; letter-spacing: -.05em; }
 .not-found-copy h1 em { color: #f2773d; font-style: normal; }
 .not-found-copy > p { max-width: 540px; margin: 0; color: #69756f; font-size: 15px; line-height: 1.8; }
 .not-found-actions { display: flex; align-items: center; gap: 13px; margin-top: 32px; }
@@ -23,7 +23,7 @@
 .not-found-help { display: block; margin-top: 27px; color: #8a928e; font-size: 10px; }
 
 .not-found-visual { position: relative; min-height: 430px; display: flex; align-items: center; justify-content: center; }
-.number { position: relative; z-index: 2; color: #12372a; font-family: 'Manrope', sans-serif; font-size: clamp(125px, 13vw, 188px); font-weight: 800; line-height: 1; letter-spacing: -.09em; text-shadow: 0 20px 40px rgba(18,55,42,.1); }
+.number { position: relative; z-index: 2; color: #12372a; font-family: 'Roboto', sans-serif; font-size: clamp(125px, 13vw, 188px); font-weight: 800; line-height: 1; letter-spacing: -.09em; text-shadow: 0 20px 40px rgba(18,55,42,.1); }
 .number-zero { color: transparent; -webkit-text-stroke: 3px #f2773d; opacity: .22; }
 .compass { position: absolute; z-index: 4; width: 122px; height: 122px; display: grid; place-items: center; color: white; background: #12372a; border: 10px solid white; border-radius: 50%; box-shadow: 0 22px 55px rgba(18,55,42,.25); transform: rotate(-9deg); }
 .compass-ring { position: absolute; inset: 10px; border: 1px dashed rgba(255,255,255,.35); border-radius: 50%; }

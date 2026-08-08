@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap');
+
 :root {
     --status-orange: #b64a00;
     --status-orange-dark: #8d3900;
@@ -78,7 +80,7 @@
 
 .status-intro h1 em {
     color: var(--status-orange);
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: 'Roboto', Arial, sans-serif;
     font-weight: 500;
 }
 

@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#102a43">
     <title>Login HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=4">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=21">
 </head>
 <body class="admin-login-page">
     <main class="login-shell">

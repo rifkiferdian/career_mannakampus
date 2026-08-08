@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f5f7f8">
     <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=8">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=9">
 </head>
 <body class="application-page">
     <header class="application-header">

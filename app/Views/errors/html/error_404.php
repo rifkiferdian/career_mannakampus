@@ -11,8 +11,8 @@ $baseUrl = rtrim((string) $appConfig->baseURL, '/');
     <meta name="theme-color" content="#fbf8f1">
     <title>Halaman Tidak Ditemukan | Manna Kampus</title>
     <link rel="icon" href="<?= esc($baseUrl) ?>/favicon.ico">
-    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/career.css?v=18">
-    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/not-found.css?v=1">
+    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/career.css?v=21">
+    <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/not-found.css?v=2">
 </head>
 <body>
     <header class="site-header">

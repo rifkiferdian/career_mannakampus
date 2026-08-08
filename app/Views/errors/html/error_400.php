@@ -5,6 +5,8 @@
     <title><?= lang('Errors.badRequest') ?></title>
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
         div.logo {
             height: 200px;
             width: 155px;
@@ -18,7 +20,7 @@
         body {
             height: 100%;
             background: #fafafa;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-family: "Roboto", Arial, sans-serif;
             color: #777;
             font-weight: 300;
         }
