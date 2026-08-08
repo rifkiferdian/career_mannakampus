@@ -18,6 +18,8 @@ $dateLabel = static function (mixed $value): string {
 $oldFor = static function (string $modal, string $field, mixed $fallback = '') use ($openModal): mixed {
     return $openModal === $modal ? old($field, $fallback) : $fallback;
 };
+$periodStatusCounts = array_count_values(array_column($periods, 'status'));
+$periodApplicationCount = array_sum(array_map('intval', array_column($periods, 'application_count')));
 ?>
 <!doctype html>
 <html lang="id">
@@ -42,6 +44,13 @@ $oldFor = static function (string $modal, string $field, mixed $fallback = '') u
             <section class="dashboard-welcome department-heading">
                 <div><span class="login-eyebrow">Periode Rekrutmen</span><h1>Sesi Lowongan</h1><p>Buka lowongan yang sama dalam beberapa periode tanpa mencampur kandidat dan laporan.</p></div>
                 <?php if ($canManage): ?><button class="new-user-jump vacancy-create-link" type="button" data-admin-modal-open="period-create-modal">+ Tambah sesi</button><?php endif ?>
+            </section>
+
+            <section class="access-summary vacancy-summary" aria-label="Ringkasan sesi lowongan">
+                <article><i class="summary-card-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4M8 11h8M8 15h5"/></svg></i><strong><?= count($periods) ?></strong><span>Hasil ditampilkan</span></article>
+                <article><i class="summary-card-icon icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4"/><path d="m8 13 2.5 2.5L16 10"/></svg></i><strong><?= (int) ($periodStatusCounts['open'] ?? 0) ?></strong><span>Sedang dibuka</span></article>
+                <article><i class="summary-card-icon icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i><strong><?= (int) ($periodStatusCounts['scheduled'] ?? 0) ?></strong><span>Terjadwal</span></article>
+                <article><i class="summary-card-icon icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg></i><strong><?= $periodApplicationCount ?></strong><span>Total pelamar</span></article>
             </section>
 
             <section class="settings-card department-toolbar-card">
