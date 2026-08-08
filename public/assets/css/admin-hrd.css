@@ -543,8 +543,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .report-filter-form button, .report-filter-form > a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .report-filter-form button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
 .report-filter-form > a { color: #657582; background: white; border: 1px solid #dce3e9; }
-.report-table { min-width: 1100px; }
+.report-table { min-width: 1020px; }
 .report-table td { color: #60717e; font-size: 10px; }
+.report-table .report-order { width: 54px; color: var(--admin-navy); font-weight: 700; text-align: center; }
 .report-applicant strong, .report-applicant a, .report-applicant small, .report-date small, .report-score { display: block; }
 .report-applicant strong { color: var(--admin-ink); font-size: 12px; white-space: nowrap; }
 .report-applicant a { margin-top: 4px; color: #42677e; font-size: 9px; text-decoration: none; }
@@ -556,7 +557,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .screening-pending { color: #75602e; background: #fff7df; }
 .report-score { margin-top: 5px; color: #7c8993; font-size: 8px; }
 .report-application-status { color: #405f75; background: #edf3f7; }
-.report-number { color: #677783; font-size: 9px; white-space: nowrap; }
 
 /* Slightly larger typography for primary admin data pages */
 .access-content .dashboard-welcome p,
@@ -596,8 +596,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .report-content .report-applicant strong { font-size: 13px; }
 .department-content .department-name-cell code,
 .vacancy-content .department-name-cell code,
-.report-content .department-name-cell code,
-.report-content .report-number { font-size: 10px; }
+.report-content .department-name-cell code { font-size: 10px; }
 .department-content .department-description-cell,
 .report-content .report-applicant a { font-size: 11px; }
 .vacancy-content .vacancy-table-subtext,
@@ -717,6 +716,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-table { min-width: 1080px; }
 .candidate-table th { font-size: 10px; }
 .candidate-table td { color: #5f707d; font-size: 11px; }
+.candidate-table .candidate-order { width: 54px; color: var(--admin-navy); font-weight: 700; text-align: center; }
 .candidate-table .report-applicant strong, .candidate-table .department-name-cell strong { font-size: 13px; }
 .candidate-table .report-applicant a, .candidate-table .report-applicant small, .candidate-table .department-name-cell code { font-size: 10px; }
 .candidate-stage-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; color: var(--candidate-color); background: color-mix(in srgb, var(--candidate-color) 11%, white); border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }

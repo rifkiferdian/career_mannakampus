@@ -223,6 +223,7 @@ class VacancyManagementController extends BaseController
             'canDelete' => Services::authorization()->can($userId, 'vacancies.delete'),
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
             'canViewRecruitmentSettings' => Services::authorization()->can($userId, 'recruitment.settings.view'),
+            'canViewScreeningQuestions' => Services::authorization()->can($userId, 'screening.questions.view'),
             'success' => session()->getFlashdata('vacancy_success'),
             'error' => session()->getFlashdata('vacancy_error'),
         ]);
