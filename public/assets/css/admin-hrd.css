@@ -1019,6 +1019,32 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .period-form-actions button:first-child { color: #667582; background: white; }
 .period-form-actions button:last-child { color: white; background: var(--admin-navy); border-color: var(--admin-navy); }
 
+/* HRD teams and shared applicant pool */
+.hrd-team-content { max-width: 1320px; padding-bottom: 60px; }
+.hrd-team-table-card, .hrd-team-members-card { margin-bottom: 20px; }
+.hrd-team-user-table { min-width: 820px; }
+.hrd-team-assignment-form { display: flex; align-items: center; gap: 8px; margin: 0; }
+.hrd-team-assignment-form select { min-width: 210px; height: 38px; padding: 0 10px; color: #425568; background: #fff; border: 1px solid #dce3e9; border-radius: 7px; font: inherit; }
+.hrd-team-assignment-form button { min-height: 38px; padding: 0 13px; color: #fff; background: var(--admin-navy); border: 0; border-radius: 7px; font-weight: 800; cursor: pointer; }
+.hrd-team-pill { display: inline-flex; padding: 7px 10px; color: #536879; background: #eef3f7; border-radius: 999px; font-weight: 800; }
+.hrd-team-form .department-modal-description { grid-column: 1 / -1; }
+.applicant-team-context { display: flex; align-items: center; gap: 8px; margin: -4px 0 20px; padding: 12px 15px; color: #687783; background: #fff8f3; border: 1px solid #f3ddd0; border-radius: 9px; font-size: 11px; }
+.applicant-team-context strong { color: var(--admin-orange-dark); }
+.applicant-pool-actions { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.applicant-pool-actions form { margin: 0; }
+.applicant-pool-actions button { min-height: 32px; padding: 0 12px; color: #fff; background: var(--admin-orange); border: 0; border-radius: 7px; font-size: 10px; font-weight: 800; cursor: pointer; }
+.applicant-pool-actions button:hover { background: var(--admin-orange-dark); }
+.applicant-division-badge { display: inline-flex; align-items: center; padding: 7px 10px; border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
+.applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
+.applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
+.applicant-assigned-by { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; white-space: nowrap; }
+.candidate-filter-form.candidate-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.1fr) repeat(4, minmax(125px, .7fr)) auto auto; }
+.candidate-assignment-meta { display: block; margin-top: 5px; color: #87949e; font-size: 9px; white-space: nowrap; }
+
+@media (max-width: 1100px) {
+    .candidate-filter-form.candidate-filter-with-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* Compact icon actions shared by admin data tables. */
 .department-table-actions .table-action-icon,
 .vacancy-actions .table-action-icon,
@@ -1079,4 +1105,8 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
     .vacancy-period-filter { padding-inline: 14px; }
     .period-form-wide, .period-form-actions { grid-column: auto; }
     .period-form-actions { align-items: stretch; flex-direction: column; }
+    .hrd-team-assignment-form { align-items: stretch; flex-direction: column; }
+    .hrd-team-assignment-form select, .hrd-team-assignment-form button { width: 100%; }
+    .hrd-team-form .department-modal-description { grid-column: auto; }
+    .applicant-team-context { align-items: flex-start; flex-direction: column; }
 }

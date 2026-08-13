@@ -9,8 +9,24 @@ $canViewVacancies = $authorization->can($userId, 'vacancies.view');
 $canViewVacancyPeriods = $authorization->can($userId, 'vacancy.periods.view');
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
 $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.view');
-$canViewReports = $authorization->can($userId, 'reports.view');
+$canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
 $canViewCandidates = $authorization->can($userId, 'candidates.view');
+$canViewHrdTeams = $authorization->can($userId, 'hrd.teams.view');
+$canManageHrdTeams = $authorization->can($userId, 'hrd.teams.manage');
+$candidateTeams = [];
+$currentCandidateTeamId = 0;
+if ($canViewCandidates) {
+    $teamBuilder = db_connect()->table('hrd_teams AS teams')->select('teams.id, teams.name')->where('teams.is_active', 1)->orderBy('teams.name');
+    if (! $canManageHrdTeams) {
+        $teamBuilder->join('hrd_team_users AS team_users', 'team_users.hrd_team_id = teams.id')->where('team_users.user_id', $userId);
+    }
+    $candidateTeams = $teamBuilder->get()->getResultArray();
+    $requestedCandidateTeamId = max(0, (int) service('request')->getGet('team_id'));
+    $availableCandidateTeamIds = array_map('intval', array_column($candidateTeams, 'id'));
+    $membershipCandidateTeamId = (int) (db_connect()->table('hrd_team_users')->select('hrd_team_id')->where('user_id', $userId)->get()->getRowArray()['hrd_team_id'] ?? 0);
+    $defaultCandidateTeamId = in_array($membershipCandidateTeamId, $availableCandidateTeamIds, true) ? $membershipCandidateTeamId : (int) ($candidateTeams[0]['id'] ?? 0);
+    $currentCandidateTeamId = in_array($requestedCandidateTeamId, $availableCandidateTeamIds, true) ? $requestedCandidateTeamId : $defaultCandidateTeamId;
+}
 $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' class="active"' : '';
 ?>
 <aside class="admin-sidebar" id="admin-sidebar">
@@ -64,16 +80,29 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 Pertanyaan Screening
             </a>
         <?php endif ?>
-        <?php if ($canViewReports): ?>
-            <a<?= $activeClass('reports') ?> href="<?= site_url('adminhrdmannakampus/laporan-pelamar') ?>">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7M3 20h18"/></svg>
-                Laporan Pelamar
+        <?php if ($canViewHrdTeams): ?>
+            <a<?= $activeClass('hrd-teams') ?> href="<?= site_url('adminhrdmannakampus/tim-hrd') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 8h5M18.5 5.5v5M16 15h5"/></svg>
+                Tim HRD
             </a>
         <?php endif ?>
-        <?php if ($canViewCandidates): ?>
+        <?php if ($canViewApplicantPool): ?>
+            <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
+                List Pelamar
+            </a>
+        <?php endif ?>
+        <?php if ($canViewCandidates && $candidateTeams !== []): ?>
+            <?php foreach ($candidateTeams as $candidateTeam): ?>
+                <a<?= $activeMenu === 'candidates' && $currentCandidateTeamId === (int) $candidateTeam['id'] ? ' class="active"' : '' ?> href="<?= site_url('adminhrdmannakampus/kandidat?team_id=' . $candidateTeam['id']) ?>">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
+                    Pelamar <?= esc($candidateTeam['name']) ?>
+                </a>
+            <?php endforeach ?>
+        <?php elseif ($canViewCandidates): ?>
             <a<?= $activeClass('candidates') ?> href="<?= site_url('adminhrdmannakampus/kandidat') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
-                Kandidat
+                Pelamar Divisi
             </a>
         <?php endif ?>
     </nav>

@@ -38,6 +38,7 @@ class ApplicantReportController extends BaseController
         $applicantIds = array_unique(array_map('intval', array_column($applications, 'applicant_id')));
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
+        $currentTeam = $this->currentTeam($userId);
 
         return view('admin/applicant_report', [
             'auth' => $auth,
@@ -48,11 +49,16 @@ class ApplicantReportController extends BaseController
             'departments' => $database->table('departments')->select('id, name')->orderBy('name')->get()->getResultArray(),
             'statusLabels' => $statusLabels,
             'canViewCandidate' => Services::authorization()->can($userId, 'candidates.view'),
+            'canAssignPermission' => Services::authorization()->can($userId, 'applicants.assign'),
+            'canAssign' => Services::authorization()->can($userId, 'applicants.assign') && $currentTeam !== null,
+            'currentTeam' => $currentTeam,
+            'success' => session()->getFlashdata('applicant_pool_success'),
+            'error' => session()->getFlashdata('applicant_pool_error'),
             'summary' => [
                 'applicants' => count($applicantIds),
                 'applications' => count($applications),
-                'passed' => count(array_filter($applications, static fn (array $row): bool => $row['screening_status'] === 'passed')),
-                'failed' => count(array_filter($applications, static fn (array $row): bool => $row['screening_status'] === 'failed')),
+                'unassigned' => count(array_filter($applications, static fn (array $row): bool => empty($row['assigned_hrd_team_id']))),
+                'assigned' => count(array_filter($applications, static fn (array $row): bool => ! empty($row['assigned_hrd_team_id']))),
             ],
         ]);
     }
@@ -73,18 +79,59 @@ class ApplicantReportController extends BaseController
                 $row['period_name'],
                 $row['department_name'],
                 $this->formatDate((string) $row['submitted_at']),
-                $this->screeningLabel((string) $row['screening_status']),
-                $row['screening_score'] === null ? '-' : number_format((float) $row['screening_score'], 2, ',', '.'),
+                $row['hrd_team_name'] ?: 'Belum dipilih',
+                $row['assigned_by_name'] ?: '-',
                 $row['status_label'],
             ];
         }, $rows);
         $workbook = (new ExcelWorkbookBuilder())->build(
-            'Laporan Pelamar Manna Kampus',
-            ['No. Lamaran', 'Nama Pelamar', 'Email', 'WhatsApp', 'Posisi', 'Sesi Lowongan', 'Departemen', 'Tanggal Daftar', 'Status Screening', 'Nilai Screening', 'Status Lamaran'],
+            'List Pelamar Manna Kampus',
+            ['No. Lamaran', 'Nama Pelamar', 'Email', 'WhatsApp', 'Posisi', 'Sesi Lowongan', 'Departemen', 'Tanggal Daftar', 'Divisi HRD', 'Dipilih Oleh', 'Status Lamaran'],
             $excelRows,
         );
 
-        return $this->response->download('laporan-pelamar-' . date('Ymd-His') . '.xlsx', $workbook, true);
+        return $this->response->download('list-pelamar-' . date('Ymd-His') . '.xlsx', $workbook, true);
+    }
+
+    public function assign(int $applicationId): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $database = db_connect();
+        $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
+        $team = $this->currentTeam($userId);
+        if ($team === null) {
+            return $this->poolError('Akun Anda belum ditempatkan pada divisi HRD aktif. Hubungi pengelola Tim HRD.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $database->transStart();
+        $database->table('applications')
+            ->where('id', $applicationId)
+            ->where('deleted_at', null)
+            ->where('assigned_hrd_team_id', null)
+            ->update([
+                'assigned_hrd_team_id' => (int) $team['id'],
+                'assigned_by_user_id' => $userId,
+                'assigned_at' => $now,
+                'updated_at' => $now,
+            ]);
+        $claimed = $database->affectedRows() === 1;
+        if ($claimed) {
+            $database->table('application_assignment_histories')->insert([
+                'application_id' => $applicationId,
+                'from_hrd_team_id' => null,
+                'to_hrd_team_id' => (int) $team['id'],
+                'action' => 'assigned',
+                'notes' => 'Pelamar dipilih oleh ' . $team['name'] . '.',
+                'changed_by' => $userId,
+                'created_at' => $now,
+            ]);
+        }
+        $database->transComplete();
+        if (! $claimed || ! $database->transStatus()) {
+            return $this->poolError('Pelamar sudah dipilih divisi lain atau data tidak lagi tersedia.');
+        }
+
+        return redirect()->to(site_url('adminhrdmannakampus/list-pelamar'))->with('applicant_pool_success', 'Pelamar berhasil dipilih untuk ' . $team['name'] . '.');
     }
 
     /**
@@ -117,11 +164,13 @@ class ApplicantReportController extends BaseController
     private function reportRows(array $filters, array $statusLabels): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select('applications.application_number, applications.applicant_id, applications.screening_status, applications.screening_score, applications.application_status, applications.submitted_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, periods.period_name, departments.name AS department_name')
+            ->select('applications.id, applications.application_number, applications.applicant_id, applications.application_status, applications.assigned_hrd_team_id, applications.assigned_at, applications.submitted_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name')
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
+            ->join('hrd_teams AS teams', 'teams.id = applications.assigned_hrd_team_id', 'left')
+            ->join('users AS assigned_user', 'assigned_user.id = applications.assigned_by_user_id', 'left')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
         $this->applyFilters($builder, $filters);
@@ -180,15 +229,6 @@ class ApplicantReportController extends BaseController
         return $timestamp === false ? '-' : date('d/m/Y H:i', $timestamp);
     }
 
-    private function screeningLabel(string $status): string
-    {
-        return match ($status) {
-            'passed' => 'Lolos',
-            'failed' => 'Tidak lolos',
-            default => 'Belum dinilai',
-        };
-    }
-
     /** @param array<string, string> $statusLabels */
     private function statusLabel(string $status, array $statusLabels): string
     {
@@ -219,6 +259,26 @@ class ApplicantReportController extends BaseController
         }
 
         return $labels;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function currentTeam(int $userId): ?array
+    {
+        if ($userId <= 0) {
+            return null;
+        }
+
+        return db_connect()->table('hrd_team_users AS team_users')
+            ->select('teams.id, teams.name, teams.code')
+            ->join('hrd_teams AS teams', 'teams.id = team_users.hrd_team_id')
+            ->where('team_users.user_id', $userId)
+            ->where('teams.is_active', 1)
+            ->get()->getRowArray() ?: null;
+    }
+
+    private function poolError(string $message): \CodeIgniter\HTTP\RedirectResponse
+    {
+        return redirect()->to(site_url('adminhrdmannakampus/list-pelamar'))->with('applicant_pool_error', $message);
     }
 
     private function disableClientCaching(): void

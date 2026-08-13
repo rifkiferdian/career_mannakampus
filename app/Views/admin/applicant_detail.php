@@ -36,7 +36,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
         <header class="admin-topbar">
             <button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button>
             <div><span>Candidate Profile</span><strong>Detail Pelamar</strong></div>
-            <a class="view-career-link" href="<?= site_url('adminhrdmannakampus/laporan-pelamar') ?>">Kembali ke laporan</a>
+            <a class="view-career-link" href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">Kembali ke list pelamar</a>
         </header>
 
         <div class="admin-content candidate-detail-content">

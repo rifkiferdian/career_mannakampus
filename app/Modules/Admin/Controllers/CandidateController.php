@@ -21,6 +21,27 @@ class CandidateController extends BaseController
     {
         $this->disableClientCaching();
         $database = db_connect();
+        $auth = session()->get('hrd_auth');
+        $userId = (int) ($auth['user_id'] ?? 0);
+        $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
+        $currentTeam = $this->currentTeam($userId);
+        $teams = $database->table('hrd_teams')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $requestedTeamId = max(0, (int) $this->request->getGet('team_id'));
+        if ($canManageTeams) {
+            $validTeamIds = array_map('intval', array_column($teams, 'id'));
+            $selectedTeamId = in_array($requestedTeamId, $validTeamIds, true)
+                ? $requestedTeamId
+                : (int) ($currentTeam['id'] ?? ($teams[0]['id'] ?? 0));
+        } else {
+            $selectedTeamId = (int) ($currentTeam['id'] ?? 0);
+        }
+        $selectedTeam = null;
+        foreach ($teams as $team) {
+            if ((int) $team['id'] === $selectedTeamId) {
+                $selectedTeam = $team;
+                break;
+            }
+        }
         $stages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
         $statusOptions = [
             'screening_passed' => 'Lolos screening',
@@ -31,6 +52,11 @@ class CandidateController extends BaseController
         }
         $filters = $this->filters(array_keys($statusOptions));
         $builder = $this->candidateQuery();
+        if ($selectedTeamId > 0) {
+            $builder->where('applications.assigned_hrd_team_id', $selectedTeamId);
+        } else {
+            $builder->where('applications.id', 0);
+        }
         $this->applyFilters($builder, $filters);
         $applications = $builder->orderBy('applications.updated_at', 'DESC')->orderBy('applications.id', 'DESC')->get()->getResultArray();
         $now = time();
@@ -42,8 +68,9 @@ class CandidateController extends BaseController
             $application['stage_color'] = $this->stageColor((string) $application['application_status'], $stages);
         }
         unset($application);
-        $auth = session()->get('hrd_auth');
-        $userId = (int) ($auth['user_id'] ?? 0);
+        $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update')
+            && $selectedTeamId > 0
+            && ($canManageTeams || (int) ($currentTeam['id'] ?? 0) === $selectedTeamId);
 
         return view('admin/candidates', [
             'auth' => $auth,
@@ -55,7 +82,12 @@ class CandidateController extends BaseController
             'periods' => $database->table('vacancy_recruitment_periods AS periods')->select('periods.id, periods.period_name, vacancies.title AS vacancy_title')->join('vacancies', 'vacancies.id = periods.vacancy_id')->where('periods.deleted_at', null)->orderBy('periods.opened_at', 'DESC')->get()->getResultArray(),
             'departments' => $database->table('departments')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray(),
             'rejectionTemplates' => $database->table('rejection_reason_templates')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray(),
-            'canUpdateStatus' => Services::authorization()->can($userId, 'candidates.status.update'),
+            'teams' => $teams,
+            'currentTeam' => $currentTeam,
+            'selectedTeam' => $selectedTeam,
+            'selectedTeamId' => $selectedTeamId,
+            'canManageTeams' => $canManageTeams,
+            'canUpdateStatus' => $canUpdateStatus,
             'summary' => [
                 'total' => count($applications),
                 'overdue' => count(array_filter($applications, static fn (array $row): bool => (bool) $row['is_overdue'])),
@@ -71,13 +103,23 @@ class CandidateController extends BaseController
     {
         $database = db_connect();
         $application = $database->table('applications')->where('id', $applicationId)->where('deleted_at', null)->get()->getRowArray();
+        $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
+        $currentTeam = $this->currentTeam($userId);
+        $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
+        $returnTeamId = max(0, (int) $this->request->getPost('team_id'));
         $newStage = trim((string) $this->request->getPost('stage'));
         $stage = $database->table('recruitment_stages')->where('code', $newStage)->where('is_active', 1)->get()->getRowArray();
         if ($application === null || $stage === null) {
-            return $this->candidateError('Lamaran atau tahapan yang dipilih tidak valid.');
+            return $this->candidateError('Lamaran atau tahapan yang dipilih tidak valid.', $returnTeamId);
+        }
+        if (empty($application['assigned_hrd_team_id'])) {
+            return $this->candidateError('Pelamar belum dipilih oleh divisi HRD.', $returnTeamId);
+        }
+        if (! $canManageTeams && (int) ($currentTeam['id'] ?? 0) !== (int) $application['assigned_hrd_team_id']) {
+            return $this->candidateError('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda proses.', $returnTeamId);
         }
         if ((string) $application['application_status'] === $newStage) {
-            return $this->candidateError('Kandidat sudah berada pada tahapan tersebut.');
+            return $this->candidateError('Kandidat sudah berada pada tahapan tersebut.', $returnTeamId);
         }
 
         $notes = mb_substr(trim((string) $this->request->getPost('notes')), 0, 2000);
@@ -86,7 +128,7 @@ class CandidateController extends BaseController
             $templateId = (int) $this->request->getPost('rejection_template_id');
             $template = $database->table('rejection_reason_templates')->where('id', $templateId)->where('is_active', 1)->get()->getRowArray();
             if ($template === null) {
-                return $this->candidateError('Pilih template alasan penolakan terlebih dahulu.');
+                return $this->candidateError('Pilih template alasan penolakan terlebih dahulu.', $returnTeamId);
             }
             $publicMessage = (string) $template['reason_text'];
             $notes = 'Alasan penolakan: ' . $template['title'] . ($notes !== '' ? '. Catatan: ' . $notes : '');
@@ -95,7 +137,6 @@ class CandidateController extends BaseController
         }
 
         $now = date('Y-m-d H:i:s');
-        $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
         $database->transStart();
         $database->table('applications')->where('id', $applicationId)->update([
             'application_status' => $newStage,
@@ -115,20 +156,22 @@ class CandidateController extends BaseController
         ]);
         $database->transComplete();
         if (! $database->transStatus()) {
-            return $this->candidateError('Tahapan kandidat gagal diperbarui.');
+            return $this->candidateError('Tahapan kandidat gagal diperbarui.', $returnTeamId);
         }
 
-        return redirect()->to(site_url('adminhrdmannakampus/kandidat'))->with('candidate_success', 'Tahapan kandidat berhasil diubah menjadi ' . $stage['name'] . '.');
+        return redirect()->to($this->candidateUrl($returnTeamId))->with('candidate_success', 'Tahapan kandidat berhasil diubah menjadi ' . $stage['name'] . '.');
     }
 
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, periods.period_name, departments.name AS department_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applications.assigned_hrd_team_id, applications.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
+            ->join('hrd_teams AS teams', 'teams.id = applications.assigned_hrd_team_id')
+            ->join('users AS assigned_user', 'assigned_user.id = applications.assigned_by_user_id', 'left')
             ->join('recruitment_stages AS stages', 'stages.code = applications.application_status', 'left')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
@@ -200,9 +243,27 @@ class CandidateController extends BaseController
         return $status === 'screening_failed' ? '#DC2626' : '#64748B';
     }
 
-    private function candidateError(string $message): RedirectResponse
+    private function candidateError(string $message, int $teamId = 0): RedirectResponse
     {
-        return redirect()->to(site_url('adminhrdmannakampus/kandidat'))->with('candidate_error', $message);
+        return redirect()->to($this->candidateUrl($teamId))->with('candidate_error', $message);
+    }
+
+    /** @return array<string, mixed>|null */
+    private function currentTeam(int $userId): ?array
+    {
+        return db_connect()->table('hrd_team_users AS team_users')
+            ->select('teams.id, teams.name, teams.code')
+            ->join('hrd_teams AS teams', 'teams.id = team_users.hrd_team_id')
+            ->where('team_users.user_id', $userId)
+            ->where('teams.is_active', 1)
+            ->get()->getRowArray() ?: null;
+    }
+
+    private function candidateUrl(int $teamId): string
+    {
+        $url = site_url('adminhrdmannakampus/kandidat');
+
+        return $teamId > 0 ? $url . '?team_id=' . $teamId : $url;
     }
 
     private function disableClientCaching(): void
