@@ -69,7 +69,7 @@ class HrdTeamController extends BaseController
         if ($data instanceof RedirectResponse) {
             return $data;
         }
-        if ((int) $data['is_active'] === 0 && db_connect()->table('applications')->where('assigned_hrd_team_id', $teamId)->where('deleted_at', null)->countAllResults() > 0) {
+        if ((int) $data['is_active'] === 0 && db_connect()->table('applicants')->where('assigned_hrd_team_id', $teamId)->where('deleted_at', null)->countAllResults() > 0) {
             return $this->formError('Divisi masih memiliki pelamar dan tidak dapat dinonaktifkan.', 'edit-' . $teamId);
         }
         try {

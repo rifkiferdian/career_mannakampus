@@ -12,7 +12,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
     <meta name="theme-color" content="#102a43">
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=28">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=32">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -70,9 +70,8 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span></td>
                                     <td><span class="candidate-stage-age <?= $application['is_overdue'] ? 'overdue' : '' ?>"><?= (int) $application['days_in_stage'] ?> hari</span><?php if ((int) $application['sla_days'] > 0): ?><small class="candidate-sla">SLA <?= (int) $application['sla_days'] ?> hari</small><?php endif ?></td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
-                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus): ?><a class="candidate-process-link" href="#process-<?= (int) $application['id'] ?>">Ubah tahap</a><?php endif ?></div></td>
+                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
                                 </tr>
-                                <?php if ($canUpdateStatus): ?><tr class="candidate-process-row" id="process-<?= (int) $application['id'] ?>"><td colspan="8"><form class="candidate-process-form" action="<?= site_url('adminhrdmannakampus/kandidat/lamaran/' . $application['id'] . '/tahap') ?>" method="post"><?= csrf_field() ?><input type="hidden" name="team_id" value="<?= $selectedTeamId ?>"><div class="candidate-process-title"><strong>Proses <?= esc($application['full_name']) ?></strong><span><?= esc($application['vacancy_title']) ?> · <?= esc($application['application_number']) ?></span></div><label>Tahap baru<select name="stage" required><option value="">Pilih tahapan</option><?php foreach ($stages as $stage): ?><option value="<?= esc($stage['code'], 'attr') ?>" <?= $stage['code'] === $application['application_status'] ? 'disabled' : '' ?>><?= esc($stage['name']) ?></option><?php endforeach ?></select></label><label>Alasan penolakan<select name="rejection_template_id"><option value="">Wajib jika memilih Ditolak</option><?php foreach ($rejectionTemplates as $template): ?><option value="<?= (int) $template['id'] ?>"><?= esc($template['title']) ?></option><?php endforeach ?></select></label><label class="candidate-process-note">Catatan internal<textarea name="notes" rows="3" maxlength="2000" placeholder="Opsional, tersimpan pada riwayat status"></textarea></label><div class="candidate-process-buttons"><a href="<?= $candidateTeamUrl ?>">Batal</a><button type="submit" data-confirm="Ubah tahapan kandidat ini?">Simpan tahapan</button></div></form></td></tr><?php endif ?>
                             <?php endforeach ?>
                         </tbody>
                     </table>
@@ -81,6 +80,28 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
         </div>
     </main>
 </div>
+<?php if ($canUpdateStatus): ?>
+    <?php foreach ($applications as $application): ?>
+        <dialog class="admin-modal candidate-stage-modal" id="candidate-stage-modal-<?= (int) $application['id'] ?>" aria-labelledby="candidate-stage-title-<?= (int) $application['id'] ?>">
+            <div class="admin-modal-panel">
+                <div class="settings-card-heading admin-modal-heading">
+                    <span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span>
+                    <div><h2 id="candidate-stage-title-<?= (int) $application['id'] ?>">Ubah tahap <?= esc($application['full_name']) ?></h2><p><?= esc($application['vacancy_title']) ?> · <?= esc($application['application_number']) ?></p></div>
+                    <button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button>
+                </div>
+                <form class="candidate-process-form candidate-modal-form" action="<?= site_url('adminhrdmannakampus/kandidat/lamaran/' . $application['id'] . '/tahap') ?>" method="post">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="team_id" value="<?= $selectedTeamId ?>">
+                    <div class="candidate-current-stage"><span>Tahap saat ini</span><strong><?= esc($application['status_label']) ?></strong></div>
+                    <label>Tahap baru<select name="stage" required><option value="">Pilih tahapan</option><?php foreach ($stages as $stage): ?><option value="<?= esc($stage['code'], 'attr') ?>" <?= $stage['code'] === $application['application_status'] ? 'disabled' : '' ?>><?= esc($stage['name']) ?></option><?php endforeach ?></select></label>
+                    <label>Alasan penolakan<select name="rejection_template_id"><option value="">Wajib jika memilih Ditolak</option><?php foreach ($rejectionTemplates as $template): ?><option value="<?= (int) $template['id'] ?>"><?= esc($template['title']) ?></option><?php endforeach ?></select></label>
+                    <label class="candidate-process-note">Catatan internal<textarea name="notes" rows="4" maxlength="2000" placeholder="Opsional, tersimpan pada riwayat status"></textarea></label>
+                    <div class="candidate-process-buttons"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" data-confirm="Ubah tahapan kandidat ini?">Simpan tahapan</button></div>
+                </form>
+            </div>
+        </dialog>
+    <?php endforeach ?>
+<?php endif ?>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>
 </html>

@@ -36,5 +36,8 @@ class ApplicantModel extends Model
         'registration_ip',
         'registration_user_agent',
         'is_active',
+        'assigned_hrd_team_id',
+        'assigned_by_user_id',
+        'assigned_at',
     ];
 }

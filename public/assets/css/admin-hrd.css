@@ -726,11 +726,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-stage-age.overdue { color: #a34c43; }
 .candidate-sla { display: block; margin-top: 4px; color: #929ca4; font-size: 9px; }
 .candidate-table-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.candidate-table-actions a { min-height: 32px; display: inline-flex; align-items: center; padding: 0 10px; color: white; background: var(--admin-navy); border: 1px solid var(--admin-navy); border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; }
+.candidate-table-actions a, .candidate-table-actions button { min-height: 32px; display: inline-flex; align-items: center; padding: 0 10px; color: white; background: var(--admin-navy); border: 1px solid var(--admin-navy); border-radius: 7px; font-family: inherit; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .candidate-table-actions .candidate-process-link { color: #a95027; background: #fff5ef; border-color: #f0d6c8; }
-.candidate-process-row { display: none; }
-.candidate-process-row:target { display: table-row; }
-.candidate-process-row > td { padding: 0 16px 17px; background: #fffaf7; }
 .candidate-process-form { display: grid; grid-template-columns: 1.1fr 1fr 1fr; align-items: end; gap: 12px; padding: 17px; border: 1px solid #f0d9cc; border-radius: 10px; }
 .candidate-process-title { grid-column: 1 / -1; padding-bottom: 11px; border-bottom: 1px solid #f0e1d8; }
 .candidate-process-title strong, .candidate-process-title span { display: block; }
@@ -744,6 +741,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-process-buttons a, .candidate-process-buttons button { min-height: 39px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .candidate-process-buttons a { color: #687783; background: white; border: 1px solid #dce3e9; }
 .candidate-process-buttons button { color: white; background: var(--admin-orange); border: 0; }
+.candidate-stage-modal { width: min(760px, calc(100vw - 24px)); }
+.candidate-modal-form { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 21px 23px 23px; border: 0; border-radius: 0; }
+.candidate-current-stage { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; color: #71808c; background: #f7f9fa; border: 1px solid #e5eaee; border-radius: 8px; font-size: 10px; }
+.candidate-current-stage strong { color: var(--admin-navy); font-size: 11px; }
+.candidate-process-buttons .candidate-modal-cancel { color: #687783; background: white; border: 1px solid #dce3e9; }
 .analytics-dashboard-content { width: min(1380px, calc(100% - 60px)); padding-bottom: 65px; }
 .analytics-welcome { margin-bottom: 22px; }
 .dashboard-period-badge { min-width: 175px; padding: 11px 14px; background: white; border: 1px solid var(--admin-line); border-radius: 10px; }
@@ -1038,6 +1040,13 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
 .applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
 .applicant-assigned-by { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; white-space: nowrap; }
+.applicant-position-meta { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; }
+.applicant-position-statuses { min-width: 190px; display: grid; gap: 7px; }
+.applicant-position-statuses > span { display: grid; grid-template-columns: minmax(90px, 1fr) auto; align-items: center; gap: 8px; }
+.applicant-position-statuses strong { color: #425568; font-size: 10px; font-weight: 750; }
+.applicant-position-statuses small { padding: 5px 8px; color: #526879; background: #eef2f5; border-radius: 999px; font-size: 9px; font-weight: 800; white-space: nowrap; }
+.applicant-position-statuses .status-screening_passed, .applicant-position-statuses .status-accepted { color: #257052; background: #e7f5ee; }
+.applicant-position-statuses .status-screening_failed, .applicant-position-statuses .status-rejected { color: #a34c43; background: #fff0ed; }
 .candidate-filter-form.candidate-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.1fr) repeat(4, minmax(125px, .7fr)) auto auto; }
 .candidate-assignment-meta { display: block; margin-top: 5px; color: #87949e; font-size: 9px; white-space: nowrap; }
 

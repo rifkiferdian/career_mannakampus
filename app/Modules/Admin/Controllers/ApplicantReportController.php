@@ -35,7 +35,7 @@ class ApplicantReportController extends BaseController
         $statusLabels = $this->statusLabels($stages);
         $filters = $this->filters(array_keys($statusLabels));
         $applications = $this->reportRows($filters, self::SYSTEM_STATUS_LABELS + $statusLabels);
-        $applicantIds = array_unique(array_map('intval', array_column($applications, 'applicant_id')));
+        $applicationCount = array_sum(array_map('intval', array_column($applications, 'application_count')));
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
         $currentTeam = $this->currentTeam($userId);
@@ -55,8 +55,8 @@ class ApplicantReportController extends BaseController
             'success' => session()->getFlashdata('applicant_pool_success'),
             'error' => session()->getFlashdata('applicant_pool_error'),
             'summary' => [
-                'applicants' => count($applicantIds),
-                'applications' => count($applications),
+                'applicants' => count($applications),
+                'applications' => $applicationCount,
                 'unassigned' => count(array_filter($applications, static fn (array $row): bool => empty($row['assigned_hrd_team_id']))),
                 'assigned' => count(array_filter($applications, static fn (array $row): bool => ! empty($row['assigned_hrd_team_id']))),
             ],
@@ -71,13 +71,13 @@ class ApplicantReportController extends BaseController
         $rows = $this->reportRows($this->filters(array_keys($statusLabels)), self::SYSTEM_STATUS_LABELS + $statusLabels);
         $excelRows = array_map(function (array $row): array {
             return [
-                $row['application_number'],
                 $row['full_name'],
                 $row['email'],
                 $row['phone'],
-                $row['vacancy_title'],
-                $row['period_name'],
-                $row['department_name'],
+                $row['application_count'],
+                $row['position_names'],
+                $row['period_names'],
+                $row['department_names'],
                 $this->formatDate((string) $row['submitted_at']),
                 $row['hrd_team_name'] ?: 'Belum dipilih',
                 $row['assigned_by_name'] ?: '-',
@@ -86,14 +86,14 @@ class ApplicantReportController extends BaseController
         }, $rows);
         $workbook = (new ExcelWorkbookBuilder())->build(
             'List Pelamar Manna Kampus',
-            ['No. Lamaran', 'Nama Pelamar', 'Email', 'WhatsApp', 'Posisi', 'Sesi Lowongan', 'Departemen', 'Tanggal Daftar', 'Divisi HRD', 'Dipilih Oleh', 'Status Lamaran'],
+            ['Nama Pelamar', 'Email', 'WhatsApp', 'Jumlah Lamaran', 'Posisi Dilamar', 'Sesi Lowongan', 'Departemen', 'Tanggal Daftar Terakhir', 'Divisi HRD', 'Dipilih Oleh', 'Status Lamaran'],
             $excelRows,
         );
 
         return $this->response->download('list-pelamar-' . date('Ymd-His') . '.xlsx', $workbook, true);
     }
 
-    public function assign(int $applicationId): \CodeIgniter\HTTP\RedirectResponse
+    public function assign(int $applicantId): \CodeIgniter\HTTP\RedirectResponse
     {
         $database = db_connect();
         $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
@@ -104,8 +104,8 @@ class ApplicantReportController extends BaseController
 
         $now = date('Y-m-d H:i:s');
         $database->transStart();
-        $database->table('applications')
-            ->where('id', $applicationId)
+        $database->table('applicants')
+            ->where('id', $applicantId)
             ->where('deleted_at', null)
             ->where('assigned_hrd_team_id', null)
             ->update([
@@ -116,8 +116,14 @@ class ApplicantReportController extends BaseController
             ]);
         $claimed = $database->affectedRows() === 1;
         if ($claimed) {
-            $database->table('application_assignment_histories')->insert([
-                'application_id' => $applicationId,
+            $database->table('applications')->where('applicant_id', $applicantId)->where('deleted_at', null)->update([
+                'assigned_hrd_team_id' => (int) $team['id'],
+                'assigned_by_user_id' => $userId,
+                'assigned_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $database->table('applicant_assignment_histories')->insert([
+                'applicant_id' => $applicantId,
                 'from_hrd_team_id' => null,
                 'to_hrd_team_id' => (int) $team['id'],
                 'action' => 'assigned',
@@ -164,21 +170,38 @@ class ApplicantReportController extends BaseController
     private function reportRows(array $filters, array $statusLabels): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.application_number, applications.applicant_id, applications.application_status, applications.assigned_hrd_team_id, applications.assigned_at, applications.submitted_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name')
+            ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
-            ->join('hrd_teams AS teams', 'teams.id = applications.assigned_hrd_team_id', 'left')
-            ->join('users AS assigned_user', 'assigned_user.id = applications.assigned_by_user_id', 'left')
+            ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id', 'left')
+            ->join('users AS assigned_user', 'assigned_user.id = applicants.assigned_by_user_id', 'left')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
         $this->applyFilters($builder, $filters);
 
-        $rows = $builder->orderBy('applications.submitted_at', 'DESC')->orderBy('applications.id', 'DESC')->get()->getResultArray();
+        $rows = $builder
+            ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'teams.name', 'assigned_user.full_name'])
+            ->orderBy('submitted_at', 'DESC')
+            ->orderBy('applicants.id', 'DESC')
+            ->get()->getResultArray();
 
         return array_map(function (array $row) use ($statusLabels): array {
-            $row['status_label'] = $this->statusLabel((string) $row['application_status'], $statusLabels);
+            $positionStatuses = [];
+            foreach (array_filter(explode('||', (string) $row['position_statuses'])) as $positionStatus) {
+                [$position, $status] = array_pad(explode('::', $positionStatus, 2), 2, '');
+                $positionStatuses[] = [
+                    'position' => $position,
+                    'status' => $this->statusLabel($status, $statusLabels),
+                    'code' => $status,
+                ];
+            }
+            $row['position_statuses'] = $positionStatuses;
+            $row['status_label'] = implode('; ', array_map(static fn (array $item): string => $item['position'] . ': ' . $item['status'], $positionStatuses));
+            $row['position_names'] = str_replace('||', ', ', (string) $row['position_names']);
+            $row['period_names'] = str_replace('||', ', ', (string) $row['period_names']);
+            $row['department_names'] = str_replace('||', ', ', (string) $row['department_names']);
 
             return $row;
         }, $rows);

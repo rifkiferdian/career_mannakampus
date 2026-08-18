@@ -53,7 +53,7 @@ class CandidateController extends BaseController
         $filters = $this->filters(array_keys($statusOptions));
         $builder = $this->candidateQuery();
         if ($selectedTeamId > 0) {
-            $builder->where('applications.assigned_hrd_team_id', $selectedTeamId);
+            $builder->where('applicants.assigned_hrd_team_id', $selectedTeamId);
         } else {
             $builder->where('applications.id', 0);
         }
@@ -102,7 +102,13 @@ class CandidateController extends BaseController
     public function updateStage(int $applicationId): RedirectResponse
     {
         $database = db_connect();
-        $application = $database->table('applications')->where('id', $applicationId)->where('deleted_at', null)->get()->getRowArray();
+        $application = $database->table('applications AS applications')
+            ->select('applications.*, applicants.assigned_hrd_team_id AS owner_hrd_team_id')
+            ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->where('applications.id', $applicationId)
+            ->where('applications.deleted_at', null)
+            ->where('applicants.deleted_at', null)
+            ->get()->getRowArray();
         $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
         $currentTeam = $this->currentTeam($userId);
         $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
@@ -112,10 +118,10 @@ class CandidateController extends BaseController
         if ($application === null || $stage === null) {
             return $this->candidateError('Lamaran atau tahapan yang dipilih tidak valid.', $returnTeamId);
         }
-        if (empty($application['assigned_hrd_team_id'])) {
+        if (empty($application['owner_hrd_team_id'])) {
             return $this->candidateError('Pelamar belum dipilih oleh divisi HRD.', $returnTeamId);
         }
-        if (! $canManageTeams && (int) ($currentTeam['id'] ?? 0) !== (int) $application['assigned_hrd_team_id']) {
+        if (! $canManageTeams && (int) ($currentTeam['id'] ?? 0) !== (int) $application['owner_hrd_team_id']) {
             return $this->candidateError('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda proses.', $returnTeamId);
         }
         if ((string) $application['application_status'] === $newStage) {
@@ -165,13 +171,13 @@ class CandidateController extends BaseController
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applications.assigned_hrd_team_id, applications.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
-            ->join('hrd_teams AS teams', 'teams.id = applications.assigned_hrd_team_id')
-            ->join('users AS assigned_user', 'assigned_user.id = applications.assigned_by_user_id', 'left')
+            ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id')
+            ->join('users AS assigned_user', 'assigned_user.id = applicants.assigned_by_user_id', 'left')
             ->join('recruitment_stages AS stages', 'stages.code = applications.application_status', 'left')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
