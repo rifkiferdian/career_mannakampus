@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="theme-color" content="#102a43">
-    <title>Pengaturan Rekrutmen | HRD Manna Kampus</title>
+    <title>Template Penolakan | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=26">
 </head>
@@ -16,7 +16,7 @@
         <main class="admin-main">
             <header class="admin-topbar">
                 <button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button>
-                <div><span>Konfigurasi</span><strong>Pengaturan Rekrutmen</strong></div>
+                <div><span>Recruitment</span><strong>Template Penolakan</strong></div>
                 <a class="view-career-link" href="<?= site_url('adminhrdmannakampus/dashboard') ?>">Kembali ke dashboard</a>
             </header>
 
@@ -25,39 +25,13 @@
                 <?php if (! empty($error)): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
 
                 <section class="dashboard-welcome recruitment-settings-heading" aria-labelledby="settings-title">
-                    <div><span class="login-eyebrow">Recruitment Workflow</span><h1 id="settings-title">Pengaturan Rekrutmen</h1><p>Atur tahapan seleksi, batas waktu proses, dan alasan penolakan kandidat.</p></div>
+                    <div><span class="login-eyebrow">Pesan Kandidat</span><h1 id="settings-title">Template Penolakan</h1><p>Kelola pesan standar yang digunakan ketika kandidat tidak dilanjutkan.</p></div>
                     <?php if (! $canManage): ?><span class="read-only-badge">Mode lihat saja</span><?php endif ?>
                 </section>
 
-                <nav class="settings-anchor-nav" aria-label="Bagian pengaturan rekrutmen">
-                    <a href="#stages">Tahapan seleksi</a><a href="#rejections">Alasan penolakan</a><a href="<?= site_url('adminhrdmannakampus/pertanyaan-screening') ?>">Pertanyaan screening</a>
+                <nav class="settings-anchor-nav" aria-label="Bagian template penolakan">
+                    <a href="#rejections">Alasan penolakan</a><a href="<?= site_url('adminhrdmannakampus/pertanyaan-screening') ?>">Pertanyaan screening</a><a href="<?= site_url('adminhrdmannakampus/template-tahapan') ?>">Template tahapan</a>
                 </nav>
-
-                <section class="settings-card recruitment-config-card" id="stages" aria-labelledby="stages-title">
-                    <div class="settings-card-heading settings-heading-action">
-                        <span class="settings-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="8" cy="6" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="16" cy="18" r="1"/></svg></span>
-                        <div><h2 id="stages-title">Tahapan seleksi</h2><p>Urutan, warna, dan SLA dihitung dalam hari kalender.</p></div>
-                        <span class="device-count"><?= count($stages) ?></span>
-                    </div>
-                    <div class="department-table-wrap"><table class="department-table recruitment-table">
-                        <thead><tr><th>Urutan</th><th>Tahapan</th><th>Warna</th><th>Batas waktu</th><th>Status</th><th>Aksi</th></tr></thead>
-                        <tbody><?php foreach ($stages as $stage): ?>
-                            <tr class="<?= (int) $stage['is_active'] === 0 ? 'department-row-inactive' : '' ?>">
-                                <td><?= esc((string) $stage['display_order']) ?></td>
-                                <td><div class="department-name-cell"><strong><?= esc($stage['name']) ?></strong><code><?= esc($stage['code']) ?></code></div></td>
-                                <td><span class="stage-color-value"><i style="--stage-color: <?= esc($stage['color_hex'], 'attr') ?>"></i><?= esc($stage['color_hex']) ?></span></td>
-                                <td><?= (int) $stage['is_terminal'] === 1 ? '-' : esc((string) $stage['sla_days']) . ' hari' ?></td>
-                                <td><span class="account-status <?= (int) $stage['is_active'] === 1 ? 'active' : 'inactive' ?>"><i></i><?= (int) $stage['is_terminal'] === 1 ? 'Terminal' : ((int) $stage['is_active'] === 1 ? 'Aktif' : 'Nonaktif') ?></span></td>
-                                <td><div class="department-table-actions"><?php if ($canManage): ?><a class="table-action-icon table-action-edit" href="#edit-stage-<?= esc((string) $stage['id'], 'attr') ?>" aria-label="Edit tahapan" title="Edit tahapan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></a><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td>
-                            </tr>
-                            <?php if ($canManage): ?><tr class="department-edit-table-row" id="edit-stage-<?= esc((string) $stage['id'], 'attr') ?>"><td colspan="6">
-                                <form class="department-table-edit-form recruitment-table-edit-form" action="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen/tahapan/' . $stage['id']) ?>" method="post">
-                                    <?= csrf_field() ?><label>Nama<input type="text" name="name" value="<?= esc($stage['name'], 'attr') ?>" maxlength="100" required></label><label>Warna<input type="color" name="color_hex" value="<?= esc($stage['color_hex'], 'attr') ?>" required></label><label>Urutan<input type="number" name="display_order" value="<?= esc((string) $stage['display_order'], 'attr') ?>" min="1" max="99" required></label><label>Batas waktu<input type="number" name="sla_days" value="<?= esc((string) $stage['sla_days'], 'attr') ?>" min="0" max="365" <?= (int) $stage['is_terminal'] === 1 ? 'disabled' : '' ?>></label><label class="department-active-check"><input type="checkbox" name="is_active" value="1" <?= (int) $stage['is_active'] === 1 ? 'checked' : '' ?> <?= (int) $stage['is_terminal'] === 1 ? 'disabled' : '' ?>> Aktif</label><div class="department-edit-buttons"><a href="#stages-title">Batal</a><button type="submit">Simpan</button></div>
-                                </form>
-                            </td></tr><?php endif ?>
-                        <?php endforeach ?></tbody>
-                    </table></div>
-                </section>
 
                 <section class="settings-card recruitment-config-card" id="rejections" aria-labelledby="rejections-title">
                     <div class="settings-card-heading settings-heading-action">

@@ -13,6 +13,20 @@ $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.v
 $canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
 $canViewCandidates = $authorization->can($userId, 'candidates.view');
 $canViewHrdTeams = $authorization->can($userId, 'hrd.teams.view');
+$todayApplicantCount = 0;
+if ($canViewApplicantPool) {
+    $jakartaTimezone = new \DateTimeZone('Asia/Jakarta');
+    $utcTimezone = new \DateTimeZone('UTC');
+    $todayJakarta = new \DateTimeImmutable('now', $jakartaTimezone);
+    $todayStartUtc = $todayJakarta->setTime(0, 0)->setTimezone($utcTimezone)->format('Y-m-d H:i:s');
+    $tomorrowStartUtc = $todayJakarta->modify('+1 day')->setTime(0, 0)->setTimezone($utcTimezone)->format('Y-m-d H:i:s');
+    $todayApplicantCount = (int) (db_connect()->table('applications')
+        ->select('COUNT(DISTINCT applicant_id) AS total', false)
+        ->where('submitted_at >=', $todayStartUtc)
+        ->where('submitted_at <', $tomorrowStartUtc)
+        ->where('deleted_at', null)
+        ->get()->getRowArray()['total'] ?? 0);
+}
 $canManageHrdTeams = $authorization->can($userId, 'hrd.teams.manage');
 $candidateTeams = [];
 $currentCandidateTeamId = 0;
@@ -78,7 +92,7 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
         <?php if ($canViewRecruitmentSettings): ?>
             <a<?= $activeClass('recruitment-settings') ?> href="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
-                Pengaturan Rekrutmen
+                Template Penolakan
             </a>
         <?php endif ?>
         <?php if ($canViewScreeningQuestions): ?>
@@ -97,6 +111,7 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
                 List Pelamar
+                <?php if ($todayApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $todayApplicantCount ?> pelamar mendaftar hari ini" aria-label="<?= $todayApplicantCount ?> pelamar baru hari ini"><?= $todayApplicantCount > 99 ? '99+' : $todayApplicantCount ?></span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewCandidates && $candidateTeams !== []): ?>

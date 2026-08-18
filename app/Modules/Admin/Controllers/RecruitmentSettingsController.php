@@ -20,117 +20,11 @@ class RecruitmentSettingsController extends BaseController
             'canManage'          => Services::authorization()->can($userId, 'recruitment.settings.manage'),
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
             'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
-            'stages'             => $database->table('recruitment_stages')->orderBy('display_order', 'ASC')->get()->getResultArray(),
             'rejectionTemplates' => $database->table('rejection_reason_templates')->orderBy('display_order', 'ASC')->get()->getResultArray(),
             'success'            => session()->getFlashdata('settings_success'),
             'error'              => session()->getFlashdata('settings_error'),
             'openSettingsModal'  => (string) (session()->getFlashdata('settings_form') ?? ''),
         ]);
-    }
-
-    public function updateStages(): RedirectResponse
-    {
-        $submitted = (array) $this->request->getPost('stages');
-        $existing = db_connect()->table('recruitment_stages')->orderBy('display_order', 'ASC')->get()->getResultArray();
-        $updates = [];
-        $orders = [];
-
-        foreach ($existing as $stage) {
-            $input = (array) ($submitted[(string) $stage['id']] ?? []);
-            $name = trim((string) ($input['name'] ?? ''));
-            $color = mb_strtoupper(trim((string) ($input['color_hex'] ?? '')));
-            $order = (int) ($input['display_order'] ?? 0);
-            $slaDays = (int) ($input['sla_days'] ?? 0);
-
-            if ($name === '' || mb_strlen($name) > 100) {
-                return $this->settingsError('Nama setiap tahapan wajib diisi dan maksimal 100 karakter.', '#stages');
-            }
-            if (preg_match('/^#[0-9A-F]{6}$/', $color) !== 1) {
-                return $this->settingsError('Format warna tahapan tidak valid.', '#stages');
-            }
-            if ($order < 1 || $order > 99 || in_array($order, $orders, true)) {
-                return $this->settingsError('Urutan tahapan harus unik dengan nilai 1–99.', '#stages');
-            }
-            if ($slaDays < 0 || $slaDays > 365) {
-                return $this->settingsError('Batas waktu tahapan harus antara 0–365 hari.', '#stages');
-            }
-
-            $orders[] = $order;
-            $updates[] = [
-                'id'            => (int) $stage['id'],
-                'name'          => $name,
-                'color_hex'     => $color,
-                'display_order' => $order,
-                'sla_days'      => (int) $stage['is_terminal'] === 1 ? 0 : $slaDays,
-                'is_active'     => (int) $stage['is_terminal'] === 1 || isset($input['is_active']) ? 1 : 0,
-            ];
-        }
-
-        $database = db_connect();
-        $database->transStart();
-        foreach ($updates as $update) {
-            $database->table('recruitment_stages')->where('id', $update['id'])->update([
-                'display_order' => $update['display_order'] + 1000,
-                'updated_at'    => date('Y-m-d H:i:s'),
-            ]);
-        }
-        foreach ($updates as $update) {
-            $database->table('recruitment_stages')->where('id', $update['id'])->update([
-                'name'          => $update['name'],
-                'color_hex'     => $update['color_hex'],
-                'display_order' => $update['display_order'],
-                'sla_days'      => $update['sla_days'],
-                'is_active'     => $update['is_active'],
-                'updated_at'    => date('Y-m-d H:i:s'),
-            ]);
-        }
-        $database->transComplete();
-
-        if (! $database->transStatus()) {
-            return $this->settingsError('Tahapan seleksi gagal diperbarui. Silakan coba kembali.', '#stages');
-        }
-
-        return $this->settingsSuccess('Tahapan seleksi berhasil diperbarui.', '#stages');
-    }
-
-    public function updateStage(int $stageId): RedirectResponse
-    {
-        $database = db_connect();
-        $stage = $database->table('recruitment_stages')->where('id', $stageId)->get()->getRowArray();
-        if ($stage === null) {
-            return $this->settingsError('Tahapan seleksi tidak ditemukan.', '#stages');
-        }
-
-        $name = trim((string) $this->request->getPost('name'));
-        $color = mb_strtoupper(trim((string) $this->request->getPost('color_hex')));
-        $order = (int) $this->request->getPost('display_order');
-        $slaDays = (int) $this->request->getPost('sla_days');
-        if ($name === '' || mb_strlen($name) > 100) {
-            return $this->settingsError('Nama tahapan wajib diisi dan maksimal 100 karakter.', '#stages');
-        }
-        if (preg_match('/^#[0-9A-F]{6}$/', $color) !== 1) {
-            return $this->settingsError('Format warna tahapan tidak valid.', '#stages');
-        }
-        if ($order < 1 || $order > 99) {
-            return $this->settingsError('Urutan tahapan harus antara 1-99.', '#stages');
-        }
-        if ($slaDays < 0 || $slaDays > 365) {
-            return $this->settingsError('Batas waktu tahapan harus antara 0-365 hari.', '#stages');
-        }
-        if ($database->table('recruitment_stages')->where('display_order', $order)->where('id !=', $stageId)->countAllResults() > 0) {
-            return $this->settingsError('Urutan tahapan sudah digunakan.', '#stages');
-        }
-
-        $database->table('recruitment_stages')->where('id', $stageId)->update([
-            'name' => $name,
-            'color_hex' => $color,
-            'display_order' => $order,
-            'sla_days' => (int) $stage['is_terminal'] === 1 ? 0 : $slaDays,
-            'is_active' => (int) $stage['is_terminal'] === 1 || $this->request->getPost('is_active') !== null ? 1 : 0,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return $this->settingsSuccess('Tahapan seleksi berhasil diperbarui.', '#stages');
     }
 
     public function createRejectionTemplate(): RedirectResponse

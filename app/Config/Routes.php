@@ -75,8 +75,6 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('tim-hrd/(:num)', 'HrdTeamController::update/$1', ['filter' => 'permission:hrd.teams.manage', 'as' => 'hrd.teams.update']);
     $routes->post('tim-hrd/user/(:num)', 'HrdTeamController::assignUser/$1', ['filter' => 'permission:hrd.teams.manage', 'as' => 'hrd.teams.users.assign']);
     $routes->get('pengaturan-rekrutmen', 'RecruitmentSettingsController::index', ['filter' => 'permission:recruitment.settings.view', 'as' => 'hrd.recruitment.settings']);
-    $routes->post('pengaturan-rekrutmen/tahapan', 'RecruitmentSettingsController::updateStages', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.stages']);
-    $routes->post('pengaturan-rekrutmen/tahapan/(:num)', 'RecruitmentSettingsController::updateStage/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.stages.update']);
     $routes->post('pengaturan-rekrutmen/penolakan', 'RecruitmentSettingsController::createRejectionTemplate', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.create']);
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)', 'RecruitmentSettingsController::updateRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.update']);
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)/status', 'RecruitmentSettingsController::toggleRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.status']);
