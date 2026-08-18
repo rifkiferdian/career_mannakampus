@@ -43,6 +43,7 @@ class CandidateController extends BaseController
             }
         }
         $stages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
+        $templateStages = $this->templateStages();
         $statusOptions = [
             'screening_passed' => 'Lolos screening',
             'screening_failed' => 'Tidak lolos screening',
@@ -66,6 +67,7 @@ class CandidateController extends BaseController
             $application['is_overdue'] = (int) $application['sla_days'] > 0 && $application['days_in_stage'] > (int) $application['sla_days'];
             $application['status_label'] = $this->statusLabel((string) $application['application_status'], $stages);
             $application['stage_color'] = $this->stageColor((string) $application['application_status'], $stages);
+            $application['available_stages'] = $this->nextStages((int) $application['recruitment_process_template_id'], (string) $application['application_status'], $templateStages, $stages);
         }
         unset($application);
         $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update')
@@ -103,8 +105,9 @@ class CandidateController extends BaseController
     {
         $database = db_connect();
         $application = $database->table('applications AS applications')
-            ->select('applications.*, applicants.assigned_hrd_team_id AS owner_hrd_team_id')
+            ->select('applications.*, applicants.assigned_hrd_team_id AS owner_hrd_team_id, vacancies.recruitment_process_template_id')
             ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->where('applications.id', $applicationId)
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null)
@@ -114,9 +117,20 @@ class CandidateController extends BaseController
         $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
         $returnTeamId = max(0, (int) $this->request->getPost('team_id'));
         $newStage = trim((string) $this->request->getPost('stage'));
-        $stage = $database->table('recruitment_stages')->where('code', $newStage)->where('is_active', 1)->get()->getRowArray();
-        if ($application === null || $stage === null) {
+        if ($application === null) {
             return $this->candidateError('Lamaran atau tahapan yang dipilih tidak valid.', $returnTeamId);
+        }
+        $allStages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
+        $allowedStages = $this->nextStages((int) $application['recruitment_process_template_id'], (string) $application['application_status'], $this->templateStages(), $allStages);
+        $stage = null;
+        foreach ($allowedStages as $allowedStage) {
+            if ((string) $allowedStage['code'] === $newStage) {
+                $stage = $allowedStage;
+                break;
+            }
+        }
+        if ($stage === null) {
+            return $this->candidateError('Tahapan tidak sesuai urutan template lowongan. Pilih tahap berikutnya yang tersedia.', $returnTeamId);
         }
         if (empty($application['owner_hrd_team_id'])) {
             return $this->candidateError('Pelamar belum dipilih oleh divisi HRD.', $returnTeamId);
@@ -171,9 +185,10 @@ class CandidateController extends BaseController
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+            ->join('recruitment_process_templates AS process_templates', 'process_templates.id = vacancies.recruitment_process_template_id', 'left')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id')
@@ -181,6 +196,53 @@ class CandidateController extends BaseController
             ->join('recruitment_stages AS stages', 'stages.code = applications.application_status', 'left')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
+    }
+
+    /** @return array<int, list<array<string, mixed>>> */
+    private function templateStages(): array
+    {
+        $rows = db_connect()->table('recruitment_process_template_stages AS links')
+            ->select('links.template_id, links.display_order, stages.id, stages.code, stages.name, stages.color_hex, stages.sla_days, stages.is_terminal')
+            ->join('recruitment_stages AS stages', 'stages.id = links.stage_id')
+            ->where('stages.is_active', 1)
+            ->orderBy('links.template_id')->orderBy('links.display_order')->get()->getResultArray();
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int) $row['template_id']][] = $row;
+        }
+        return $result;
+    }
+
+    /**
+     * @param array<int, list<array<string, mixed>>> $templateStages
+     * @param list<array<string, mixed>> $allStages
+     * @return list<array<string, mixed>>
+     */
+    private function nextStages(int $templateId, string $currentStatus, array $templateStages, array $allStages): array
+    {
+        if (in_array($currentStatus, ['accepted', 'hired', 'rejected', 'withdrawn'], true)) {
+            return [];
+        }
+        $sequence = $templateStages[$templateId] ?? [];
+        $currentIndex = null;
+        foreach ($sequence as $index => $stage) {
+            if ((string) $stage['code'] === $currentStatus || in_array($currentStatus, self::STATUS_ALIASES[(string) $stage['code']] ?? [], true)) {
+                $currentIndex = $index;
+                break;
+            }
+        }
+        $available = [];
+        $nextIndex = $currentIndex === null ? 0 : $currentIndex + 1;
+        if (isset($sequence[$nextIndex])) {
+            $available[] = $sequence[$nextIndex];
+        }
+        foreach ($allStages as $stage) {
+            if ((string) $stage['code'] === 'rejected') {
+                $available[] = $stage;
+                break;
+            }
+        }
+        return $available;
     }
 
     /** @param list<string> $statuses

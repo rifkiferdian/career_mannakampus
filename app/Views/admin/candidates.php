@@ -65,12 +65,12 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                                 <tr>
                                     <td class="candidate-order"><?= $index + 1 ?></td>
                                     <td><div class="report-applicant"><strong><?= esc($application['full_name']) ?></strong><a href="mailto:<?= esc($application['email'], 'attr') ?>"><?= esc($application['email']) ?></a><small><?= esc($application['phone']) ?></small></div></td>
-                                    <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code><small class="candidate-assignment-meta">Dipilih <?= esc($application['assigned_by_name'] ?: '-') ?><?= $application['assigned_at'] ? ' · ' . esc(date('d/m/Y H:i', strtotime($application['assigned_at']))) : '' ?></small></div></td>
+                                    <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code><small><?= esc($application['process_template_name'] ?: 'Template belum ditentukan') ?></small><small class="candidate-assignment-meta">Dipilih <?= esc($application['assigned_by_name'] ?: '-') ?><?= $application['assigned_at'] ? ' · ' . esc(date('d/m/Y H:i', strtotime($application['assigned_at']))) : '' ?></small></div></td>
                                     <td><span class="report-screening screening-<?= esc($screening, 'attr') ?>"><?= esc($screeningLabels[$screening] ?? 'Belum dinilai') ?></span><small class="report-score"><?= $application['screening_score'] !== null ? esc(number_format((float) $application['screening_score'], 2, ',', '.')) : '-' ?></small></td>
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span></td>
                                     <td><span class="candidate-stage-age <?= $application['is_overdue'] ? 'overdue' : '' ?>"><?= (int) $application['days_in_stage'] ?> hari</span><?php if ((int) $application['sla_days'] > 0): ?><small class="candidate-sla">SLA <?= (int) $application['sla_days'] ?> hari</small><?php endif ?></td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
-                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
+                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -81,7 +81,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
     </main>
 </div>
 <?php if ($canUpdateStatus): ?>
-    <?php foreach ($applications as $application): ?>
+    <?php foreach ($applications as $application): if ($application['available_stages'] === []) { continue; } ?>
         <dialog class="admin-modal candidate-stage-modal" id="candidate-stage-modal-<?= (int) $application['id'] ?>" aria-labelledby="candidate-stage-title-<?= (int) $application['id'] ?>">
             <div class="admin-modal-panel">
                 <div class="settings-card-heading admin-modal-heading">
@@ -93,7 +93,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                     <?= csrf_field() ?>
                     <input type="hidden" name="team_id" value="<?= $selectedTeamId ?>">
                     <div class="candidate-current-stage"><span>Tahap saat ini</span><strong><?= esc($application['status_label']) ?></strong></div>
-                    <label>Tahap baru<select name="stage" required><option value="">Pilih tahapan</option><?php foreach ($stages as $stage): ?><option value="<?= esc($stage['code'], 'attr') ?>" <?= $stage['code'] === $application['application_status'] ? 'disabled' : '' ?>><?= esc($stage['name']) ?></option><?php endforeach ?></select></label>
+                    <label>Tahap berikutnya<select name="stage" required><option value="">Pilih tahapan</option><?php foreach ($application['available_stages'] as $stage): ?><option value="<?= esc($stage['code'], 'attr') ?>"><?= esc($stage['name']) ?></option><?php endforeach ?></select><small>Hanya tahap berikutnya sesuai template lowongan yang dapat dipilih.</small></label>
                     <label>Alasan penolakan<select name="rejection_template_id"><option value="">Wajib jika memilih Ditolak</option><?php foreach ($rejectionTemplates as $template): ?><option value="<?= (int) $template['id'] ?>"><?= esc($template['title']) ?></option><?php endforeach ?></select></label>
                     <label class="candidate-process-note">Catatan internal<textarea name="notes" rows="4" maxlength="2000" placeholder="Opsional, tersimpan pada riwayat status"></textarea></label>
                     <div class="candidate-process-buttons"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" data-confirm="Ubah tahapan kandidat ini?">Simpan tahapan</button></div>

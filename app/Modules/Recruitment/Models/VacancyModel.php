@@ -20,6 +20,7 @@ class VacancyModel extends Model
         'responsibilities',
         'qualifications',
         'department_id',
+        'recruitment_process_template_id',
         'location',
         'employment_type',
         'minimum_education',

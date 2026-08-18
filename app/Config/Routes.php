@@ -46,6 +46,13 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('sesi-lowongan/(:num)', 'VacancyPeriodController::update/$1', ['filter' => 'permission:vacancy.periods.manage', 'as' => 'hrd.vacancy.periods.update']);
     $routes->post('sesi-lowongan/(:num)/status', 'VacancyPeriodController::changeStatus/$1', ['filter' => 'permission:vacancy.periods.publish', 'as' => 'hrd.vacancy.periods.status']);
     $routes->post('sesi-lowongan/(:num)/hapus', 'VacancyPeriodController::delete/$1', ['filter' => 'permission:vacancy.periods.manage', 'as' => 'hrd.vacancy.periods.delete']);
+    $routes->get('template-tahapan', 'RecruitmentProcessTemplateController::index', ['filter' => 'permission:recruitment.templates.view', 'as' => 'hrd.recruitment.templates']);
+    $routes->post('template-tahapan', 'RecruitmentProcessTemplateController::create', ['filter' => 'permission:recruitment.templates.manage', 'as' => 'hrd.recruitment.templates.create']);
+    $routes->post('template-tahapan/(:num)', 'RecruitmentProcessTemplateController::update/$1', ['filter' => 'permission:recruitment.templates.manage', 'as' => 'hrd.recruitment.templates.update']);
+    $routes->post('template-tahapan/(:num)/hapus', 'RecruitmentProcessTemplateController::delete/$1', ['filter' => 'permission:recruitment.templates.manage', 'as' => 'hrd.recruitment.templates.delete']);
+    $routes->post('template-tahapan/jenis', 'RecruitmentProcessTemplateController::createStage', ['filter' => 'permission:recruitment.templates.manage', 'as' => 'hrd.recruitment.stage-types.create']);
+    $routes->post('template-tahapan/jenis/(:num)', 'RecruitmentProcessTemplateController::updateStage/$1', ['filter' => 'permission:recruitment.templates.manage', 'as' => 'hrd.recruitment.stage-types.update']);
+    $routes->post('template-tahapan/jenis/(:num)/hapus', 'RecruitmentProcessTemplateController::deleteStage/$1', ['filter' => 'permission:recruitment.templates.manage', 'as' => 'hrd.recruitment.stage-types.delete']);
     $routes->get('pertanyaan-screening', 'ScreeningQuestionController::index', ['filter' => 'permission:screening.questions.view', 'as' => 'hrd.screening.questions']);
     $routes->post('pertanyaan-screening/default', 'ScreeningQuestionController::createDefault', ['filter' => 'permission:screening.defaults.manage', 'as' => 'hrd.screening.defaults.create']);
     $routes->post('pertanyaan-screening/default/(:num)', 'ScreeningQuestionController::updateDefault/$1', ['filter' => 'permission:screening.defaults.manage', 'as' => 'hrd.screening.defaults.update']);

@@ -228,6 +228,15 @@ class VacancyManagementController extends BaseController
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
         $questions = $vacancy === null ? [] : db_connect()->table('vacancy_screening_questions')->where('vacancy_id', $vacancy['id'])->orderBy('display_order', 'ASC')->get()->getResultArray();
+        $processTemplates = db_connect()->table('recruitment_process_templates')->where('is_active', 1)->orderBy('name', 'ASC')->get()->getResultArray();
+        $currentTemplateId = (int) ($vacancy['recruitment_process_template_id'] ?? 0);
+        if ($currentTemplateId > 0 && ! in_array($currentTemplateId, array_map('intval', array_column($processTemplates, 'id')), true)) {
+            $currentTemplate = db_connect()->table('recruitment_process_templates')->where('id', $currentTemplateId)->get()->getRowArray();
+            if ($currentTemplate !== null) {
+                $currentTemplate['name'] .= ' (Nonaktif)';
+                $processTemplates[] = $currentTemplate;
+            }
+        }
 
         return view('admin/vacancy_form', [
             'auth' => $auth,
@@ -235,6 +244,7 @@ class VacancyManagementController extends BaseController
             'questions' => $questions,
             'departments' => $this->departments(),
             'requirementGroups' => db_connect()->table('requirement_groups')->where('is_active', 1)->orderBy('name', 'ASC')->get()->getResultArray(),
+            'processTemplates' => $processTemplates,
             'canPublish' => Services::authorization()->can($userId, 'vacancies.publish'),
             'canDelete' => Services::authorization()->can($userId, 'vacancies.delete'),
             'canViewDepartments' => Services::authorization()->can($userId, 'departments.view'),
@@ -253,6 +263,7 @@ class VacancyManagementController extends BaseController
         $title = trim((string) $this->request->getPost('title'));
         $departmentId = (int) $this->request->getPost('department_id');
         $groupId = (int) $this->request->getPost('requirement_group_id');
+        $processTemplateId = (int) $this->request->getPost('recruitment_process_template_id');
         $minimumAge = trim((string) $this->request->getPost('minimum_age'));
         $maximumAge = trim((string) $this->request->getPost('maximum_age'));
         $headcount = (int) $this->request->getPost('headcount');
@@ -268,8 +279,8 @@ class VacancyManagementController extends BaseController
         if ($duplicate->countAllResults() > 0) {
             return $this->formInputError($existing, 'Kode lowongan sudah digunakan.');
         }
-        if (! $this->referenceExists('departments', $departmentId) || ! $this->referenceExists('requirement_groups', $groupId)) {
-            return $this->formInputError($existing, 'Departemen atau kelompok persyaratan tidak valid.');
+        if (! $this->referenceExists('departments', $departmentId) || ! $this->referenceExists('requirement_groups', $groupId) || ! $this->activeProcessTemplateExists($processTemplateId, $existing)) {
+            return $this->formInputError($existing, 'Departemen, kelompok persyaratan, atau template tahapan tidak valid.');
         }
         $minAge = $minimumAge === '' ? null : (int) $minimumAge;
         $maxAge = $maximumAge === '' ? null : (int) $maximumAge;
@@ -295,7 +306,7 @@ class VacancyManagementController extends BaseController
             'job_description' => $this->nullableText('job_description', 10000),
             'responsibilities' => $this->nullableText('responsibilities', 10000),
             'qualifications' => $this->nullableText('qualifications', 10000),
-            'department_id' => $departmentId, 'requirement_group_id' => $groupId,
+            'department_id' => $departmentId, 'requirement_group_id' => $groupId, 'recruitment_process_template_id' => $processTemplateId,
             'location' => $this->nullableText('location', 100), 'employment_type' => $this->nullableText('employment_type', 50),
             'minimum_education' => $this->nullableText('minimum_education', 50), 'minimum_age' => $minAge, 'maximum_age' => $maxAge,
             'headcount' => $headcount, 'salary_min' => $salaryMin === null ? null : $salaryMin, 'salary_max' => $salaryMax === null ? null : $salaryMax,
@@ -348,6 +359,15 @@ class VacancyManagementController extends BaseController
     private function findVacancy(int $id): ?array { return db_connect()->table('vacancies')->where('id', $id)->where('deleted_at', null)->get()->getRowArray(); }
     private function referenceExists(string $table, int $id): bool { return $id > 0 && db_connect()->table($table)->where('id', $id)->where('is_active', 1)->countAllResults() > 0; }
     private function questionBelongsToVacancy(int $vacancyId, int $questionId): bool { return db_connect()->table('vacancy_screening_questions')->where('id', $questionId)->where('vacancy_id', $vacancyId)->countAllResults() > 0; }
+
+    private function activeProcessTemplateExists(int $id, ?array $existing): bool
+    {
+        $builder = db_connect()->table('recruitment_process_templates')->where('id', $id);
+        if ($existing === null || (int) ($existing['recruitment_process_template_id'] ?? 0) !== $id) {
+            $builder->where('is_active', 1);
+        }
+        return $builder->countAllResults() > 0;
+    }
     private function currentUserId(): int { $auth = session()->get('hrd_auth'); return is_array($auth) ? (int) ($auth['user_id'] ?? 0) : 0; }
     private function nullableText(string $field, int $limit): ?string { $value = mb_substr(trim((string) $this->request->getPost($field)), 0, $limit); return $value === '' ? null : $value; }
     private function nullableNumber(mixed $value): float|false|null { $value = trim((string) $value); if ($value === '') { return null; } return is_numeric($value) && (float) $value >= 0 ? (float) $value : false; }
