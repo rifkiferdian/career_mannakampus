@@ -13,6 +13,7 @@ class ApplicantReportController extends BaseController
 {
     /** Status sistem ini hanya untuk label data, bukan pilihan filter tahapan. */
     private const SYSTEM_STATUS_LABELS = [
+        'lamaran_baru' => 'Lamaran Baru',
         'submitted' => 'Lamaran diterima',
         'screening_passed' => 'Lolos screening',
         'screening_failed' => 'Tidak lolos screening',

@@ -212,6 +212,7 @@ class DashboardController extends BaseController
     private function pipeline(array $applications, array $stages): array
     {
         $rows = [
+            ['label' => 'Lamaran Baru', 'value' => 0, 'color' => '#64748B', 'codes' => ['lamaran_baru']],
             ['label' => 'Lolos screening', 'value' => 0, 'color' => '#64748B', 'codes' => ['screening_passed']],
             ['label' => 'Tidak lolos screening', 'value' => 0, 'color' => '#DC2626', 'codes' => ['screening_failed']],
         ];
@@ -310,6 +311,12 @@ class DashboardController extends BaseController
     /** @param list<array<string, mixed>> $stages */
     private function statusLabel(string $status, array $stages): string
     {
+        if ($status === 'lamaran_baru') {
+            return 'Lamaran Baru';
+        }
+        if ($status === 'document_screening') {
+            return 'Sedang Screening';
+        }
         if ($status === 'screening_passed') {
             return 'Lolos screening';
         }
@@ -334,7 +341,13 @@ class DashboardController extends BaseController
             }
         }
 
-        return $status === 'screening_failed' ? '#DC2626' : '#64748B';
+        if ($status === 'screening_failed') {
+            return '#DC2626';
+        }
+        if ($status === 'screening_passed') {
+            return '#16A34A';
+        }
+        return '#64748B';
     }
 
     private function validDate(string $value): string

@@ -45,6 +45,7 @@ class CandidateController extends BaseController
         $stages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
         $templateStages = $this->templateStages();
         $statusOptions = [
+            'lamaran_baru' => 'Lamaran Baru',
             'screening_passed' => 'Lolos screening',
             'screening_failed' => 'Tidak lolos screening',
         ];
@@ -144,7 +145,13 @@ class CandidateController extends BaseController
 
         $notes = mb_substr(trim((string) $this->request->getPost('notes')), 0, 2000);
         $publicMessage = 'Lamaran Anda saat ini berada pada tahap ' . $stage['name'] . '.';
-        if ($newStage === 'rejected') {
+        if ($newStage === 'document_screening') {
+            $publicMessage = 'Lamaran Anda sedang diperiksa oleh tim HRD.';
+        } elseif ($newStage === 'screening_passed') {
+            $publicMessage = 'Lamaran Anda dinyatakan lolos screening oleh tim HRD.';
+        } elseif ($newStage === 'screening_failed') {
+            $publicMessage = 'Terima kasih atas minat Anda. Setelah pemeriksaan oleh tim HRD, lamaran belum dapat dilanjutkan.';
+        } elseif ($newStage === 'rejected') {
             $templateId = (int) $this->request->getPost('rejection_template_id');
             $template = $database->table('rejection_reason_templates')->where('id', $templateId)->where('is_active', 1)->get()->getRowArray();
             if ($template === null) {
@@ -160,6 +167,8 @@ class CandidateController extends BaseController
         $database->transStart();
         $database->table('applications')->where('id', $applicationId)->update([
             'application_status' => $newStage,
+            'screening_status' => $newStage === 'screening_passed' ? 'passed' : ($newStage === 'screening_failed' ? 'failed' : (string) $application['screening_status']),
+            'screening_notes' => in_array($newStage, ['screening_passed', 'screening_failed'], true) ? ($notes !== '' ? $notes : 'Screening diputuskan secara manual oleh HRD.') : $application['screening_notes'],
             'public_message' => mb_substr($publicMessage, 0, 500),
             'reviewed_at' => $now,
             'reviewed_by' => $userId,
@@ -220,10 +229,36 @@ class CandidateController extends BaseController
      */
     private function nextStages(int $templateId, string $currentStatus, array $templateStages, array $allStages): array
     {
-        if (in_array($currentStatus, ['accepted', 'hired', 'rejected', 'withdrawn'], true)) {
+        if (in_array($currentStatus, ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'], true)) {
             return [];
         }
         $sequence = $templateStages[$templateId] ?? [];
+
+        if ($currentStatus === 'lamaran_baru') {
+            foreach ($sequence as $stage) {
+                if ((string) $stage['code'] === 'document_screening') {
+                    $stage['name'] = 'Mulai Screening';
+                    return [$stage];
+                }
+            }
+        }
+
+        if ($currentStatus === 'document_screening') {
+            return [
+                $this->manualScreeningStage('screening_passed', 'Lolos Screening', '#16A34A'),
+                $this->manualScreeningStage('screening_failed', 'Tidak Lolos Screening', '#DC2626', true),
+            ];
+        }
+
+        if ($currentStatus === 'screening_passed') {
+            foreach ($sequence as $index => $stage) {
+                if ((string) $stage['code'] === 'document_screening') {
+                    $available = isset($sequence[$index + 1]) ? [$sequence[$index + 1]] : [];
+                    return $this->withRejectedStage($available, $allStages);
+                }
+            }
+        }
+
         $currentIndex = null;
         foreach ($sequence as $index => $stage) {
             if ((string) $stage['code'] === $currentStatus || in_array($currentStatus, self::STATUS_ALIASES[(string) $stage['code']] ?? [], true)) {
@@ -236,6 +271,18 @@ class CandidateController extends BaseController
         if (isset($sequence[$nextIndex])) {
             $available[] = $sequence[$nextIndex];
         }
+        return $this->withRejectedStage($available, $allStages);
+    }
+
+    /** @return array<string, mixed> */
+    private function manualScreeningStage(string $code, string $name, string $color, bool $terminal = false): array
+    {
+        return ['id' => 0, 'code' => $code, 'name' => $name, 'color_hex' => $color, 'sla_days' => 0, 'is_terminal' => $terminal ? 1 : 0];
+    }
+
+    /** @param list<array<string, mixed>> $available @param list<array<string, mixed>> $allStages @return list<array<string, mixed>> */
+    private function withRejectedStage(array $available, array $allStages): array
+    {
         foreach ($allStages as $stage) {
             if ((string) $stage['code'] === 'rejected') {
                 $available[] = $stage;
@@ -284,6 +331,12 @@ class CandidateController extends BaseController
     /** @param list<array<string, mixed>> $stages */
     private function statusLabel(string $status, array $stages): string
     {
+        if ($status === 'lamaran_baru') {
+            return 'Lamaran Baru';
+        }
+        if ($status === 'document_screening') {
+            return 'Sedang Screening';
+        }
         if ($status === 'screening_passed') {
             return 'Lolos screening';
         }
@@ -308,7 +361,13 @@ class CandidateController extends BaseController
             }
         }
 
-        return $status === 'screening_failed' ? '#DC2626' : '#64748B';
+        if ($status === 'screening_failed') {
+            return '#DC2626';
+        }
+        if ($status === 'screening_passed') {
+            return '#16A34A';
+        }
+        return '#64748B';
     }
 
     private function candidateError(string $message, int $teamId = 0): RedirectResponse

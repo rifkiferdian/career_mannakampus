@@ -173,14 +173,11 @@ class ApplicationSubmissionService
 
             $applicationResults = [];
             foreach ($vacancies as $vacancy) {
-                $screening = $this->evaluateScreening(
+                $screeningAnswers = $this->screeningAnswers(
                     $vacancy['screening_questions'],
                     (array) ($input['screening'] ?? []),
                 );
                 $applicationNumber = 'MK-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
-                $publicMessage = $screening['passed']
-                    ? 'Lolos screening awal.'
-                    : 'Belum memenuhi screening awal.';
 
                 $applicationId = (int) $this->applicationModel->insert([
                     'uuid'                 => $this->uuid(),
@@ -195,30 +192,40 @@ class ApplicationSubmissionService
                     'skills'               => trim((string) $input['skills']),
                     'work_motivation'      => trim((string) $input['work_motivation']),
                     'career_goal'          => trim((string) $input['career_goal']),
-                    'screening_status'     => $screening['passed'] ? 'passed' : 'failed',
-                    'screening_score'      => $screening['score'],
-                    'screening_notes'      => $screening['notes'],
-                    'public_message'       => $publicMessage,
-                    'application_status'   => $screening['passed'] ? 'screening_passed' : 'screening_failed',
+                    'screening_status'     => 'pending',
+                    'screening_score'      => null,
+                    'screening_notes'      => null,
+                    'public_message'       => 'Lamaran Anda telah diterima dan menunggu pemeriksaan oleh tim HRD.',
+                    'application_status'   => 'lamaran_baru',
                     'submitted_at'         => $now,
                     'submitted_ip'         => $ipAddress,
                     'submitted_user_agent' => mb_substr($userAgent, 0, 500),
                 ], true);
 
-                foreach ($screening['answers'] as $answer) {
+                foreach ($screeningAnswers as $answer) {
                     $this->answerModel->insert([
                         'application_id' => $applicationId,
                         'question_id'    => $answer['question_id'],
                         'answer_value'   => $answer['answer_value'],
-                        'is_eligible'    => $answer['is_eligible'],
-                        'score'          => $answer['score'],
+                        'is_eligible'    => null,
+                        'score'          => null,
                     ]);
                 }
+
+                $this->database->table('application_status_histories')->insert([
+                    'application_id'  => $applicationId,
+                    'status_type'     => 'application',
+                    'previous_status' => null,
+                    'new_status'      => 'lamaran_baru',
+                    'notes'           => 'Lamaran baru diterima dan menunggu screening manual oleh HRD.',
+                    'changed_by'      => null,
+                    'created_at'      => $now,
+                ]);
 
                 $applicationResults[] = [
                     'title'              => (string) $vacancy['title'],
                     'application_number' => $applicationNumber,
-                    'screening_status'   => $screening['passed'] ? 'passed' : 'failed',
+                    'screening_status'   => 'pending',
                     'preference_order'   => (int) $vacancy['preference_order'],
                 ];
             }
@@ -229,15 +236,10 @@ class ApplicationSubmissionService
 
             $this->database->transCommit();
 
-            $passedCount = count(array_filter(
-                $applicationResults,
-                static fn (array $result): bool => $result['screening_status'] === 'passed',
-            ));
-
             return [
                 'batch_number'     => $batchNumber,
-                'screening_status' => $passedCount > 0 ? 'passed' : 'failed',
-                'public_message'   => "{$passedCount} dari " . count($applicationResults) . ' posisi lolos screening awal.',
+                'screening_status' => 'pending',
+                'public_message'   => 'Lamaran berhasil dikirim dan menunggu pemeriksaan oleh tim HRD.',
                 'applications'     => $applicationResults,
             ];
         } catch (Throwable $exception) {
@@ -257,73 +259,20 @@ class ApplicationSubmissionService
      * @param list<array<string, mixed>> $questions
      * @param array<string, mixed> $submittedAnswers
      *
-     * @return array{passed: bool, score: float, notes: string, answers: list<array<string, mixed>>}
+     * @return list<array{question_id: int, answer_value: string}>
      */
-    private function evaluateScreening(array $questions, array $submittedAnswers): array
+    private function screeningAnswers(array $questions, array $submittedAnswers): array
     {
         $answers = [];
-        $failedKnockout = [];
-        $eligibleCount = 0;
 
         foreach ($questions as $question) {
-            $answer = trim((string) ($submittedAnswers[(string) $question['id']] ?? ''));
-            $eligible = $this->answerMatches(
-                $answer,
-                (string) ($question['expected_value'] ?? ''),
-                (string) ($question['comparison_operator'] ?? ''),
-            );
-
-            if ($eligible) {
-                $eligibleCount++;
-            } elseif ((int) $question['is_knockout'] === 1) {
-                $failedKnockout[] = (string) $question['question_code'];
-            }
-
             $answers[] = [
                 'question_id' => (int) $question['id'],
-                'answer_value'=> $answer,
-                'is_eligible' => $eligible ? 1 : 0,
-                'score'       => $eligible ? 100 : 0,
+                'answer_value'=> trim((string) ($submittedAnswers[(string) $question['id']] ?? '')),
             ];
         }
 
-        $score = $questions === [] ? 100.0 : round(($eligibleCount / count($questions)) * 100, 2);
-
-        return [
-            'passed'  => $failedKnockout === [],
-            'score'   => $score,
-            'notes'   => $failedKnockout === [] ? 'Semua kriteria knockout terpenuhi.' : 'Tidak memenuhi: ' . implode(', ', $failedKnockout),
-            'answers' => $answers,
-        ];
-    }
-
-    private function answerMatches(string $answer, string $expected, string $operator): bool
-    {
-        if ($expected === '' || $operator === '') {
-            return true;
-        }
-
-        if ($operator === 'equals') {
-            return mb_strtoupper($answer) === mb_strtoupper($expected);
-        }
-
-        if ($operator === 'between') {
-            [$minimum, $maximum] = array_map('intval', explode('-', $expected, 2));
-            return is_numeric($answer) && (float) $answer >= $minimum && (float) $answer <= $maximum;
-        }
-
-        if ($operator === 'greater_than_or_equal') {
-            return is_numeric($answer) && (float) $answer >= (float) $expected;
-        }
-
-        if ($operator === 'minimum_education') {
-            $rank = ['SMP' => 1, 'SMA' => 2, 'SMK' => 2, 'SMA/SMK' => 2, 'D1' => 3, 'D3' => 4, 'S1' => 5, 'S2' => 6];
-            $expectedLevels = preg_split('/\//', mb_strtoupper($expected)) ?: [];
-            $minimumRank = min(array_map(static fn (string $level): int => $rank[$level] ?? 99, $expectedLevels));
-            return ($rank[mb_strtoupper($answer)] ?? 0) >= $minimumRank;
-        }
-
-        return true;
+        return $answers;
     }
 
     /**

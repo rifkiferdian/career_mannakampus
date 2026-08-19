@@ -31,7 +31,7 @@ class ApplicationStatusPresenterTest extends CIUnitTestCase
 
         $this->assertSame('Budi S******', $result['applicant_name']);
         $this->assertSame('bu**********@example.test', $result['applicant_email']);
-        $this->assertSame('Lolos screening awal', $result['applications'][0]['status_label']);
+        $this->assertSame('Lolos Screening', $result['applications'][0]['status_label']);
         $this->assertArrayNotHasKey('screening_score', $result['applications'][0]);
         $this->assertArrayNotHasKey('screening_notes', $result['applications'][0]);
     }
@@ -54,6 +54,27 @@ class ApplicationStatusPresenterTest extends CIUnitTestCase
         ]]);
 
         $this->assertSame('Lamaran diterima', $result['applications'][0]['status_label']);
+        $this->assertSame('neutral', $result['applications'][0]['status_tone']);
+    }
+
+    public function testItPresentsNewApplicationAsWaitingForManualScreening(): void
+    {
+        $presenter = new ApplicationStatusPresenter();
+        $result = $presenter->present([
+            'batch_number' => 'MKB-002',
+            'submitted_at' => '2026-08-19 10:00:00',
+            'applicant_snapshot' => '{}',
+        ], [[
+            'application_number' => 'MK-002',
+            'preference_order' => 1,
+            'vacancy_title' => 'Programmer',
+            'department_name' => 'Information Technology',
+            'application_status' => 'lamaran_baru',
+            'public_message' => 'Lamaran Anda telah diterima.',
+            'updated_at' => '2026-08-19 10:00:00',
+        ]]);
+
+        $this->assertSame('Lamaran Baru', $result['applications'][0]['status_label']);
         $this->assertSame('neutral', $result['applications'][0]['status_tone']);
     }
 }

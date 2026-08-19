@@ -59,13 +59,23 @@ class ApplicationStatusPresenter
     private function status(string $status): array
     {
         return match ($status) {
+            'lamaran_baru' => [
+                'Lamaran Baru',
+                'Data lamaran sudah tersimpan dan menunggu screening manual oleh tim HRD.',
+                'neutral',
+            ],
+            'document_screening' => [
+                'Sedang Screening',
+                'Tim HRD sedang memeriksa profil, dokumen, dan jawaban screening Anda.',
+                'progress',
+            ],
             'screening_passed' => [
-                'Lolos screening awal',
-                'Lamaran memenuhi kriteria awal dan akan diproses oleh tim rekrutmen.',
+                'Lolos Screening',
+                'Lamaran telah dinyatakan lolos screening oleh tim HRD.',
                 'success',
             ],
             'screening_failed' => [
-                'Belum lolos screening awal',
+                'Tidak Lolos Screening',
                 'Lamaran belum dapat dilanjutkan untuk posisi ini.',
                 'danger',
             ],
