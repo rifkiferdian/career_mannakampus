@@ -228,6 +228,12 @@ class VacancyManagementController extends BaseController
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
         $questions = $vacancy === null ? [] : db_connect()->table('vacancy_screening_questions')->where('vacancy_id', $vacancy['id'])->orderBy('display_order', 'ASC')->get()->getResultArray();
+        $vacancyPeriods = $vacancy === null ? [] : db_connect()->table('vacancy_recruitment_periods')
+            ->where('vacancy_id', $vacancy['id'])
+            ->where('deleted_at', null)
+            ->orderBy('created_at', 'DESC')
+            ->get()
+            ->getResultArray();
         $processTemplates = db_connect()->table('recruitment_process_templates')->where('is_active', 1)->orderBy('name', 'ASC')->get()->getResultArray();
         $currentTemplateId = (int) ($vacancy['recruitment_process_template_id'] ?? 0);
         if ($currentTemplateId > 0 && ! in_array($currentTemplateId, array_map('intval', array_column($processTemplates, 'id')), true)) {
@@ -242,6 +248,7 @@ class VacancyManagementController extends BaseController
             'auth' => $auth,
             'vacancy' => $vacancy,
             'questions' => $questions,
+            'vacancyPeriods' => $vacancyPeriods,
             'departments' => $this->departments(),
             'requirementGroups' => db_connect()->table('requirement_groups')->where('is_active', 1)->orderBy('name', 'ASC')->get()->getResultArray(),
             'processTemplates' => $processTemplates,

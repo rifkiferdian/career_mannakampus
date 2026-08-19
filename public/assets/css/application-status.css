@@ -1,9 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --status-orange: #b64a00;
-    --status-orange-dark: #8d3900;
-    --status-orange-soft: #fff4ec;
+    --orange: #f87638;
+    --orange-dark: #d9561d;
+    --orange-soft: #fff3ed;
+    --status-orange: #f87638;
+    --status-orange-dark: #d9561d;
+    --status-orange-soft: #fff3ed;
     --status-green: #17603f;
     --status-green-soft: #e8f5ed;
     --status-red: #9b351f;
@@ -23,7 +26,7 @@
     overflow: hidden;
     padding: 86px 0 92px;
     background:
-        radial-gradient(circle at 13% 15%, rgba(213, 100, 26, .12), transparent 25rem),
+        radial-gradient(circle at 13% 15%, rgba(248, 118, 56, .12), transparent 25rem),
         linear-gradient(135deg, #f7faf8 0%, #eef4f1 100%);
 }
 
@@ -130,7 +133,7 @@
 .status-form-card {
     padding: 38px;
     background: #fff;
-    border: 1px solid #ead4c5;
+    border: 1px solid #f3d4c4;
     border-radius: 18px;
     box-shadow: 0 28px 80px rgba(27, 52, 43, .12);
 }
@@ -183,7 +186,7 @@
     padding: 12px 14px;
     color: var(--status-ink);
     background: #fff;
-    border: 1px solid #d9bba8;
+    border: 1px solid #efc5ae;
     border-radius: 8px;
     outline: 0;
     font-size: 13px;
@@ -192,7 +195,7 @@
 
 .status-field input:focus {
     border-color: var(--status-orange);
-    box-shadow: 0 0 0 4px rgba(182, 74, 0, .1);
+    box-shadow: 0 0 0 4px rgba(248, 118, 56, .1);
 }
 
 .status-field input[aria-invalid="true"] {
@@ -232,7 +235,7 @@
     background: var(--status-orange);
     border: 1px solid var(--status-orange);
     border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(182, 74, 0, .22);
+    box-shadow: 0 10px 24px rgba(248, 118, 56, .22);
     font-size: 12px;
     font-weight: 800;
     cursor: pointer;
@@ -241,12 +244,12 @@
 
 .status-submit:hover {
     background: var(--status-orange-dark);
-    box-shadow: 0 12px 28px rgba(141, 57, 0, .26);
+    box-shadow: 0 12px 28px rgba(217, 86, 29, .26);
     transform: translateY(-1px);
 }
 
 .status-submit:focus-visible {
-    outline: 3px solid rgba(182, 74, 0, .25);
+    outline: 3px solid rgba(248, 118, 56, .25);
     outline-offset: 3px;
 }
 

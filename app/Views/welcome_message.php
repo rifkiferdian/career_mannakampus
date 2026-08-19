@@ -12,26 +12,7 @@
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 
-    <header class="site-header" id="homepage">
-        <div class="container nav-wrap">
-            <a class="brand header-brand" href="#homepage" aria-label="Manna Kampus - kembali ke beranda">
-                <img class="header-logo" src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
-            </a>
-
-            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
-                <span class="sr-only">Buka menu</span>
-                <span></span><span></span><span></span>
-            </button>
-
-            <nav class="primary-nav" id="primary-nav" aria-label="Navigasi utama">
-                <a class="active" href="#homepage">Homepage</a>
-                <a href="<?= site_url('lowongan') ?>">Lowongan</a>
-                <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
-                <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
-                <a href="#faq">FAQ</a>
-            </nav>
-        </div>
-    </header>
+    <?= view('partials/public_header', ['activeMenu' => 'homepage']) ?>
 
     <main id="main-content">
         <section class="hero" aria-labelledby="hero-title">

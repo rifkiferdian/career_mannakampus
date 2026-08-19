@@ -9,31 +9,12 @@
     <title>Cek Status Lamaran | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=3">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=4">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 
-    <header class="site-header">
-        <div class="container nav-wrap">
-            <a class="brand header-brand" href="<?= base_url() ?>#homepage" aria-label="Manna Kampus - kembali ke beranda">
-                <img class="header-logo" src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
-            </a>
-
-            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
-                <span class="sr-only">Buka menu</span>
-                <span></span><span></span><span></span>
-            </button>
-
-            <nav class="primary-nav" id="primary-nav" aria-label="Navigasi utama">
-                <a href="<?= base_url() ?>#homepage">Homepage</a>
-                <a href="<?= site_url('lowongan') ?>">Lowongan</a>
-                <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
-                <a class="active" href="<?= site_url('lamaran/status') ?>" aria-current="page">Cek Status</a>
-                <a href="<?= base_url() ?>#faq">FAQ</a>
-            </nav>
-        </div>
-    </header>
+    <?= view('partials/public_header', ['activeMenu' => 'status']) ?>
 
     <main id="main-content" class="status-page">
         <section class="status-hero" aria-labelledby="status-title">

@@ -12,26 +12,7 @@
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 
-    <header class="site-header">
-        <div class="container nav-wrap">
-            <a class="brand header-brand" href="<?= base_url() ?>#homepage" aria-label="Manna Kampus - kembali ke beranda">
-                <img class="header-logo" src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
-            </a>
-
-            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
-                <span class="sr-only">Buka menu</span>
-                <span></span><span></span><span></span>
-            </button>
-
-            <nav class="primary-nav" id="primary-nav" aria-label="Navigasi utama">
-                <a href="<?= base_url() ?>#homepage">Homepage</a>
-                <a href="<?= base_url() ?>#lowongan">Lowongan</a>
-                <a class="active" href="<?= site_url('tahapan-seleksi') ?>" aria-current="page">Tahapan Seleksi</a>
-                <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
-                <a href="<?= base_url() ?>#faq">FAQ</a>
-            </nav>
-        </div>
-    </header>
+    <?= view('partials/public_header', ['activeMenu' => 'selection']) ?>
 
     <main id="main-content" class="selection-page">
         <section class="selection-hero" aria-labelledby="selection-title">
@@ -137,7 +118,7 @@
                     <h2>Sudah siap bergabung?</h2>
                     <p>Temukan posisi yang sesuai dengan kemampuan dan aspirasimu.</p>
                 </div>
-                <a class="button button-primary" href="<?= base_url() ?>#lowongan">Lihat Lowongan <span aria-hidden="true">→</span></a>
+                <a class="button button-primary" href="<?= site_url('lowongan') ?>">Lihat Lowongan <span aria-hidden="true">→</span></a>
             </div>
         </section>
     </main>
@@ -152,7 +133,7 @@
         </div>
         <div class="container footer-bottom">
             <span>© <?= date('Y') ?> Manna Kampus. All rights reserved.</span>
-            <div><a href="<?= base_url() ?>#lowongan">Karier</a><a href="<?= base_url() ?>#faq">FAQ</a></div>
+            <div><a href="<?= site_url('lowongan') ?>">Karier</a><a href="<?= base_url() ?>#faq">FAQ</a></div>
         </div>
     </footer>
 
