@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Cek Status Lamaran | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=22">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
     <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=3">
 </head>
 <body>
@@ -189,8 +189,7 @@
     <footer class="site-footer">
         <div class="container footer-top">
             <a class="brand brand-light" href="<?= base_url() ?>#homepage">
-                <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 42"><path d="M9 30V13l12 9 12-9v17"/><path d="M9 13l12 17 12-17"/></svg></span>
-                <span>Manna <strong>Kampus</strong></span>
+                <img class="footer-logo" src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
             </a>
             <p>Ruang untuk belajar, bertumbuh, dan memberi dampak.</p>
             <a class="back-top" href="#main-content">Kembali ke atas &uarr;</a>

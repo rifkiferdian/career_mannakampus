@@ -197,8 +197,8 @@ h1 em { color: var(--orange); font-style: normal; }
 .selection-hero-content > p { max-width: 650px; margin: 0 auto; color: #6e5547; font-size: 13px; line-height: 1.65; }
 .selection-process { padding: 54px 0 100px; color: var(--ink); background: white; }
 .selection-process::before { display: none; }
-.selection-timeline { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); margin: 0 0 72px; padding: 0; list-style: none; }
-.selection-timeline::before { content: ''; position: absolute; z-index: 0; top: 17px; left: 5%; right: 5%; height: 2px; background: #e6e6e6; }
+.selection-timeline { position: relative; width: min(100%, 980px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0 auto 72px; padding: 0; list-style: none; }
+.selection-timeline::before { content: ''; position: absolute; z-index: 0; top: 17px; left: 10%; right: 10%; height: 2px; background: #e6e6e6; }
 .selection-timeline li { position: relative; z-index: 1; display: grid; justify-items: center; gap: 15px; text-align: center; }
 .selection-timeline li > span { width: 35px; height: 35px; display: grid; place-items: center; color: #4f4e4c; background: #ededed; border: 1px solid #e3e3e3; border-radius: 10px; font-size: 12px; font-weight: 800; box-shadow: 0 3px 7px rgba(32,37,34,.06); }
 .selection-timeline li > strong { color: #5f544d; font-size: 12px; font-weight: 600; }
@@ -334,6 +334,7 @@ h1 em { color: var(--orange); font-style: normal; }
 .footer-top { min-height: 140px; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; border-bottom: 1px solid rgba(255,255,255,.12); }
 .brand-light { color: white; }
 .brand-light .brand-mark { color: var(--green-950); background: white; }
+.footer-logo { display: block; width: 205px; height: auto; padding: 8px 12px; background: white; border-radius: 8px; }
 .footer-top p { color: rgba(255,255,255,.55); font-size: 12px; text-align: center; }
 .back-top { justify-self: end; color: rgba(255,255,255,.72); font-size: 12px; font-weight: 600; text-decoration: none; }
 .footer-bottom { min-height: 74px; display: flex; align-items: center; justify-content: space-between; color: rgba(255,255,255,.38); font-size: 10px; }

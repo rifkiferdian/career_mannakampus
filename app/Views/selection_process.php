@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Tahapan Seleksi | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=22">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -44,15 +44,14 @@
 
         <section class="section process-section selection-process" id="tahapan-seleksi" aria-labelledby="process-title">
             <div class="container">
-                <h2 class="sr-only" id="process-title">Enam tahapan seleksi karir Manna Kampus</h2>
+                <h2 class="sr-only" id="process-title">Lima tahapan seleksi karir Manna Kampus</h2>
 
                 <ol class="selection-timeline reveal" aria-label="Alur tahapan seleksi">
                     <li class="active"><span>1</span><strong>Administrasi</strong></li>
                     <li><span>2</span><strong>Tes Tertulis</strong></li>
                     <li><span>3</span><strong>Interview HR</strong></li>
                     <li><span>4</span><strong>Interview User</strong></li>
-                    <li><span>5</span><strong>Medical Check-up</strong></li>
-                    <li><span>6</span><strong>Onboarding</strong></li>
+                    <li><span>5</span><strong>Onboarding</strong></li>
                 </ol>
 
                 <div class="selection-cards">
@@ -90,15 +89,6 @@
                         </div>
                         <p>Wawancara teknis bersama calon atasan atau panel ahli untuk menilai kompetensi spesifik pada peran tersebut.</p>
                         <ul><li>Siapkan studi kasus atau contoh kerja</li><li>Tanyakan detail operasional peran</li></ul>
-                    </article>
-
-                    <article class="selection-card reveal">
-                        <div class="selection-card-heading">
-                            <span class="selection-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.7 2.8 8.2 7 10 4.2-1.8 7-5.3 7-10V6l-7-3Z"/><path d="M12 8v6M9 11h6"/></svg></span>
-                            <h3>Medical Check-up</h3>
-                        </div>
-                        <p>Verifikasi kondisi kesehatan untuk memastikan Anda siap menjalankan tugas dengan optimal dan aman.</p>
-                        <ul><li>Istirahat cukup sebelum pemeriksaan</li><li>Ikuti instruksi puasa jika diminta</li></ul>
                     </article>
 
                     <article class="selection-card reveal">
@@ -155,8 +145,7 @@
     <footer class="site-footer">
         <div class="container footer-top">
             <a class="brand brand-light" href="<?= base_url() ?>#homepage">
-                <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 42"><path d="M9 30V13l12 9 12-9v17"/><path d="M9 13l12 17 12-17"/></svg></span>
-                <span>Manna <strong>Kampus</strong></span>
+                <img class="footer-logo" src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
             </a>
             <p>Ruang untuk belajar, bertumbuh, dan memberi dampak.</p>
             <a class="back-top" href="#main-content">Kembali ke atas ↑</a>

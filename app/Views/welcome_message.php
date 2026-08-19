@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12372a">
     <title>Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=22">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -25,7 +25,7 @@
 
             <nav class="primary-nav" id="primary-nav" aria-label="Navigasi utama">
                 <a class="active" href="#homepage">Homepage</a>
-                <a href="#lowongan">Lowongan</a>
+                <a href="<?= site_url('lowongan') ?>">Lowongan</a>
                 <a href="<?= site_url('tahapan-seleksi') ?>">Tahapan Seleksi</a>
                 <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
                 <a href="#faq">FAQ</a>
@@ -41,7 +41,7 @@
                     <h1 id="hero-title">Temukan Karier Terbaik<br>Bersama <em>Manna Kampus</em></h1>
                     <p>Bergabunglah dengan ekosistem retail modern yang dinamis. Kami mencari talenta berbakat untuk memberikan pengalaman berbelanja terbaik bagi masyarakat.</p>
                     <div class="hero-actions">
-                        <a class="button button-primary" href="#lowongan">Lihat Lowongan</a>
+                        <a class="button button-primary" href="<?= site_url('lowongan') ?>">Lihat Lowongan</a>
                         <a class="button hero-status-button" href="<?= site_url('lamaran/status') ?>">Cek Status Lamaran</a>
                     </div>
 
@@ -201,7 +201,7 @@
                     <span class="eyebrow"><span></span> Join Our Team</span>
                     <h2 id="join-title">Siap menulis cerita<br>berikutnya bersama kami?</h2>
                     <p>Kami mencari orang-orang yang punya rasa ingin tahu, semangat bertumbuh, dan keberanian untuk membawa ide baru.</p>
-                    <a class="button button-dark" href="#lowongan">Temukan Peranmu <span aria-hidden="true">→</span></a>
+                    <a class="button button-dark" href="<?= site_url('lowongan') ?>">Temukan Peranmu <span aria-hidden="true">→</span></a>
                 </div>
                 <div class="join-quote">
                     <span class="quote-mark" aria-hidden="true">“</span>
@@ -247,15 +247,14 @@
     <footer class="site-footer">
         <div class="container footer-top">
             <a class="brand brand-light" href="#homepage">
-                <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 42"><path d="M9 30V13l12 9 12-9v17"/><path d="M9 13l12 17 12-17"/></svg></span>
-                <span>Manna <strong>Kampus</strong></span>
+                <img class="footer-logo" src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
             </a>
             <p>Ruang untuk belajar, bertumbuh, dan memberi dampak.</p>
             <a class="back-top" href="#homepage">Kembali ke atas ↑</a>
         </div>
         <div class="container footer-bottom">
             <span>© <?= date('Y') ?> Manna Kampus. All rights reserved.</span>
-            <div><a href="#lowongan">Karier</a><a href="#faq">FAQ</a></div>
+            <div><a href="<?= site_url('lowongan') ?>">Karier</a><a href="#faq">FAQ</a></div>
         </div>
     </footer>
 
