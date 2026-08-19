@@ -79,11 +79,11 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
             </div>
 
             <section class="settings-card candidate-documents-card">
-                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6V4Z"/><path d="M14 4v4h4M9 12h6M9 16h6"/></svg></span><div><h2>Dokumen pelamar</h2><p>CV dan dokumen pendukung dari seluruh batch pendaftaran.</p></div><span class="device-count"><?= count($documents) ?></span></div>
+                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6V4Z"/><path d="M14 4v4h4M9 12h6M9 16h6"/></svg></span><div><h2>Dokumen pelamar</h2><p>Berkas lamaran PDF dari seluruh batch pendaftaran.</p></div><span class="device-count"><?= count($documents) ?></span></div>
                 <div class="candidate-document-list">
                     <?php if ($documents === []): ?><p class="candidate-empty">Belum ada dokumen tersimpan.</p><?php endif ?>
                     <?php foreach ($documents as $document): ?>
-                        <article><span class="candidate-document-icon"><svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6V4Z"/><path d="M14 4v4h4"/></svg></span><div><strong><?= esc($document['original_name']) ?></strong><small><?= $document['document_type'] === 'cv' ? 'Curriculum Vitae' : 'Dokumen pendukung' ?> · <?= esc($document['batch_number']) ?> · <?= esc(number_format(((int) $document['file_size']) / 1024, 1, ',', '.')) ?> KB</small></div><?php if ($canDownloadDocuments): ?><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $applicant['id'] . '/dokumen/' . $document['id']) ?>">Unduh</a><?php else: ?><span class="protected-label">Tanpa akses unduh</span><?php endif ?></article>
+                        <article><span class="candidate-document-icon"><svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6V4Z"/><path d="M14 4v4h4"/></svg></span><div><strong><?= esc($document['original_name']) ?></strong><small><?= $document['document_type'] === 'application_bundle' ? 'Berkas lamaran lengkap' : 'Dokumen lama' ?> · <?= esc($document['batch_number']) ?> · <?= esc(number_format(((int) $document['file_size']) / 1024, 1, ',', '.')) ?> KB</small></div><?php if ($canDownloadDocuments): ?><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $applicant['id'] . '/dokumen/' . $document['id']) ?>">Unduh</a><?php else: ?><span class="protected-label">Tanpa akses unduh</span><?php endif ?></article>
                     <?php endforeach ?>
                 </div>
             </section>
@@ -95,9 +95,6 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                 $screening = (string) ($application['screening_status'] ?: 'pending');
                 $applicationAnswers = $answersByApplication[$applicationId] ?? [];
                 $applicationHistories = $historiesByApplication[$applicationId] ?? [];
-                $portfolioUrl = trim((string) ($application['portfolio_url'] ?? ''));
-                $portfolioScheme = mb_strtolower((string) parse_url($portfolioUrl, PHP_URL_SCHEME));
-                $portfolioUrl = filter_var($portfolioUrl, FILTER_VALIDATE_URL) && in_array($portfolioScheme, ['http', 'https'], true) ? $portfolioUrl : '';
             ?>
                 <section class="settings-card candidate-application-card">
                     <div class="candidate-application-heading">
@@ -113,11 +110,9 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                     <div class="candidate-narrative-grid">
                         <div><span>Pengalaman kerja</span><p><?= nl2br(esc($value($application['work_experience']))) ?></p></div>
                         <div><span>Keahlian</span><p><?= nl2br(esc($value($application['skills']))) ?></p></div>
-                        <div><span>Motivasi kerja</span><p><?= nl2br(esc($value($application['work_motivation']))) ?></p></div>
-                        <div><span>Tujuan karier</span><p><?= nl2br(esc($value($application['career_goal']))) ?></p></div>
+                        <div><span>Motivasi bekerja dan alasan ingin bergabung dengan Manna Kampus</span><p><?= nl2br(esc($value($application['work_motivation']))) ?></p></div>
+                        <div><span>Target/impian yang akan dicapai</span><p><?= nl2br(esc($value($application['career_goal']))) ?></p></div>
                     </div>
-                    <?php if ($portfolioUrl !== ''): ?><div class="candidate-portfolio"><span>Portfolio</span><a href="<?= esc($portfolioUrl, 'attr') ?>" target="_blank" rel="noopener noreferrer"><?= esc($portfolioUrl) ?></a></div><?php endif ?>
-
                     <div class="candidate-application-columns">
                         <div class="candidate-subsection"><div class="candidate-subsection-title"><h4>Jawaban screening</h4><span><?= count($applicationAnswers) ?> jawaban</span></div><div class="department-table-wrap"><table class="department-table candidate-answer-table"><thead><tr><th>Pertanyaan</th><th>Jawaban</th><th>Hasil</th><th>Nilai</th></tr></thead><tbody><?php if ($applicationAnswers === []): ?><tr><td colspan="4" class="department-empty">Tidak ada jawaban screening.</td></tr><?php endif ?><?php foreach ($applicationAnswers as $answer): ?><tr><td><?= esc($answer['question_text']) ?><?= (int) $answer['is_knockout'] === 1 ? '<small>Knockout</small>' : '' ?></td><td><strong><?= esc($answerValue($answer)) ?></strong></td><td><span class="account-status <?= (int) $answer['is_eligible'] === 1 ? 'active' : 'inactive' ?>"><i></i><?= (int) $answer['is_eligible'] === 1 ? 'Sesuai' : 'Tidak sesuai' ?></span></td><td><?= $answer['score'] !== null ? esc(number_format((float) $answer['score'], 2, ',', '.')) : '-' ?></td></tr><?php endforeach ?></tbody></table></div></div>
                         <div class="candidate-subsection"><div class="candidate-subsection-title"><h4>Riwayat status</h4><span><?= count($applicationHistories) ?> aktivitas</span></div><div class="candidate-timeline"><?php if ($applicationHistories === []): ?><p class="candidate-empty">Belum ada perubahan status.</p><?php endif ?><?php foreach ($applicationHistories as $history): ?><article><i></i><div><strong><?= esc($statusLabels[$history['new_status']] ?? ucwords(str_replace('_', ' ', $history['new_status']))) ?></strong><p><?= esc($value($history['notes'])) ?></p><small><?= esc($date($history['created_at'])) ?> · <?= esc($history['changed_by_name'] ?: 'Sistem') ?></small></div></article><?php endforeach ?></div></div>

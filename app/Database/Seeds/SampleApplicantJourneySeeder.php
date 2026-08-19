@@ -125,14 +125,6 @@ class SampleApplicantJourneySeeder extends Seeder
             'major'                      => 'Teknik Informatika',
             'gpa'                        => 3.65,
             'training_experience'        => 'Bootcamp Web Development dan pelatihan UI/UX dasar.',
-            'password_hash'              => null,
-            'email_verified_at'          => null,
-            'failed_login_attempts'      => 0,
-            'locked_until'               => null,
-            'last_login_at'              => null,
-            'last_login_ip'              => null,
-            'remember_token_hash'        => null,
-            'remember_token_expires_at'  => null,
             'privacy_consent_at'         => $now,
             'privacy_policy_version'     => '2026-07',
             'registration_ip'            => '127.0.0.1',
@@ -242,7 +234,7 @@ class SampleApplicantJourneySeeder extends Seeder
     private function insertDocuments(int $applicantId, int $batchId, string $now): void
     {
         $documents = [
-            ['cv', 'examples/sample-cv-budi-santoso.pdf', 'CV Budi Santoso - Data Contoh.pdf'],
+            ['application_bundle', 'examples/sample-cv-budi-santoso.pdf', 'Berkas Lamaran Budi Santoso - Data Contoh.pdf'],
             ['supporting_documents', 'examples/sample-documents-budi-santoso.pdf', 'Dokumen Pendukung Budi Santoso - Data Contoh.pdf'],
         ];
 
@@ -376,9 +368,6 @@ class SampleApplicantJourneySeeder extends Seeder
             'vacancy_id'           => (int) $vacancy['id'],
             'vacancy_period_id'    => (int) $period['id'],
             'preference_order'     => $preferenceOrder,
-            'cv_path'              => null,
-            'document_bundle_path' => null,
-            'portfolio_url'        => 'https://example.test/portfolio-budi',
             'work_experience'      => 'Dua tahun sebagai Junior Web Developer pada perusahaan contoh.',
             'skills'               => 'PHP, CodeIgniter, MySQL, JavaScript, Figma dasar.',
             'work_motivation'      => 'Ingin berkembang dan memberi kontribusi pada transformasi digital retail.',

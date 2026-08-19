@@ -165,20 +165,11 @@ class ApplicationSubmissionService
                 'submitted_user_agent' => mb_substr($userAgent, 0, 500),
             ], true);
 
-            $cv = $files['cv'];
-            $cvMetadata = $this->fileMetadata($cv);
-            $cvPath = $this->storeFile($cv, $batchUuid, 'cv');
-            $storedFiles[] = $cvPath;
-            $this->saveDocument($applicantId, $batchId, 'cv', $cvPath, $cvMetadata, $now);
-            $documentPath = null;
-
-            if (($files['document_bundle'] ?? null)?->isValid()) {
-                $document = $files['document_bundle'];
-                $documentMetadata = $this->fileMetadata($document);
-                $documentPath = $this->storeFile($document, $batchUuid, 'documents');
-                $storedFiles[] = $documentPath;
-                $this->saveDocument($applicantId, $batchId, 'supporting_documents', $documentPath, $documentMetadata, $now);
-            }
+            $applicationBundle = $files['application_bundle'];
+            $bundleMetadata = $this->fileMetadata($applicationBundle);
+            $bundlePath = $this->storeFile($applicationBundle, $batchUuid, 'applications');
+            $storedFiles[] = $bundlePath;
+            $this->saveDocument($applicantId, $batchId, 'application_bundle', $bundlePath, $bundleMetadata, $now);
 
             $applicationResults = [];
             foreach ($vacancies as $vacancy) {
@@ -200,9 +191,6 @@ class ApplicationSubmissionService
                     'vacancy_id'           => (int) $vacancy['id'],
                     'vacancy_period_id'    => (int) $vacancy['vacancy_period_id'],
                     'preference_order'      => (int) $vacancy['preference_order'],
-                    'cv_path'              => null,
-                    'document_bundle_path' => null,
-                    'portfolio_url'        => trim((string) ($input['portfolio_url'] ?? '')) ?: null,
                     'work_experience'      => trim((string) ($input['work_experience'] ?? '')),
                     'skills'               => trim((string) $input['skills']),
                     'work_motivation'      => trim((string) $input['work_motivation']),

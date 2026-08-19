@@ -221,7 +221,7 @@
                 <div class="faq-list reveal">
                     <details open>
                         <summary>Bagaimana cara melamar posisi di Manna Kampus?<span aria-hidden="true"></span></summary>
-                        <p>Pilih posisi yang sesuai pada bagian Lowongan, lalu ikuti petunjuk lamaran yang tersedia. Pastikan CV dan portofoliomu sudah diperbarui.</p>
+                        <p>Pilih posisi yang sesuai pada bagian Lowongan, lalu ikuti petunjuk lamaran yang tersedia. Pastikan seluruh berkas lamaran PDF sudah lengkap dan terbaru.</p>
                     </details>
                     <details>
                         <summary>Berapa lama proses rekrutmen berlangsung?<span aria-hidden="true"></span></summary>

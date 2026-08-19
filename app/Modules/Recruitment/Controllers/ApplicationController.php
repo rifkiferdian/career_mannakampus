@@ -3,8 +3,10 @@
 namespace App\Modules\Recruitment\Controllers;
 
 use App\Controllers\BaseController;
+use App\Modules\Recruitment\Services\ApplicationReceiptPdf;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
 use DomainException;
 use Throwable;
@@ -46,13 +48,38 @@ class ApplicationController extends BaseController
                 $selectedVacancies,
                 [
                     'profile_photo'  => $this->request->getFile('profile_photo'),
-                    'cv'             => $this->request->getFile('cv'),
-                    'document_bundle'=> $this->request->getFile('document_bundle'),
+                    'application_bundle' => $this->request->getFile('application_bundle'),
                 ],
                 $this->request->getIPAddress(),
                 (string) $this->request->getUserAgent(),
             );
 
+            $receiptToken = bin2hex(random_bytes(24));
+            $birthDate = trim((string) $this->request->getPost('birth_date'));
+            $birthTimestamp = strtotime($birthDate);
+            session()->setTempdata('application_receipt_' . $receiptToken, [
+                'batch_number' => $result['batch_number'],
+                'submitted_at' => date('d/m/Y H:i'),
+                'profile' => [
+                    'full_name'      => trim((string) $this->request->getPost('full_name')),
+                    'email'          => trim((string) $this->request->getPost('email')),
+                    'phone'          => trim((string) $this->request->getPost('phone')),
+                    'birth_place'    => trim((string) $this->request->getPost('birth_place')),
+                    'birth_date'     => $birthTimestamp === false ? $birthDate : date('d/m/Y', $birthTimestamp),
+                    'last_education' => trim((string) $this->request->getPost('last_education')),
+                    'institution'    => trim((string) $this->request->getPost('institution')),
+                    'major'          => trim((string) $this->request->getPost('major')),
+                ],
+                'applications' => array_map(
+                    static fn (array $application): array => [
+                        'title'              => $application['title'],
+                        'application_number' => $application['application_number'],
+                        'preference_order'   => $application['preference_order'],
+                    ],
+                    $result['applications'],
+                ),
+            ], 1800);
+            $result['receipt_token'] = $receiptToken;
             session()->setFlashdata('submission_result', $result);
 
             return redirect()->to(site_url('lamaran/berhasil'));
@@ -78,6 +105,28 @@ class ApplicationController extends BaseController
         }
 
         return view('application_success', ['result' => $result]);
+    }
+
+    public function receipt(string $token): ResponseInterface
+    {
+        if (preg_match('/\A[a-f0-9]{48}\z/D', $token) !== 1) {
+            throw PageNotFoundException::forPageNotFound('Bukti lamaran tidak ditemukan.');
+        }
+
+        $receipt = session()->getTempdata('application_receipt_' . $token);
+        if (! is_array($receipt)) {
+            throw PageNotFoundException::forPageNotFound('Bukti lamaran telah kedaluwarsa atau tidak ditemukan.');
+        }
+
+        $pdf = (new ApplicationReceiptPdf())->generate($receipt);
+        $filenameNumber = preg_replace('/[^A-Za-z0-9-]+/', '-', (string) ($receipt['batch_number'] ?? 'lamaran'));
+
+        return $this->response
+            ->setHeader('Content-Type', 'application/pdf')
+            ->setHeader('Content-Disposition', 'attachment; filename="bukti-lamaran-' . $filenameNumber . '.pdf"')
+            ->setHeader('Content-Length', (string) strlen($pdf))
+            ->setHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->setBody($pdf);
     }
 
     /**
@@ -185,11 +234,9 @@ class ApplicationController extends BaseController
             'skills'              => 'required|min_length[3]|max_length[3000]',
             'work_motivation'     => 'required|min_length[20]|max_length[5000]',
             'career_goal'         => 'required|min_length[20]|max_length[5000]',
-            'portfolio_url'       => 'permit_empty|valid_url_strict|max_length[255]',
             'privacy_consent'     => 'required|in_list[1]',
             'profile_photo'       => 'permit_empty|max_size[profile_photo,2048]|ext_in[profile_photo,jpg,jpeg,png]|is_image[profile_photo]',
-            'cv'                  => 'uploaded[cv]|max_size[cv,5120]|ext_in[cv,pdf]',
-            'document_bundle'     => 'permit_empty|max_size[document_bundle,10240]|ext_in[document_bundle,pdf]',
+            'application_bundle'  => 'uploaded[application_bundle]|max_size[application_bundle,10240]|ext_in[application_bundle,pdf]',
         ];
 
         foreach ($questions as $question) {

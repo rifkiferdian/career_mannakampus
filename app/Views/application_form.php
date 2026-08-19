@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f5f7f8">
     <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=10">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=12">
 </head>
 <body class="application-page">
     <header class="application-header">
@@ -256,6 +256,16 @@
                             </div>
                             <?php foreach ($screeningVacancy['screening_questions'] as $question): ?>
                                 <?php $fieldName = 'screening[' . $question['id'] . ']'; $oldAnswer = old('screening.' . $question['id']); ?>
+                                <?php if (in_array($question['question_code'], ['gender', 'age', 'marital_status', 'education_level'], true)): ?>
+                                    <input
+                                        type="hidden"
+                                        name="<?= esc($fieldName, 'attr') ?>"
+                                        value="<?= esc($oldAnswer, 'attr') ?>"
+                                        data-autofill="<?= esc($question['question_code'] === 'education_level' ? 'education' : $question['question_code'], 'attr') ?>"
+                                        <?= $isSelected ? '' : 'disabled' ?>
+                                    >
+                                    <?php continue; ?>
+                                <?php endif ?>
                                 <div class="screening-question">
                                     <label for="screening-<?= (int) $question['id'] ?>"><?= esc($question['question_text']) ?> <?= (int) $question['is_required'] === 1 ? '<b>*</b>' : '' ?></label>
                                     <?php if ($question['answer_type'] === 'boolean'): ?>
@@ -295,18 +305,16 @@
             <section class="wizard-panel" data-step="7" aria-labelledby="step-title-7" hidden>
                 <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 7 dari 9</span><h2 id="step-title-7">Motivasi</h2><p>Bantu kami memahami alasan dan tujuan kariermu.</p></div></div>
                 <div class="form-stack">
-                    <label class="field"><span>Alasan ingin bergabung dengan Manna Kampus <b>*</b></span><textarea name="work_motivation" rows="7" minlength="20" maxlength="5000" required><?= esc(old('work_motivation')) ?></textarea></label>
-                    <label class="field"><span>Tujuan karier ke depan <b>*</b></span><textarea name="career_goal" rows="7" minlength="20" maxlength="5000" required><?= esc(old('career_goal')) ?></textarea></label>
+                    <label class="field"><span>MOTIVASI BEKERJA DAN ALASAN INGIN BERGABUNG DENGAN MANNA KAMPUS <b>*</b></span><textarea name="work_motivation" rows="7" minlength="20" maxlength="5000" required><?= esc(old('work_motivation')) ?></textarea></label>
+                    <label class="field"><span>TARGET/IMPIAN YANG AKAN DICAPAI <b>*</b></span><textarea name="career_goal" rows="7" minlength="20" maxlength="5000" required><?= esc(old('career_goal')) ?></textarea></label>
                 </div>
             </section>
 
             <section class="wizard-panel" data-step="8" aria-labelledby="step-title-8" hidden>
                 <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 8 dari 9</span><h2 id="step-title-8">Dokumen Pendukung</h2><p>Dokumen disimpan di area privat dan tidak dapat diakses langsung dari internet.</p></div></div>
                 <div class="document-grid">
-                    <label class="document-upload"><span>PDF</span><strong>Curriculum Vitae <b>*</b></strong><em>Maksimal 5 MB, format PDF</em><input type="file" name="cv" accept=".pdf,application/pdf" required><small>Pilih CV</small></label>
-                    <label class="document-upload"><span>PDF</span><strong>Dokumen pendukung</strong><em>Ijazah/sertifikat dalam satu PDF, maksimal 10 MB</em><input type="file" name="document_bundle" accept=".pdf,application/pdf"><small>Pilih Dokumen</small></label>
+                    <label class="document-upload"><span>PDF</span><strong>SILAKAN POSTING BERKAS DALAM 1 FILE PDF <b>*</b></strong><em>SURAT LAMARAN, CV, KTP, KK, IJAZAH, TRANSKRIP NILAI, SERTIF VAKSIN, PAS FOTO BERWARNA, SERTIF SECURITY BAGI PELAMAR SECURITY. Maksimal 10 MB.</em><input type="file" name="application_bundle" accept=".pdf,application/pdf" required><small>Pilih Berkas PDF</small></label>
                 </div>
-                <label class="field field-full"><span>URL Portofolio</span><input name="portfolio_url" type="url" value="<?= esc(old('portfolio_url'), 'attr') ?>" maxlength="255" placeholder="https://..."></label>
             </section>
 
             <section class="wizard-panel" data-step="9" aria-labelledby="step-title-9" hidden>

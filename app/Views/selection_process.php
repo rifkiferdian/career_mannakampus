@@ -61,8 +61,8 @@
                             <span class="selection-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7zM14 3v5h5M10 12h5M10 16h5"/></svg></span>
                             <h3>Administrasi &amp;<br>Screening</h3>
                         </div>
-                        <p>Tim rekrutmen kami akan meninjau CV, portofolio, dan kelengkapan dokumen pendukung Anda sesuai kualifikasi posisi.</p>
-                        <ul><li>Pastikan CV terbaru dan profesional</li><li>Lampirkan portofolio jika diperlukan</li></ul>
+                        <p>Tim rekrutmen kami akan meninjau berkas lamaran PDF dan kelengkapan dokumen Anda sesuai kualifikasi posisi.</p>
+                        <ul><li>Pastikan seluruh dokumen terbaru dan dapat dibaca</li><li>Gabungkan semua berkas dalam satu file PDF</li></ul>
                     </article>
 
                     <article class="selection-card reveal">
@@ -124,7 +124,7 @@
                     <article class="preparation-card reveal">
                         <span aria-hidden="true">01</span>
                         <h3>Perbarui profilmu</h3>
-                        <p>Pastikan CV dan portofolio menampilkan pengalaman serta pencapaian yang paling relevan.</p>
+                        <p>Pastikan berkas lamaran menampilkan pengalaman serta pencapaian yang paling relevan.</p>
                     </article>
                     <article class="preparation-card reveal">
                         <span aria-hidden="true">02</span>

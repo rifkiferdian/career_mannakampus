@@ -681,10 +681,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-screening-text.screening-text-failed { color: #a04d44; }
 .candidate-narrative-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 20px 23px 5px; }
 .candidate-narrative-grid > div { padding: 14px; background: #fafcfd; border: 1px solid #e7ecef; border-radius: 9px; }
-.candidate-narrative-grid span, .candidate-portfolio span { display: block; margin-bottom: 7px; color: #7e8b95; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.candidate-narrative-grid span { display: block; margin-bottom: 7px; color: #7e8b95; font-size: 10px; font-weight: 800; text-transform: uppercase; }
 .candidate-narrative-grid p { margin: 0; color: #4f6272; font-size: 12px; line-height: 1.65; }
-.candidate-portfolio { margin: 12px 23px 5px; padding: 13px 14px; background: #fff9f5; border: 1px solid #f2dfd3; border-radius: 9px; }
-.candidate-portfolio a { color: #b85426; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
 .candidate-application-columns { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .75fr); gap: 18px; padding: 22px 23px 24px; }
 .candidate-subsection { min-width: 0; border: 1px solid #e4e9ed; border-radius: 10px; overflow: hidden; }
 .candidate-subsection-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 15px; border-bottom: 1px solid #e7ecef; }
