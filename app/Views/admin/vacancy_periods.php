@@ -70,7 +70,7 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
                         <tr>
                             <td class="period-order"><?= $index + 1 ?></td>
                             <td><div class="department-name-cell"><strong><?= esc($period['vacancy_title']) ?></strong><code><?= esc($period['department_name'] ?: '-') ?></code></div></td>
-                            <td><div class="period-name-cell"><strong><?= esc($period['period_name']) ?></strong><small><?= esc($period['period_code']) ?></small></div></td>
+                            <td><div class="period-name-cell"><strong><?= esc($period['period_name']) ?></strong></div></td>
                             <td><div class="period-date-cell"><span><?= esc($dateLabel($period['opened_at'])) ?></span><small>sampai <?= esc($dateLabel($period['closed_at'])) ?></small></div></td>
                             <td><?= (int) $period['headcount'] ?> orang</td>
                             <td><strong><?= (int) $period['application_count'] ?></strong></td>
@@ -92,8 +92,7 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
     <div class="admin-modal-panel vacancy-period-modal"><div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><div><h2 id="period-create-title">Tambah sesi lowongan</h2><p>Buat periode baru agar kandidat dapat melamar kembali.</p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
         <form class="vacancy-period-form" action="<?= site_url('adminhrdmannakampus/sesi-lowongan') ?>" method="post"><?= csrf_field() ?>
             <label>Lowongan<select name="vacancy_id" required><option value="">Pilih lowongan</option><?php foreach ($vacancies as $vacancy): ?><option value="<?= (int) $vacancy['id'] ?>" <?= (int) $oldFor('create', 'vacancy_id', $selectedVacancyId) === (int) $vacancy['id'] ? 'selected' : '' ?>><?= esc($vacancy['title']) ?></option><?php endforeach ?></select></label>
-            <label>Nama sesi<input name="period_name" maxlength="150" value="<?= esc((string) $oldFor('create', 'period_name'), 'attr') ?>" placeholder="Contoh: Periode Oktober–Desember 2026" required></label>
-            <label>Kode periode<input name="period_code" maxlength="80" value="<?= esc((string) $oldFor('create', 'period_code'), 'attr') ?>" placeholder="oktober-desember-2026"></label>
+            <label>Nama sesi<input name="period_name" maxlength="150" value="<?= esc((string) $oldFor('create', 'period_name'), 'attr') ?>" placeholder="Contoh: Periode Oktober–Desember 2026" required><small>Kode periode dibuat otomatis dari nama sesi.</small></label>
             <label>Jumlah kebutuhan<input type="number" name="headcount" min="1" max="9999" value="<?= esc((string) $oldFor('create', 'headcount', 1), 'attr') ?>" required></label>
             <label>Mulai dibuka<input type="datetime-local" name="opened_at" value="<?= esc((string) $oldFor('create', 'opened_at'), 'attr') ?>"></label>
             <label>Batas akhir<input type="datetime-local" name="closed_at" value="<?= esc((string) $oldFor('create', 'closed_at'), 'attr') ?>"></label>
@@ -109,8 +108,7 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
     <div class="admin-modal-panel vacancy-period-modal"><div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4Z"/></svg></span><div><h2 id="period-edit-title-<?= (int) $period['id'] ?>">Edit sesi lowongan</h2><p><?= esc($period['vacancy_title']) ?></p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
         <form class="vacancy-period-form" action="<?= site_url('adminhrdmannakampus/sesi-lowongan/' . $period['id']) ?>" method="post"><?= csrf_field() ?>
             <label>Lowongan<select name="vacancy_id" required><?php foreach ($vacancies as $vacancy): ?><option value="<?= (int) $vacancy['id'] ?>" <?= (int) $oldFor($modal, 'vacancy_id', $period['vacancy_id']) === (int) $vacancy['id'] ? 'selected' : '' ?>><?= esc($vacancy['title']) ?></option><?php endforeach ?></select></label>
-            <label>Nama sesi<input name="period_name" maxlength="150" value="<?= esc((string) $oldFor($modal, 'period_name', $period['period_name']), 'attr') ?>" required></label>
-            <label>Kode periode<input name="period_code" maxlength="80" value="<?= esc((string) $oldFor($modal, 'period_code', $period['period_code']), 'attr') ?>" required></label>
+            <label>Nama sesi<input name="period_name" maxlength="150" value="<?= esc((string) $oldFor($modal, 'period_name', $period['period_name']), 'attr') ?>" required><small>Kode periode dikelola otomatis oleh sistem.</small></label>
             <label>Jumlah kebutuhan<input type="number" name="headcount" min="1" max="9999" value="<?= esc((string) $oldFor($modal, 'headcount', $period['headcount']), 'attr') ?>" required></label>
             <label>Mulai dibuka<input type="datetime-local" name="opened_at" value="<?= esc((string) $oldFor($modal, 'opened_at', $dateTimeLocal($period['opened_at'])), 'attr') ?>"></label>
             <label>Batas akhir<input type="datetime-local" name="closed_at" value="<?= esc((string) $oldFor($modal, 'closed_at', $dateTimeLocal($period['closed_at'])), 'attr') ?>"></label>

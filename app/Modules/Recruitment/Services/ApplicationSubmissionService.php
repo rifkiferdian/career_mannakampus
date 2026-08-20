@@ -49,14 +49,6 @@ class ApplicationSubmissionService
             throw new DomainException('Pilih minimal satu dan maksimal tiga posisi.');
         }
 
-        $requirementGroupIds = array_unique(array_map(
-            static fn (array $vacancy): int => (int) $vacancy['requirement_group_id'],
-            $vacancies,
-        ));
-        if (count($requirementGroupIds) !== 1) {
-            throw new DomainException('Semua posisi harus berasal dari kelompok persyaratan yang sama.');
-        }
-
         $nik = preg_replace('/\D+/', '', (string) $input['nik']) ?? '';
         $nikHash = hash_hmac('sha256', $nik, (string) config('Encryption')->key);
         $now = date('Y-m-d H:i:s');
@@ -153,7 +145,6 @@ class ApplicationSubmissionService
                 'uuid'                 => $batchUuid,
                 'batch_number'         => $batchNumber,
                 'applicant_id'         => $applicantId,
-                'requirement_group_id' => $requirementGroupIds[0],
                 'position_count'       => count($vacancies),
                 'applicant_snapshot'   => json_encode(
                     $this->applicantSnapshot($applicantData, $nik, $now),

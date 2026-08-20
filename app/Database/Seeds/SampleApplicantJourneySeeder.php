@@ -27,18 +27,13 @@ class SampleApplicantJourneySeeder extends Seeder
         $nikHash = hash_hmac('sha256', self::NIK, (string) config('Encryption')->key);
 
         $vacancies = $this->vacancies();
-        $requirementGroupId = (int) $vacancies['programmer']['requirement_group_id'];
-        if ($requirementGroupId !== (int) $vacancies['ui-ux-designer']['requirement_group_id']) {
-            throw new RuntimeException('Posisi contoh tidak berada pada kelompok persyaratan yang sama.');
-        }
-
         $this->ensureSampleDocuments();
         $this->db->transBegin();
 
         try {
             $applicantId = $this->upsertApplicant($nikHash, $now);
             $this->removePreviousJourney($applicantId);
-            $batchId = $this->insertBatch($applicantId, $requirementGroupId, $now);
+            $batchId = $this->insertBatch($applicantId, $now);
             $this->insertDocuments($applicantId, $batchId, $now);
 
             $this->insertApplication(
@@ -180,7 +175,7 @@ class SampleApplicantJourneySeeder extends Seeder
         $this->db->table('application_batches')->where('id', $batchId)->delete();
     }
 
-    private function insertBatch(int $applicantId, int $requirementGroupId, string $now): int
+    private function insertBatch(int $applicantId, string $now): int
     {
         $snapshot = [
             'snapshot_version' => '2026-07-v1',
@@ -214,7 +209,6 @@ class SampleApplicantJourneySeeder extends Seeder
             'uuid'                 => self::BATCH_UUID,
             'batch_number'         => self::BATCH_NUMBER,
             'applicant_id'         => $applicantId,
-            'requirement_group_id' => $requirementGroupId,
             'position_count'       => 2,
             'applicant_snapshot'   => json_encode(
                 $snapshot,

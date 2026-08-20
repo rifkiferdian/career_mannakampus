@@ -165,7 +165,7 @@ class ApplicantReportController extends BaseController
     private function reportRows(array $filters, array $statusLabels): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
+            ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, applicants.address, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
@@ -177,7 +177,7 @@ class ApplicantReportController extends BaseController
         $this->applyFilters($builder, $filters);
 
         $rows = $builder
-            ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'teams.name', 'assigned_user.full_name'])
+            ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'applicants.address', 'teams.name', 'assigned_user.full_name'])
             ->orderBy('submitted_at', 'DESC')
             ->orderBy('applicants.id', 'DESC')
             ->get()->getResultArray();

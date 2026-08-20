@@ -43,18 +43,14 @@ class VacancyCatalogService
     /**
      * @return list<array<string, mixed>>
      */
-    public function compatibleVacancies(string $code): array
+    public function selectableVacancies(string $code): array
     {
         $selectedVacancy = $this->openVacancyByCode($code);
         if ($selectedVacancy === null) {
             return [];
         }
 
-        return array_values(array_filter(
-            $this->openVacancies(),
-            static fn (array $vacancy): bool =>
-                (int) $vacancy['requirement_group_id'] === (int) $selectedVacancy['requirement_group_id'],
-        ));
+        return $this->openVacancies();
     }
 
     /**

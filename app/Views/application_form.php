@@ -96,38 +96,38 @@
                 <div class="position-selection">
                     <div>
                         <strong>Pilih posisi yang dilamar</strong>
-                        <span>Maksimal 3 posisi dalam kelompok <?= esc($vacancy['requirement_group_name']) ?>. Urutan memilih menentukan prioritas.</span>
+                        <span>Maksimal 3 posisi aktif dari departemen mana pun. Urutan memilih menentukan prioritas.</span>
                     </div>
                     <span class="position-counter"><b id="selected-position-count">1</b>/3 posisi</span>
                     <div class="position-options">
-                        <?php foreach ($compatibleVacancies as $compatibleVacancy): ?>
-                            <?php $isPrimary = (int) $compatibleVacancy['id'] === (int) $vacancy['id']; ?>
+                        <?php foreach ($selectableVacancies as $selectableVacancy): ?>
+                            <?php $isPrimary = (int) $selectableVacancy['id'] === (int) $vacancy['id']; ?>
                             <label class="position-option">
                                 <input
                                     type="checkbox"
-                                    value="<?= (int) $compatibleVacancy['id'] ?>"
+                                    value="<?= (int) $selectableVacancy['id'] ?>"
                                     data-vacancy-choice
                                     <?= $isPrimary ? 'checked disabled' : '' ?>
-                                    <?= !$isPrimary && in_array((int) $compatibleVacancy['id'], $selectedVacancyIds, true) ? 'checked' : '' ?>
+                                    <?= !$isPrimary && in_array((int) $selectableVacancy['id'], $selectedVacancyIds, true) ? 'checked' : '' ?>
                                     <?= $isPrimary ? '' : 'name="vacancy_ids[]"' ?>
                                 >
                                 <span>
-                                    <strong><?= esc($compatibleVacancy['title']) ?></strong>
-                                    <small><?= esc($compatibleVacancy['department']) ?> · <?= esc($compatibleVacancy['location']) ?> · <?= esc($compatibleVacancy['recruitment_period_name'] ?? 'Sesi aktif') ?></small>
+                                    <strong><?= esc($selectableVacancy['title']) ?></strong>
+                                    <small><?= esc($selectableVacancy['department']) ?> · <?= esc($selectableVacancy['location']) ?> · <?= esc($selectableVacancy['recruitment_period_name'] ?? 'Sesi aktif') ?></small>
                                 </span>
-                                <?php $priority = (int) ($positionPriorities[(int) $compatibleVacancy['id']] ?? 0); ?>
-                                <b class="priority-badge" data-priority-badge="<?= (int) $compatibleVacancy['id'] ?>" <?= $priority > 0 ? '' : 'hidden' ?>>
+                                <?php $priority = (int) ($positionPriorities[(int) $selectableVacancy['id']] ?? 0); ?>
+                                <b class="priority-badge" data-priority-badge="<?= (int) $selectableVacancy['id'] ?>" <?= $priority > 0 ? '' : 'hidden' ?>>
                                     Prioritas <?= $priority > 0 ? $priority : '' ?>
                                 </b>
                             </label>
                             <input
                                 type="hidden"
-                                name="position_priorities[<?= (int) $compatibleVacancy['id'] ?>]"
+                                name="position_priorities[<?= (int) $selectableVacancy['id'] ?>]"
                                 value="<?= $priority > 0 ? $priority : '' ?>"
-                                data-priority-input="<?= (int) $compatibleVacancy['id'] ?>"
+                                data-priority-input="<?= (int) $selectableVacancy['id'] ?>"
                             >
                             <?php if ($isPrimary): ?>
-                                <input type="hidden" name="vacancy_ids[]" value="<?= (int) $compatibleVacancy['id'] ?>">
+                                <input type="hidden" name="vacancy_ids[]" value="<?= (int) $selectableVacancy['id'] ?>">
                             <?php endif ?>
                         <?php endforeach ?>
                     </div>
@@ -247,7 +247,7 @@
             <section class="wizard-panel" data-step="6" aria-labelledby="step-title-6" hidden>
                 <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 6 dari 9</span><h2 id="step-title-6">Screening Awal</h2><p>Jawab dengan jujur. Jawaban digunakan untuk menilai kesesuaian awal.</p></div></div>
                 <div class="screening-list">
-                    <?php foreach ($compatibleVacancies as $screeningVacancy): ?>
+                    <?php foreach ($selectableVacancies as $screeningVacancy): ?>
                         <?php $isSelected = in_array((int) $screeningVacancy['id'], $selectedVacancyIds, true); ?>
                         <section class="screening-position" data-screening-vacancy="<?= (int) $screeningVacancy['id'] ?>" <?= $isSelected ? '' : 'hidden' ?>>
                             <div class="screening-position-heading">

@@ -14,7 +14,6 @@ class ApplicationBatchModel extends Model
         'uuid',
         'batch_number',
         'applicant_id',
-        'requirement_group_id',
         'position_count',
         'applicant_snapshot',
         'snapshot_version',

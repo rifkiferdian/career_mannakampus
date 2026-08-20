@@ -27,7 +27,7 @@ class ApplicationController extends BaseController
                 (array) $this->request->getPost('vacancy_ids'),
                 (array) $this->request->getPost('position_priorities'),
                 $data['vacancy'],
-                $data['compatibleVacancies'],
+                $data['selectableVacancies'],
             );
         } catch (DomainException $exception) {
             return redirect()->back()->withInput()->with('form_error', $exception->getMessage());
@@ -132,7 +132,7 @@ class ApplicationController extends BaseController
     /**
      * @return array{
      *     vacancy: array<string, mixed>,
-     *     compatibleVacancies: list<array<string, mixed>>
+     *     selectableVacancies: list<array<string, mixed>>
      * }
      */
     private function formData(string $vacancyCode): array
@@ -144,7 +144,7 @@ class ApplicationController extends BaseController
 
         return [
             'vacancy'              => $vacancy,
-            'compatibleVacancies' => Services::vacancyCatalog()->compatibleVacancies($vacancyCode),
+            'selectableVacancies' => Services::vacancyCatalog()->selectableVacancies($vacancyCode),
         ];
     }
 
@@ -152,7 +152,7 @@ class ApplicationController extends BaseController
      * @param list<mixed> $submittedIds
      * @param array<string, mixed> $submittedPriorities
      * @param array<string, mixed> $primaryVacancy
-     * @param list<array<string, mixed>> $compatibleVacancies
+     * @param list<array<string, mixed>> $selectableVacancies
      *
      * @return list<array<string, mixed>>
      */
@@ -160,7 +160,7 @@ class ApplicationController extends BaseController
         array $submittedIds,
         array $submittedPriorities,
         array $primaryVacancy,
-        array $compatibleVacancies,
+        array $selectableVacancies,
     ): array {
         $selectedIds = array_values(array_unique(array_map('intval', $submittedIds)));
 
@@ -168,25 +168,25 @@ class ApplicationController extends BaseController
             $selectedIds[] = (int) $primaryVacancy['id'];
         }
 
-        $maximum = min(3, (int) ($primaryVacancy['max_positions'] ?? 3));
+        $maximum = 3;
         if ($selectedIds === [] || count($selectedIds) > $maximum) {
             throw new DomainException("Pilih minimal satu dan maksimal {$maximum} posisi.");
         }
 
-        $compatibleById = [];
-        foreach ($compatibleVacancies as $vacancy) {
-            $compatibleById[(int) $vacancy['id']] = $vacancy;
+        $selectableById = [];
+        foreach ($selectableVacancies as $vacancy) {
+            $selectableById[(int) $vacancy['id']] = $vacancy;
         }
 
         $selectedVacancies = [];
         foreach ($selectedIds as $selectedId) {
-            if (!isset($compatibleById[$selectedId])) {
-                throw new DomainException('Terdapat posisi yang tidak termasuk kelompok persyaratan yang sama.');
+            if (!isset($selectableById[$selectedId])) {
+                throw new DomainException('Terdapat posisi yang tidak tersedia atau sudah tidak aktif.');
             }
 
             $priority = (int) ($submittedPriorities[(string) $selectedId] ?? 0);
-            $compatibleById[$selectedId]['preference_order'] = $priority;
-            $selectedVacancies[] = $compatibleById[$selectedId];
+            $selectableById[$selectedId]['preference_order'] = $priority;
+            $selectedVacancies[] = $selectableById[$selectedId];
         }
 
         $priorities = array_column($selectedVacancies, 'preference_order');

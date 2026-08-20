@@ -42,12 +42,10 @@ $statusLabels = ['draft' => 'Draft', 'open' => 'Dibuka', 'closed' => 'Ditutup', 
             <form class="vacancy-main-form" action="<?= $isEdit ? site_url('adminhrdmannakampus/lowongan/' . $vacancy['id']) : site_url('adminhrdmannakampus/lowongan') ?>" method="post">
                 <?= csrf_field() ?>
                 <section class="settings-card vacancy-form-card">
-                    <div class="settings-card-heading"><span class="settings-icon"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 9h8M8 13h6"/></svg></span><div><h2>Informasi utama</h2><p>Identitas dan pengelompokan lowongan.</p></div></div>
+                    <div class="settings-card-heading"><span class="settings-icon"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 9h8M8 13h6"/></svg></span><div><h2>Informasi utama</h2><p>Identitas, departemen, dan tahapan lowongan.</p></div></div>
                     <div class="vacancy-form-grid">
-                        <label>Judul posisi<input name="title" value="<?= esc((string) $value('title'), 'attr') ?>" maxlength="150" required></label>
-                        <label>Kode URL<input name="code" value="<?= esc((string) $value('code'), 'attr') ?>" maxlength="50" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="nama-posisi" required></label>
+                        <label>Judul posisi<input name="title" value="<?= esc((string) $value('title'), 'attr') ?>" maxlength="150" required><small><?= $isEdit ? 'Alamat lamaran: /lowongan/' . esc((string) $vacancy['code']) . '/lamar' : 'Alamat lamaran dibuat otomatis dari judul posisi.' ?></small></label>
                         <label>Departemen<select name="department_id" required><option value="">Pilih departemen</option><?php foreach ($departments as $department): ?><option value="<?= (int) $department['id'] ?>" <?= (int) $value('department_id') === (int) $department['id'] ? 'selected' : '' ?>><?= esc($department['name']) ?></option><?php endforeach ?></select></label>
-                        <label>Kelompok persyaratan<select name="requirement_group_id" required><option value="">Pilih kelompok</option><?php foreach ($requirementGroups as $group): ?><option value="<?= (int) $group['id'] ?>" <?= (int) $value('requirement_group_id') === (int) $group['id'] ? 'selected' : '' ?>><?= esc($group['name']) ?> (maks. <?= (int) $group['max_positions'] ?> posisi)</option><?php endforeach ?></select></label>
                         <label>Template tahapan<select name="recruitment_process_template_id" required><option value="">Pilih template tahapan</option><?php foreach ($processTemplates as $template): ?><option value="<?= (int) $template['id'] ?>" <?= (int) $value('recruitment_process_template_id') === (int) $template['id'] ? 'selected' : '' ?>><?= esc($template['name']) ?></option><?php endforeach ?></select><small>Menentukan urutan seleksi kandidat untuk lowongan ini.</small></label>
                         <label class="vacancy-wide-field">Ringkasan<input name="summary" value="<?= esc((string) $value('summary'), 'attr') ?>" maxlength="500" placeholder="Ringkasan singkat untuk kartu lowongan"></label>
                     </div>
@@ -94,7 +92,7 @@ $statusLabels = ['draft' => 'Draft', 'open' => 'Dibuka', 'closed' => 'Ditutup', 
                             <?php if ($vacancyPeriods === []): ?><p class="department-empty">Belum ada sesi untuk lowongan ini.</p><?php endif ?>
                             <?php foreach ($vacancyPeriods as $period): ?>
                                 <article>
-                                    <div><strong><?= esc($period['period_name']) ?></strong><code><?= esc($period['period_code']) ?></code></div>
+                                    <div><strong><?= esc($period['period_name']) ?></strong></div>
                                     <span><small>Mulai</small><strong><?= esc($displayDate($period['opened_at'])) ?></strong></span>
                                     <span><small>Selesai</small><strong><?= esc($displayDate($period['closed_at'])) ?></strong></span>
                                     <span><small>Kebutuhan</small><strong><?= (int) $period['headcount'] ?> orang</strong></span>

@@ -32,7 +32,6 @@ WHERE email = 'budi.santoso.contoh@example.test';
 SELECT
     b.id,
     b.batch_number,
-    rg.name AS requirement_group,
     b.position_count,
     b.snapshot_version,
     JSON_UNQUOTE(JSON_EXTRACT(b.applicant_snapshot, '$.identity.full_name')) AS snapshot_name,
@@ -40,7 +39,6 @@ SELECT
     JSON_UNQUOTE(JSON_EXTRACT(b.applicant_snapshot, '$.education.level')) AS snapshot_education,
     b.submitted_at
 FROM application_batches b
-JOIN requirement_groups rg ON rg.id = b.requirement_group_id
 WHERE b.batch_number = 'SAMPLE-BATCH-001';
 
 -- 3. Posisi di dalam batch, urutan prioritas, dan hasil tiap screening.

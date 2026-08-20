@@ -21,9 +21,8 @@ class VacancyManagementController extends BaseController
         $status = trim((string) $this->request->getGet('status'));
         $departmentId = (int) $this->request->getGet('department_id');
         $builder = db_connect()->table('vacancies')
-            ->select('vacancies.*, departments.name AS department_name, requirement_groups.name AS requirement_group_name, COUNT(applications.id) AS application_count')
+            ->select('vacancies.*, departments.name AS department_name, COUNT(applications.id) AS application_count')
             ->join('departments', 'departments.id = vacancies.department_id')
-            ->join('requirement_groups', 'requirement_groups.id = vacancies.requirement_group_id')
             ->join('applications', 'applications.vacancy_id = vacancies.id AND applications.deleted_at IS NULL', 'left')
             ->where('vacancies.deleted_at', null)
             ->groupBy('vacancies.id')
@@ -250,7 +249,6 @@ class VacancyManagementController extends BaseController
             'questions' => $questions,
             'vacancyPeriods' => $vacancyPeriods,
             'departments' => $this->departments(),
-            'requirementGroups' => db_connect()->table('requirement_groups')->where('is_active', 1)->orderBy('name', 'ASC')->get()->getResultArray(),
             'processTemplates' => $processTemplates,
             'canPublish' => Services::authorization()->can($userId, 'vacancies.publish'),
             'canDelete' => Services::authorization()->can($userId, 'vacancies.delete'),
@@ -266,10 +264,8 @@ class VacancyManagementController extends BaseController
     /** @return array<string, mixed>|RedirectResponse */
     private function validatedVacancyInput(?array $existing): array|RedirectResponse
     {
-        $code = mb_strtolower(trim((string) $this->request->getPost('code')));
         $title = trim((string) $this->request->getPost('title'));
         $departmentId = (int) $this->request->getPost('department_id');
-        $groupId = (int) $this->request->getPost('requirement_group_id');
         $processTemplateId = (int) $this->request->getPost('recruitment_process_template_id');
         $minimumAge = trim((string) $this->request->getPost('minimum_age'));
         $maximumAge = trim((string) $this->request->getPost('maximum_age'));
@@ -278,16 +274,12 @@ class VacancyManagementController extends BaseController
         $salaryMax = $this->nullableNumber($this->request->getPost('salary_max'));
         $status = trim((string) $this->request->getPost('status'));
 
-        if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $code) !== 1 || mb_strlen($code) > 50 || $title === '' || mb_strlen($title) > 150) {
-            return $this->formInputError($existing, 'Kode atau judul lowongan tidak valid.');
+        if ($title === '' || mb_strlen($title) > 150) {
+            return $this->formInputError($existing, 'Judul lowongan wajib diisi dan maksimal 150 karakter.');
         }
-        $duplicate = db_connect()->table('vacancies')->where('code', $code);
-        if ($existing !== null) { $duplicate->where('id !=', $existing['id']); }
-        if ($duplicate->countAllResults() > 0) {
-            return $this->formInputError($existing, 'Kode lowongan sudah digunakan.');
-        }
-        if (! $this->referenceExists('departments', $departmentId) || ! $this->referenceExists('requirement_groups', $groupId) || ! $this->activeProcessTemplateExists($processTemplateId, $existing)) {
-            return $this->formInputError($existing, 'Departemen, kelompok persyaratan, atau template tahapan tidak valid.');
+        $code = $existing === null ? $this->uniqueVacancyCode($title) : (string) $existing['code'];
+        if (! $this->referenceExists('departments', $departmentId) || ! $this->activeProcessTemplateExists($processTemplateId, $existing)) {
+            return $this->formInputError($existing, 'Departemen atau template tahapan tidak valid.');
         }
         $minAge = $minimumAge === '' ? null : (int) $minimumAge;
         $maxAge = $maximumAge === '' ? null : (int) $maximumAge;
@@ -313,7 +305,7 @@ class VacancyManagementController extends BaseController
             'job_description' => $this->nullableText('job_description', 10000),
             'responsibilities' => $this->nullableText('responsibilities', 10000),
             'qualifications' => $this->nullableText('qualifications', 10000),
-            'department_id' => $departmentId, 'requirement_group_id' => $groupId, 'recruitment_process_template_id' => $processTemplateId,
+            'department_id' => $departmentId, 'recruitment_process_template_id' => $processTemplateId,
             'location' => $this->nullableText('location', 100), 'employment_type' => $this->nullableText('employment_type', 50),
             'minimum_education' => $this->nullableText('minimum_education', 50), 'minimum_age' => $minAge, 'maximum_age' => $maxAge,
             'headcount' => $headcount, 'salary_min' => $salaryMin === null ? null : $salaryMin, 'salary_max' => $salaryMax === null ? null : $salaryMax,
@@ -359,6 +351,22 @@ class VacancyManagementController extends BaseController
         $base = mb_substr(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '_', mb_strtolower($text)), '_'), 0, 42) ?: 'question';
         $code = $base;
         while (db_connect()->table('vacancy_screening_questions')->where('vacancy_id', $vacancyId)->where('question_code', $code)->countAllResults() > 0) { $code = mb_substr($base, 0, 35) . '_' . substr(bin2hex(random_bytes(3)), 0, 6); }
+        return $code;
+    }
+
+    private function uniqueVacancyCode(string $title): string
+    {
+        $asciiTitle = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $title);
+        $base = mb_strtolower(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $asciiTitle ?: $title), '-'));
+        $base = mb_substr($base !== '' ? $base : 'lowongan', 0, 50);
+        $code = $base;
+        $suffix = 2;
+
+        while (db_connect()->table('vacancies')->where('code', $code)->countAllResults() > 0) {
+            $number = '-' . $suffix++;
+            $code = mb_substr($base, 0, 50 - strlen($number)) . $number;
+        }
+
         return $code;
     }
 

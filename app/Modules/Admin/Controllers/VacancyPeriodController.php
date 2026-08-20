@@ -77,7 +77,7 @@ class VacancyPeriodController extends BaseController
                 'updated_at' => $now,
             ]);
         } catch (DatabaseException) {
-            return $this->formError('Sesi gagal dibuat. Pastikan kode periode belum digunakan pada lowongan tersebut.', 'create');
+            return $this->formError('Sesi gagal dibuat. Silakan periksa kembali datanya.', 'create');
         }
         $this->syncVacancySummary((int) $data['vacancy_id']);
 
@@ -104,7 +104,7 @@ class VacancyPeriodController extends BaseController
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
         } catch (DatabaseException) {
-            return $this->formError('Sesi gagal diperbarui. Pastikan kode periode belum digunakan.', 'edit-' . $periodId);
+            return $this->formError('Sesi gagal diperbarui. Silakan periksa kembali datanya.', 'edit-' . $periodId);
         }
         if ((int) $period['vacancy_id'] !== (int) $data['vacancy_id']) {
             $this->syncVacancySummary((int) $period['vacancy_id']);
@@ -164,7 +164,6 @@ class VacancyPeriodController extends BaseController
     {
         $vacancyId = max(0, (int) $this->request->getPost('vacancy_id'));
         $name = trim((string) $this->request->getPost('period_name'));
-        $code = mb_strtolower(trim((string) $this->request->getPost('period_code')));
         $openedAt = $this->dateTime((string) $this->request->getPost('opened_at'));
         $closedAt = $this->dateTime((string) $this->request->getPost('closed_at'));
         $headcount = (int) $this->request->getPost('headcount');
@@ -181,12 +180,9 @@ class VacancyPeriodController extends BaseController
         if ($name === '' || mb_strlen($name) > 150) {
             return $this->formError('Nama periode wajib diisi dan maksimal 150 karakter.', $form);
         }
-        if ($code === '') {
-            $code = trim(preg_replace('/[^a-z0-9]+/', '-', mb_strtolower($name)) ?? '', '-');
-        }
-        if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $code) !== 1 || mb_strlen($code) > 80) {
-            return $this->formError('Kode periode hanya boleh berisi huruf kecil, angka, dan tanda hubung.', $form);
-        }
+        $code = $existing === null || (int) $existing['vacancy_id'] !== $vacancyId
+            ? $this->uniquePeriodCode($vacancyId, $name)
+            : (string) $existing['period_code'];
         if ($openedAt === false || $closedAt === false) {
             return $this->formError('Format tanggal mulai atau tanggal berakhir tidak valid.', $form);
         }
@@ -226,6 +222,22 @@ class VacancyPeriodController extends BaseController
         $date = DateTimeImmutable::createFromFormat('!Y-m-d\TH:i', $value);
 
         return $date !== false && $date->format('Y-m-d\TH:i') === $value ? $date : false;
+    }
+
+    private function uniquePeriodCode(int $vacancyId, string $name): string
+    {
+        $asciiName = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name);
+        $base = mb_strtolower(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $asciiName ?: $name), '-'));
+        $base = mb_substr($base !== '' ? $base : 'periode', 0, 80);
+        $code = $base;
+        $suffix = 2;
+
+        while (db_connect()->table('vacancy_recruitment_periods')->where('vacancy_id', $vacancyId)->where('period_code', $code)->countAllResults() > 0) {
+            $number = '-' . $suffix++;
+            $code = mb_substr($base, 0, 80 - strlen($number)) . $number;
+        }
+
+        return $code;
     }
 
     private function hasConflictingPeriod(int $vacancyId, ?int $exceptId, string $newStatus, mixed $openedAt, mixed $closedAt): bool

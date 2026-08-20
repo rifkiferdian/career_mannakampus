@@ -52,19 +52,15 @@ class VacancyModel extends Model
                 'vacancies.*, periods.id AS vacancy_period_id, periods.period_name AS recruitment_period_name, '
                 . 'periods.period_code AS recruitment_period_code, periods.headcount AS period_headcount, '
                 . 'periods.opened_at AS period_opened_at, periods.closed_at AS period_closed_at, '
-                . 'departments.code AS department_code, departments.name AS department, '
-                . 'requirement_groups.code AS requirement_group_code, requirement_groups.name AS requirement_group_name, '
-                . 'requirement_groups.max_positions',
+                . 'departments.code AS department_code, departments.name AS department',
             )
             ->join('departments', 'departments.id = vacancies.department_id')
-            ->join('requirement_groups', 'requirement_groups.id = vacancies.requirement_group_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.vacancy_id = vacancies.id')
             ->whereIn('periods.status', ['open', 'scheduled'])
             ->where('periods.deleted_at', null)
             ->where('vacancies.deleted_at', null)
             ->where('vacancies.status !=', 'archived')
             ->where('departments.is_active', 1)
-            ->where('requirement_groups.is_active', 1)
             ->groupStart()
                 ->where('periods.opened_at', null)
                 ->orWhere('periods.opened_at <=', $now->format('Y-m-d H:i:s'))
