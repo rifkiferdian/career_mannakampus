@@ -13,6 +13,24 @@ $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.v
 $canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
 $canViewCandidates = $authorization->can($userId, 'candidates.view');
 $canViewHrdTeams = $authorization->can($userId, 'hrd.teams.view');
+$activeVacancyCount = 0;
+if ($canViewVacancies) {
+    $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+    $activeVacancyCount = (int) (db_connect()->table('vacancies AS vacancies')
+        ->select('COUNT(DISTINCT vacancies.id) AS total', false)
+        ->join('departments', 'departments.id = vacancies.department_id')
+        ->join('requirement_groups', 'requirement_groups.id = vacancies.requirement_group_id')
+        ->join('vacancy_recruitment_periods AS periods', 'periods.vacancy_id = vacancies.id')
+        ->whereIn('periods.status', ['open', 'scheduled'])
+        ->where('periods.deleted_at', null)
+        ->where('vacancies.deleted_at', null)
+        ->where('vacancies.status !=', 'archived')
+        ->where('departments.is_active', 1)
+        ->where('requirement_groups.is_active', 1)
+        ->groupStart()->where('periods.opened_at', null)->orWhere('periods.opened_at <=', $now)->groupEnd()
+        ->groupStart()->where('periods.closed_at', null)->orWhere('periods.closed_at >=', $now)->groupEnd()
+        ->get()->getRowArray()['total'] ?? 0);
+}
 $unassignedApplicantCount = 0;
 if ($canViewApplicantPool) {
     $unassignedApplicantCount = (int) (db_connect()->table('applications AS applications')
@@ -84,6 +102,7 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('vacancies') ?> href="<?= site_url('adminhrdmannakampus/lowongan') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="2"/><path d="M9 7V5h6v2M4 12h16"/></svg>
                 Lowongan
+                <?php if ($activeVacancyCount > 0): ?><span class="sidebar-notification-badge" title="<?= $activeVacancyCount ?> lowongan aktif saat ini" aria-label="<?= $activeVacancyCount ?> lowongan aktif saat ini"><?= $activeVacancyCount > 99 ? '99+' : $activeVacancyCount ?> Aktif</span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewVacancyPeriods): ?>
@@ -120,7 +139,7 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
                 List Pelamar
-                <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $unassignedApplicantCount ?> pelamar belum dipilih divisi HRD" aria-label="<?= $unassignedApplicantCount ?> pelamar belum dipilih divisi HRD"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?></span><?php endif ?>
+                <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD" aria-label="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?> Baru</span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewCandidates && $candidateTeams !== []): ?>
