@@ -180,7 +180,6 @@ class ApplicationSubmissionService
                     'vacancy_period_id'    => (int) $vacancy['vacancy_period_id'],
                     'preference_order'      => (int) $vacancy['preference_order'],
                     'work_experience'      => trim((string) ($input['work_experience'] ?? '')),
-                    'skills'               => trim((string) $input['skills']),
                     'work_motivation'      => trim((string) $input['work_motivation']),
                     'career_goal'          => trim((string) $input['career_goal']),
                     'screening_status'     => 'pending',

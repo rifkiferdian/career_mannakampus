@@ -110,7 +110,6 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                     </div>
                     <div class="candidate-narrative-grid">
                         <div><span>Pengalaman kerja</span><p><?= nl2br(esc($value($application['work_experience']))) ?></p></div>
-                        <div><span>Keahlian</span><p><?= nl2br(esc($value($application['skills']))) ?></p></div>
                         <div><span>Motivasi bekerja dan alasan ingin bergabung dengan Manna Kampus</span><p><?= nl2br(esc($value($application['work_motivation']))) ?></p></div>
                         <div><span>Target/impian yang akan dicapai</span><p><?= nl2br(esc($value($application['career_goal']))) ?></p></div>
                     </div>

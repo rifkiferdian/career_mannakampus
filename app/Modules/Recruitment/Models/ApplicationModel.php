@@ -21,7 +21,6 @@ class ApplicationModel extends Model
         'vacancy_period_id',
         'preference_order',
         'work_experience',
-        'skills',
         'work_motivation',
         'career_goal',
         'screening_status',

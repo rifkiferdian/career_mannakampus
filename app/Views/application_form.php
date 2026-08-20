@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f5f7f8">
     <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=12">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=13">
 </head>
 <body class="application-page">
     <header class="application-header">
@@ -30,7 +30,6 @@
             ['Alamat', 'Address'],
             ['Pendidikan', 'Education'],
             ['Pengalaman', 'Experience'],
-            ['Keahlian', 'Skills'],
             ['Screening', 'Screening'],
             ['Motivasi', 'Motivation'],
             ['Dokumen', 'Documents'],
@@ -86,7 +85,7 @@
             <section class="wizard-panel active" data-step="1" aria-labelledby="step-title-1">
                 <div class="panel-heading">
                     <div>
-                        <span class="panel-eyebrow">Langkah 1 dari 9</span>
+                        <span class="panel-eyebrow">Langkah 1 dari 8</span>
                         <h1 id="step-title-1">Biodata &amp; Identitas</h1>
                         <p>Masukkan data sesuai KTP. NIK akan dienkripsi sebelum disimpan.</p>
                     </div>
@@ -206,7 +205,7 @@
 
             <section class="wizard-panel" data-step="2" aria-labelledby="step-title-2" hidden>
                 <div class="panel-heading">
-                    <div><span class="panel-eyebrow">Langkah 2 dari 9</span><h2 id="step-title-2">Alamat Domisili</h2><p>Alamat digunakan untuk kebutuhan administrasi dan penempatan.</p></div>
+                    <div><span class="panel-eyebrow">Langkah 2 dari 8</span><h2 id="step-title-2">Alamat Domisili</h2><p>Alamat digunakan untuk kebutuhan administrasi dan penempatan.</p></div>
                 </div>
                 <label class="field field-full">
                     <span>Alamat lengkap saat ini <b>*</b></span>
@@ -216,7 +215,7 @@
 
             <section class="wizard-panel" data-step="3" aria-labelledby="step-title-3" hidden>
                 <div class="panel-heading">
-                    <div><span class="panel-eyebrow">Langkah 3 dari 9</span><h2 id="step-title-3">Pendidikan Terakhir</h2><p>Isi pendidikan formal terakhir yang telah atau sedang diselesaikan.</p></div>
+                    <div><span class="panel-eyebrow">Langkah 3 dari 8</span><h2 id="step-title-3">Pendidikan Terakhir</h2><p>Isi pendidikan formal terakhir yang telah atau sedang diselesaikan.</p></div>
                 </div>
                 <div class="form-grid">
                     <label class="field"><span>Jenjang pendidikan <b>*</b></span>
@@ -235,17 +234,12 @@
             </section>
 
             <section class="wizard-panel" data-step="4" aria-labelledby="step-title-4" hidden>
-                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 4 dari 9</span><h2 id="step-title-4">Pengalaman</h2><p>Ceritakan pengalaman kerja, organisasi, magang, atau proyek yang relevan.</p></div></div>
+                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 4 dari 8</span><h2 id="step-title-4">Pengalaman</h2><p>Ceritakan pengalaman kerja, organisasi, magang, atau proyek yang relevan.</p></div></div>
                 <label class="field field-full"><span>Pengalaman kerja</span><textarea name="work_experience" rows="10" maxlength="5000" placeholder="Nama perusahaan/organisasi, posisi, periode, dan tanggung jawab utama"><?= esc(old('work_experience')) ?></textarea></label>
             </section>
 
             <section class="wizard-panel" data-step="5" aria-labelledby="step-title-5" hidden>
-                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 5 dari 9</span><h2 id="step-title-5">Keahlian</h2><p>Tuliskan keahlian yang paling mendukung posisi ini.</p></div></div>
-                <label class="field field-full"><span>Keahlian utama <b>*</b></span><textarea name="skills" rows="8" maxlength="3000" placeholder="Contoh: pelayanan pelanggan, Microsoft Excel, PHP, komunikasi, desain grafis" required><?= esc(old('skills')) ?></textarea></label>
-            </section>
-
-            <section class="wizard-panel" data-step="6" aria-labelledby="step-title-6" hidden>
-                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 6 dari 9</span><h2 id="step-title-6">Screening Awal</h2><p>Jawab dengan jujur. Jawaban digunakan untuk menilai kesesuaian awal.</p></div></div>
+                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 5 dari 8</span><h2 id="step-title-5">Screening Awal</h2><p>Jawab dengan jujur. Jawaban digunakan untuk menilai kesesuaian awal.</p></div></div>
                 <div class="screening-list">
                     <?php foreach ($selectableVacancies as $screeningVacancy): ?>
                         <?php $isSelected = in_array((int) $screeningVacancy['id'], $selectedVacancyIds, true); ?>
@@ -302,23 +296,23 @@
                 </div>
             </section>
 
-            <section class="wizard-panel" data-step="7" aria-labelledby="step-title-7" hidden>
-                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 7 dari 9</span><h2 id="step-title-7">Motivasi</h2><p>Bantu kami memahami alasan dan tujuan kariermu.</p></div></div>
+            <section class="wizard-panel" data-step="6" aria-labelledby="step-title-6" hidden>
+                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 6 dari 8</span><h2 id="step-title-6">Motivasi</h2><p>Bantu kami memahami alasan dan tujuan kariermu.</p></div></div>
                 <div class="form-stack">
                     <label class="field"><span>MOTIVASI BEKERJA DAN ALASAN INGIN BERGABUNG DENGAN MANNA KAMPUS <b>*</b></span><textarea name="work_motivation" rows="7" minlength="20" maxlength="5000" required><?= esc(old('work_motivation')) ?></textarea></label>
                     <label class="field"><span>TARGET/IMPIAN YANG AKAN DICAPAI <b>*</b></span><textarea name="career_goal" rows="7" minlength="20" maxlength="5000" required><?= esc(old('career_goal')) ?></textarea></label>
                 </div>
             </section>
 
-            <section class="wizard-panel" data-step="8" aria-labelledby="step-title-8" hidden>
-                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 8 dari 9</span><h2 id="step-title-8">Dokumen Pendukung</h2><p>Dokumen disimpan di area privat dan tidak dapat diakses langsung dari internet.</p></div></div>
+            <section class="wizard-panel" data-step="7" aria-labelledby="step-title-7" hidden>
+                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 7 dari 8</span><h2 id="step-title-7">Dokumen Pendukung</h2><p>Dokumen disimpan di area privat dan tidak dapat diakses langsung dari internet.</p></div></div>
                 <div class="document-grid">
                     <label class="document-upload"><span>PDF</span><strong>SILAKAN POSTING BERKAS DALAM 1 FILE PDF <b>*</b></strong><em>SURAT LAMARAN, CV, KTP, KK, IJAZAH, TRANSKRIP NILAI, SERTIF VAKSIN, PAS FOTO BERWARNA, SERTIF SECURITY BAGI PELAMAR SECURITY. Maksimal 10 MB.</em><input type="file" name="application_bundle" accept=".pdf,application/pdf" required><small>Pilih Berkas PDF</small></label>
                 </div>
             </section>
 
-            <section class="wizard-panel" data-step="9" aria-labelledby="step-title-9" hidden>
-                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 9 dari 9</span><h2 id="step-title-9">Tinjau &amp; Kirim</h2><p>Pastikan data yang Anda berikan benar sebelum mengirim lamaran.</p></div></div>
+            <section class="wizard-panel" data-step="8" aria-labelledby="step-title-8" hidden>
+                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 8 dari 8</span><h2 id="step-title-8">Tinjau &amp; Kirim</h2><p>Pastikan data yang Anda berikan benar sebelum mengirim lamaran.</p></div></div>
                 <div class="review-card" id="application-review"></div>
                 <label class="consent-field">
                     <input type="checkbox" name="privacy_consent" value="1" <?= old('privacy_consent') === '1' ? 'checked' : '' ?> required>
@@ -351,6 +345,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=3" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=4" defer></script>
 </body>
 </html>

@@ -363,7 +363,6 @@ class SampleApplicantJourneySeeder extends Seeder
             'vacancy_period_id'    => (int) $period['id'],
             'preference_order'     => $preferenceOrder,
             'work_experience'      => 'Dua tahun sebagai Junior Web Developer pada perusahaan contoh.',
-            'skills'               => 'PHP, CodeIgniter, MySQL, JavaScript, Figma dasar.',
             'work_motivation'      => 'Ingin berkembang dan memberi kontribusi pada transformasi digital retail.',
             'career_goal'          => 'Menjadi software engineer yang memahami kebutuhan bisnis retail.',
             'screening_status'     => $passed ? 'passed' : 'failed',

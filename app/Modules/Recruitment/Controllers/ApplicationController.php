@@ -231,7 +231,6 @@ class ApplicationController extends BaseController
             'gpa'                 => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[4]',
             'training_experience' => 'permit_empty|max_length[3000]',
             'work_experience'     => 'permit_empty|max_length[5000]',
-            'skills'              => 'required|min_length[3]|max_length[3000]',
             'work_motivation'     => 'required|min_length[20]|max_length[5000]',
             'career_goal'         => 'required|min_length[20]|max_length[5000]',
             'privacy_consent'     => 'required|in_list[1]',

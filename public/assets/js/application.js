@@ -134,7 +134,6 @@
             ['Pendidikan', selectedText('last_education')],
             ['Institusi', selectedText('institution')],
             ['Jurusan', selectedText('major')],
-            ['Keahlian', selectedText('skills')],
         ];
 
         review.replaceChildren(...items.map(([label, value]) => {
