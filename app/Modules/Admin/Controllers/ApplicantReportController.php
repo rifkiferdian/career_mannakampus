@@ -117,12 +117,6 @@ class ApplicantReportController extends BaseController
             ]);
         $claimed = $database->affectedRows() === 1;
         if ($claimed) {
-            $database->table('applications')->where('applicant_id', $applicantId)->where('deleted_at', null)->update([
-                'assigned_hrd_team_id' => (int) $team['id'],
-                'assigned_by_user_id' => $userId,
-                'assigned_at' => $now,
-                'updated_at' => $now,
-            ]);
             $database->table('applicant_assignment_histories')->insert([
                 'applicant_id' => $applicantId,
                 'from_hrd_team_id' => null,

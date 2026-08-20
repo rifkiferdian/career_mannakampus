@@ -35,6 +35,7 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
     <meta name="theme-color" content="#102a43">
     <title>Pertanyaan Screening | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=26">
 </head>
 <body class="admin-dashboard-page">
@@ -48,8 +49,8 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
         </header>
 
         <div class="admin-content screening-management-content">
-            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" role="status"><?= esc($success) ?></div><?php endif ?>
-            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
+            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($success) ?></div><?php endif ?>
+            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($error) ?></div><?php endif ?>
 
             <section class="dashboard-welcome department-heading" aria-labelledby="screening-page-title">
                 <div><span class="login-eyebrow">Screening Management</span><h1 id="screening-page-title">Pertanyaan Screening</h1><p>Kelola bank pertanyaan default dan pertanyaan khusus untuk setiap lowongan.</p></div>
@@ -77,7 +78,7 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
                             <td><span class="screening-type-badge"><?= esc($answerTypeLabels[$question['answer_type']] ?? $question['answer_type']) ?></span></td>
                             <td class="screening-evaluation-cell"><?= $question['is_required'] ? 'Wajib' : 'Opsional' ?><?= $question['is_knockout'] ? ' · Knockout' : '' ?><small><?= esc((string) ($question['expected_value'] ?: 'Tanpa jawaban harapan')) ?></small></td>
                             <td><span class="account-status <?= $question['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $question['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td>
-                            <td><div class="department-table-actions"><?php if ($canManageDefaults): ?><button class="settings-edit-trigger table-action-icon table-action-edit" type="button" data-admin-modal-open="default-edit-modal-<?= (int) $question['id'] ?>" aria-label="Edit pertanyaan default" title="Edit pertanyaan default"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/pertanyaan-screening/default/' . $question['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus permanen pertanyaan default ini? Salinan yang sudah ada pada lowongan tetap disimpan sebagai pertanyaan khusus.')"><?= csrf_field() ?><button class="department-delete-button table-action-icon table-action-delete" type="submit" aria-label="Hapus pertanyaan default" title="Hapus pertanyaan default"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td>
+                            <td><div class="department-table-actions"><?php if ($canManageDefaults): ?><button class="settings-edit-trigger table-action-icon table-action-edit" type="button" data-admin-modal-open="default-edit-modal-<?= (int) $question['id'] ?>" aria-label="Edit pertanyaan default" title="Edit pertanyaan default"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/pertanyaan-screening/default/' . $question['id'] . '/hapus') ?>" method="post" data-confirm="Hapus permanen pertanyaan default ini? Salinan yang sudah ada pada lowongan tetap disimpan sebagai pertanyaan khusus."><?= csrf_field() ?><button class="department-delete-button table-action-icon table-action-delete" type="submit" aria-label="Hapus pertanyaan default" title="Hapus pertanyaan default"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td>
                         </tr>
                     <?php endforeach ?>
                     </tbody>
@@ -112,7 +113,7 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
                                 <td><span class="screening-type-badge"><?= esc($answerTypeLabels[$question['answer_type']] ?? $question['answer_type']) ?></span></td>
                                 <td class="screening-evaluation-cell"><?= $question['is_required'] ? 'Wajib' : 'Opsional' ?><?= $question['is_knockout'] ? ' · Knockout' : '' ?><small><?= esc((string) ($question['expected_value'] ?: 'Tanpa jawaban harapan')) ?></small></td>
                                 <td><span class="account-status <?= $question['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $question['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td>
-                                <td><div class="department-table-actions"><?php if ($canManageVacancyQuestions): ?><button class="settings-edit-trigger table-action-icon table-action-edit" type="button" data-admin-modal-open="vacancy-edit-modal-<?= (int) $question['id'] ?>" aria-label="Edit pertanyaan lowongan" title="Edit pertanyaan lowongan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/pertanyaan-screening/lowongan/' . $selectedVacancyId . '/' . $question['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus permanen pertanyaan ini? Seluruh jawaban kandidat yang terhubung juga akan terhapus.')"><?= csrf_field() ?><button class="department-delete-button table-action-icon table-action-delete" type="submit" aria-label="Hapus pertanyaan lowongan" title="Hapus pertanyaan lowongan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td>
+                                <td><div class="department-table-actions"><?php if ($canManageVacancyQuestions): ?><button class="settings-edit-trigger table-action-icon table-action-edit" type="button" data-admin-modal-open="vacancy-edit-modal-<?= (int) $question['id'] ?>" aria-label="Edit pertanyaan lowongan" title="Edit pertanyaan lowongan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/pertanyaan-screening/lowongan/' . $selectedVacancyId . '/' . $question['id'] . '/hapus') ?>" method="post" data-confirm="Hapus permanen pertanyaan ini? Seluruh jawaban kandidat yang terhubung juga akan terhapus."><?= csrf_field() ?><button class="department-delete-button table-action-icon table-action-delete" type="submit" aria-label="Hapus pertanyaan lowongan" title="Hapus pertanyaan lowongan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form><?php else: ?><span class="protected-label">Lihat saja</span><?php endif ?></div></td>
                             </tr>
                         <?php endforeach ?>
                         </tbody>
@@ -156,6 +157,8 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
         </dialog>
     <?php endforeach ?>
 <?php endif ?>
+
+<script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=3" defer></script>
 </body>

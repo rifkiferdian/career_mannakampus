@@ -229,10 +229,16 @@ class CandidateController extends BaseController
      */
     private function nextStages(int $templateId, string $currentStatus, array $templateStages, array $allStages): array
     {
-        if (in_array($currentStatus, ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'], true)) {
+        if (in_array($currentStatus, ['accepted', 'hired', 'rejected', 'withdrawn'], true)) {
             return [];
         }
         $sequence = $templateStages[$templateId] ?? [];
+
+        if ($currentStatus === 'screening_failed') {
+            return [
+                $this->manualScreeningStage('screening_passed', 'Ubah menjadi Lolos Screening', '#16A34A'),
+            ];
+        }
 
         if ($currentStatus === 'lamaran_baru') {
             foreach ($sequence as $stage) {

@@ -13,22 +13,19 @@ $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.v
 $canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
 $canViewCandidates = $authorization->can($userId, 'candidates.view');
 $canViewHrdTeams = $authorization->can($userId, 'hrd.teams.view');
-$todayApplicantCount = 0;
+$unassignedApplicantCount = 0;
 if ($canViewApplicantPool) {
-    $jakartaTimezone = new \DateTimeZone('Asia/Jakarta');
-    $utcTimezone = new \DateTimeZone('UTC');
-    $todayJakarta = new \DateTimeImmutable('now', $jakartaTimezone);
-    $todayStartUtc = $todayJakarta->setTime(0, 0)->setTimezone($utcTimezone)->format('Y-m-d H:i:s');
-    $tomorrowStartUtc = $todayJakarta->modify('+1 day')->setTime(0, 0)->setTimezone($utcTimezone)->format('Y-m-d H:i:s');
-    $todayApplicantCount = (int) (db_connect()->table('applications')
-        ->select('COUNT(DISTINCT applicant_id) AS total', false)
-        ->where('submitted_at >=', $todayStartUtc)
-        ->where('submitted_at <', $tomorrowStartUtc)
-        ->where('deleted_at', null)
+    $unassignedApplicantCount = (int) (db_connect()->table('applications AS applications')
+        ->select('COUNT(DISTINCT applications.applicant_id) AS total', false)
+        ->join('applicants', 'applicants.id = applications.applicant_id')
+        ->where('applicants.assigned_hrd_team_id', null)
+        ->where('applications.deleted_at', null)
+        ->where('applicants.deleted_at', null)
         ->get()->getRowArray()['total'] ?? 0);
 }
 $canManageHrdTeams = $authorization->can($userId, 'hrd.teams.manage');
 $candidateTeams = [];
+$newCandidateCounts = [];
 $currentCandidateTeamId = 0;
 if ($canViewCandidates) {
     $teamBuilder = db_connect()->table('hrd_teams AS teams')->select('teams.id, teams.name')->where('teams.is_active', 1)->orderBy('teams.name');
@@ -41,6 +38,18 @@ if ($canViewCandidates) {
     $membershipCandidateTeamId = (int) (db_connect()->table('hrd_team_users')->select('hrd_team_id')->where('user_id', $userId)->get()->getRowArray()['hrd_team_id'] ?? 0);
     $defaultCandidateTeamId = in_array($membershipCandidateTeamId, $availableCandidateTeamIds, true) ? $membershipCandidateTeamId : (int) ($candidateTeams[0]['id'] ?? 0);
     $currentCandidateTeamId = in_array($requestedCandidateTeamId, $availableCandidateTeamIds, true) ? $requestedCandidateTeamId : $defaultCandidateTeamId;
+    if ($availableCandidateTeamIds !== []) {
+        $newCandidateRows = db_connect()->table('applications AS applications')
+            ->select('applicants.assigned_hrd_team_id, COUNT(DISTINCT applications.applicant_id) AS total', false)
+            ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->whereIn('applicants.assigned_hrd_team_id', $availableCandidateTeamIds)
+            ->where('applications.application_status', 'lamaran_baru')
+            ->where('applications.deleted_at', null)
+            ->where('applicants.deleted_at', null)
+            ->groupBy('applicants.assigned_hrd_team_id')
+            ->get()->getResultArray();
+        $newCandidateCounts = array_column($newCandidateRows, 'total', 'assigned_hrd_team_id');
+    }
 }
 $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' class="active"' : '';
 ?>
@@ -111,7 +120,7 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
                 List Pelamar
-                <?php if ($todayApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $todayApplicantCount ?> pelamar mendaftar hari ini" aria-label="<?= $todayApplicantCount ?> pelamar baru hari ini"><?= $todayApplicantCount > 99 ? '99+' : $todayApplicantCount ?></span><?php endif ?>
+                <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $unassignedApplicantCount ?> pelamar belum dipilih divisi HRD" aria-label="<?= $unassignedApplicantCount ?> pelamar belum dipilih divisi HRD"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?></span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewCandidates && $candidateTeams !== []): ?>
@@ -119,6 +128,8 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 <a<?= $activeMenu === 'candidates' && $currentCandidateTeamId === (int) $candidateTeam['id'] ? ' class="active"' : '' ?> href="<?= site_url('adminhrdmannakampus/kandidat?team_id=' . $candidateTeam['id']) ?>">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
                     Pelamar <?= esc($candidateTeam['name']) ?>
+                    <?php $newCandidateCount = (int) ($newCandidateCounts[(int) $candidateTeam['id']] ?? 0); ?>
+                    <?php if ($newCandidateCount > 0): ?><span class="sidebar-notification-badge" title="<?= $newCandidateCount ?> pelamar berstatus Lamaran Baru" aria-label="<?= $newCandidateCount ?> pelamar berstatus Lamaran Baru"><?= $newCandidateCount > 99 ? '99+' : $newCandidateCount ?></span><?php endif ?>
                 </a>
             <?php endforeach ?>
         <?php elseif ($canViewCandidates): ?>

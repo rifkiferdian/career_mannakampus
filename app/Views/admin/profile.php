@@ -14,6 +14,7 @@ $formatJakarta = static function (string $date, string $format): string {
     <meta name="theme-color" content="#102a43">
     <title>Profil &amp; Keamanan | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
 </head>
 <body class="admin-dashboard-page">
@@ -31,10 +32,10 @@ $formatJakarta = static function (string $date, string $format): string {
 
             <div class="admin-content profile-content">
                 <?php if (! empty($success)): ?>
-                    <div class="admin-alert admin-alert-success dashboard-alert" role="status"><?= esc($success) ?></div>
+                    <div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($success) ?></div>
                 <?php endif ?>
                 <?php if (! empty($error)): ?>
-                    <div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div>
+                    <div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($error) ?></div>
                 <?php endif ?>
 
                 <section class="dashboard-welcome profile-heading" aria-labelledby="profile-title">
@@ -161,6 +162,7 @@ $formatJakarta = static function (string $date, string $format): string {
             </div>
         </main>
     </div>
+    <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
     <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>
 </html>

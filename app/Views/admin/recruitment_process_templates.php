@@ -6,7 +6,7 @@ $usedVacancyCount = array_sum(array_map(static fn (array $template): int => (int
 <html lang="id">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive">
-    <title>Template Tahapan | HRD Manna Kampus</title><link rel="icon" href="<?= base_url('favicon.ico') ?>"><link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=35">
+    <title>Template Tahapan | HRD Manna Kampus</title><link rel="icon" href="<?= base_url('favicon.ico') ?>"><link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25"><link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=35">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -14,8 +14,8 @@ $usedVacancyCount = array_sum(array_map(static fn (array $template): int => (int
     <main class="admin-main">
         <header class="admin-topbar"><button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false"><span></span><span></span><span></span></button><div><span>Recruitment</span><strong>Template Tahapan</strong></div></header>
         <div class="admin-content process-template-content">
-            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" role="status"><?= esc($success) ?></div><?php endif ?>
-            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
+            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($success) ?></div><?php endif ?>
+            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($error) ?></div><?php endif ?>
             <section class="dashboard-welcome department-heading"><div><span class="login-eyebrow">Recruitment Pipeline</span><h1>Template Tahapan</h1><p>Atur urutan proses seleksi, kemudian pilih templatenya pada setiap lowongan.</p></div></section>
             <section class="access-summary vacancy-summary process-template-summary" aria-label="Ringkasan template tahapan">
                 <article><i class="summary-card-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h4v4H5zM15 5h4v4h-4zM5 15h4v4H5zM15 15h4v4h-4zM9 7h6M7 9v6M9 17h6M17 9v6"/></svg></i><strong><?= count($templates) ?></strong><span>Total template</span></article>
@@ -34,7 +34,7 @@ $usedVacancyCount = array_sum(array_map(static fn (array $template): int => (int
                         <td><div class="template-stage-flow"><?php foreach ($template['stages'] as $stage): ?><span style="--stage-color:<?= esc($stage['color_hex'], 'attr') ?>"><b><?= (int) $stage['display_order'] ?></b><i></i><?= esc($stage['name']) ?></span><?php endforeach ?></div></td>
                         <td><span class="department-vacancy-count"><?= (int) $template['vacancy_count'] ?> lowongan</span></td>
                         <td><span class="account-status <?= $template['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $template['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td>
-                        <?php if ($canManage): ?><td><div class="department-table-actions"><button type="button" class="table-action-icon table-action-edit" data-admin-modal-open="process-template-edit-<?= (int) $template['id'] ?>" aria-label="Edit <?= esc($template['name'], 'attr') ?>" title="Edit template"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/template-tahapan/' . $template['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus template ini secara permanen?')"><?= csrf_field() ?><button class="table-action-icon table-action-delete" type="submit" aria-label="Hapus <?= esc($template['name'], 'attr') ?>" title="<?= (int) $template['vacancy_count'] > 0 ? 'Template sedang dipakai lowongan' : 'Hapus template' ?>" <?= (int) $template['vacancy_count'] > 0 ? 'disabled' : '' ?>><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form></div></td><?php endif ?>
+                        <?php if ($canManage): ?><td><div class="department-table-actions"><button type="button" class="table-action-icon table-action-edit" data-admin-modal-open="process-template-edit-<?= (int) $template['id'] ?>" aria-label="Edit <?= esc($template['name'], 'attr') ?>" title="Edit template"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/template-tahapan/' . $template['id'] . '/hapus') ?>" method="post" data-confirm="Hapus template ini secara permanen?"><?= csrf_field() ?><button class="table-action-icon table-action-delete" type="submit" aria-label="Hapus <?= esc($template['name'], 'attr') ?>" title="<?= (int) $template['vacancy_count'] > 0 ? 'Template sedang dipakai lowongan' : 'Hapus template' ?>" <?= (int) $template['vacancy_count'] > 0 ? 'disabled' : '' ?>><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form></div></td><?php endif ?>
                     </tr><?php endforeach ?>
                     </tbody>
                 </table></div>
@@ -52,7 +52,7 @@ $usedVacancyCount = array_sum(array_map(static fn (array $template): int => (int
                         <td><?= (int) $stage['sla_days'] > 0 ? (int) $stage['sla_days'] . ' hari' : '-' ?></td>
                         <td><div class="stage-type-usage"><span><?= (int) $stage['template_count'] ?> template</span><small><?= (int) $stage['application_count'] ?> kandidat aktif</small></div></td>
                         <td><span class="account-status <?= $stage['is_active'] ? 'active' : 'inactive' ?>"><i></i><?= $stage['is_active'] ? 'Aktif' : 'Nonaktif' ?></span></td>
-                        <?php if ($canManage): ?><td><div class="department-table-actions"><button type="button" class="table-action-icon table-action-edit" data-admin-modal-open="stage-type-edit-<?= (int) $stage['id'] ?>" aria-label="Edit <?= esc($stage['name'], 'attr') ?>" title="Edit jenis tahap"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/template-tahapan/jenis/' . $stage['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus jenis tahap ini secara permanen?')"><?= csrf_field() ?><button class="table-action-icon table-action-delete" type="submit" aria-label="Hapus <?= esc($stage['name'], 'attr') ?>" title="<?= $canDeleteStage ? 'Hapus jenis tahap' : 'Jenis tahap masih digunakan atau dilindungi' ?>" <?= $canDeleteStage ? '' : 'disabled' ?>><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form></div></td><?php endif ?>
+                        <?php if ($canManage): ?><td><div class="department-table-actions"><button type="button" class="table-action-icon table-action-edit" data-admin-modal-open="stage-type-edit-<?= (int) $stage['id'] ?>" aria-label="Edit <?= esc($stage['name'], 'attr') ?>" title="Edit jenis tahap"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><form action="<?= site_url('adminhrdmannakampus/template-tahapan/jenis/' . $stage['id'] . '/hapus') ?>" method="post" data-confirm="Hapus jenis tahap ini secara permanen?"><?= csrf_field() ?><button class="table-action-icon table-action-delete" type="submit" aria-label="Hapus <?= esc($stage['name'], 'attr') ?>" title="<?= $canDeleteStage ? 'Hapus jenis tahap' : 'Jenis tahap masih digunakan atau dilindungi' ?>" <?= $canDeleteStage ? '' : 'disabled' ?>><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form></div></td><?php endif ?>
                     </tr><?php endforeach ?>
                     </tbody>
                 </table></div>
@@ -78,5 +78,6 @@ $usedVacancyCount = array_sum(array_map(static fn (array $template): int => (int
     <form class="process-template-form stage-type-form" action="<?= site_url('adminhrdmannakampus/template-tahapan/jenis/' . $stage['id']) ?>" method="post"><?= csrf_field() ?><?= view('admin/partials/stage_type_fields', ['stage' => $stage]) ?><div class="candidate-process-buttons"><button type="button" class="candidate-modal-cancel" data-admin-modal-close>Batal</button><button type="submit">Simpan perubahan</button></div></form>
 </div></dialog><?php endforeach ?>
 <?php endif ?>
+<script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body></html>

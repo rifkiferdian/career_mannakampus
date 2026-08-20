@@ -30,6 +30,7 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
     <meta name="theme-color" content="#102a43">
     <title>Sesi Lowongan | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=27">
 </head>
 <body class="admin-dashboard-page">
@@ -38,8 +39,8 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
     <main class="admin-main">
         <header class="admin-topbar"><button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button><div><span>Recruitment Period</span><strong>Sesi Lowongan</strong></div><a class="view-career-link" href="<?= site_url('adminhrdmannakampus/lowongan') ?>">Kelola lowongan</a></header>
         <div class="admin-content vacancy-period-content">
-            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" role="status"><?= esc($success) ?></div><?php endif ?>
-            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
+            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($success) ?></div><?php endif ?>
+            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($error) ?></div><?php endif ?>
 
             <section class="dashboard-welcome department-heading">
                 <div><span class="login-eyebrow">Periode Rekrutmen</span><h1>Sesi Lowongan</h1><p>Buka lowongan yang sama dalam beberapa periode tanpa mencampur kandidat dan laporan.</p></div>
@@ -76,7 +77,7 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
                             <td><span class="period-status period-status-<?= esc($period['status'], 'attr') ?>"><i></i><?= esc($statusLabels[$period['status']] ?? $period['status']) ?></span></td>
                             <td><div class="department-table-actions period-actions">
                                 <?php if ($canManage): ?><button class="table-action-icon table-action-edit" type="button" data-admin-modal-open="period-edit-modal-<?= (int) $period['id'] ?>" aria-label="Edit sesi lowongan" title="Edit sesi lowongan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></button><?php endif ?>
-                                <?php if ($canManage && (int) $period['application_count'] === 0): ?><form action="<?= site_url('adminhrdmannakampus/sesi-lowongan/' . $period['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus sesi lowongan ini?')"><?= csrf_field() ?><input type="hidden" name="vacancy_id" value="<?= (int) $period['vacancy_id'] ?>"><button class="department-delete-button table-action-icon table-action-delete" type="submit" aria-label="Hapus sesi lowongan" title="Hapus sesi lowongan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form><?php endif ?>
+                                <?php if ($canManage && (int) $period['application_count'] === 0): ?><form action="<?= site_url('adminhrdmannakampus/sesi-lowongan/' . $period['id'] . '/hapus') ?>" method="post" data-confirm="Hapus sesi lowongan ini?"><?= csrf_field() ?><input type="hidden" name="vacancy_id" value="<?= (int) $period['vacancy_id'] ?>"><button class="department-delete-button table-action-icon table-action-delete" type="submit" aria-label="Hapus sesi lowongan" title="Hapus sesi lowongan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form><?php endif ?>
                             </div></td>
                         </tr>
                     <?php endforeach ?>
@@ -121,6 +122,8 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
 </dialog>
 <?php endforeach ?>
 <?php endif ?>
+
+<script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>

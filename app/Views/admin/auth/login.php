@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#102a43">
     <title>Login HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
 </head>
 <body class="admin-login-page">
@@ -37,11 +38,11 @@
                 <p class="login-intro">Masukkan akun HRD Anda untuk melanjutkan ke dashboard.</p>
 
                 <?php if ($message = session()->getFlashdata('auth_success')): ?>
-                    <div class="admin-alert admin-alert-success" role="status"><?= esc($message) ?></div>
+                    <div class="admin-alert admin-alert-success" data-swal-toast="success" role="status"><?= esc($message) ?></div>
                 <?php endif ?>
 
                 <?php if (! empty($error)): ?>
-                    <div class="admin-alert admin-alert-error" role="alert"><?= esc($error) ?></div>
+                    <div class="admin-alert admin-alert-error" data-swal-toast="error" role="alert"><?= esc($error) ?></div>
                 <?php endif ?>
 
                 <form class="admin-login-form" action="<?= site_url('adminhrdmannakampus') ?>" method="post" novalidate>
@@ -71,6 +72,7 @@
             </div>
         </section>
     </main>
+    <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
     <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=1" defer></script>
 </body>
 </html>

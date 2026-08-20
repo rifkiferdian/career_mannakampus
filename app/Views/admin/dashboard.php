@@ -36,6 +36,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
     <meta name="theme-color" content="#102a43">
     <title>Dashboard HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
 </head>
 <body class="admin-dashboard-page">
@@ -49,8 +50,8 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
         </header>
 
         <div class="admin-content analytics-dashboard-content">
-            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" role="status"><?= esc($success) ?></div><?php endif ?>
-            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
+            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($success) ?></div><?php endif ?>
+            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($error) ?></div><?php endif ?>
 
             <section class="dashboard-welcome analytics-welcome">
                 <div><span class="login-eyebrow">Recruitment Overview</span><h1>Halo, <?= esc(explode(' ', (string) ($auth['name'] ?? 'Admin'))[0]) ?>.</h1><p>Ringkasan performa dan pekerjaan rekrutmen yang perlu ditindaklanjuti.</p></div>
@@ -117,6 +118,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
         </div>
     </main>
 </div>
+<script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>
 </html>

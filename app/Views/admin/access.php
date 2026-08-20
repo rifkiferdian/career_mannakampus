@@ -7,6 +7,7 @@
     <meta name="theme-color" content="#102a43">
     <title>User &amp; Akses | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
 </head>
 <body class="admin-dashboard-page">
@@ -21,8 +22,8 @@
             </header>
 
             <div class="admin-content access-content">
-                <?php if (! empty($success)): ?><div class="admin-alert admin-alert-success dashboard-alert" role="status"><?= esc($success) ?></div><?php endif ?>
-                <?php if (! empty($error)): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
+                <?php if (! empty($success)): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($success) ?></div><?php endif ?>
+                <?php if (! empty($error)): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($error) ?></div><?php endif ?>
 
                 <section class="dashboard-welcome access-heading" aria-labelledby="access-title">
                     <div><span class="login-eyebrow">Khusus Super Admin</span><h1 id="access-title">User &amp; Akses</h1><p>Kelola akun internal, role, dan batas akses setiap anggota tim rekrutmen.</p></div>
@@ -117,6 +118,7 @@
             </div>
         </main>
     </div>
+    <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
     <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>
 </html>

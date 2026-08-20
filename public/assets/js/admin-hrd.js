@@ -30,10 +30,54 @@
         if (event.key === 'Escape') closeSidebar();
     });
 
-    document.querySelectorAll('[data-confirm]').forEach((button) => {
-        button.addEventListener('click', (event) => {
-            if (!window.confirm(button.dataset.confirm)) event.preventDefault();
+    document.querySelectorAll('[data-swal-toast]').forEach((alert) => {
+        if (typeof window.Swal === 'undefined') return;
+
+        alert.hidden = true;
+        window.Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: alert.dataset.swalToast === 'success' ? 'success' : 'error',
+            title: alert.textContent.trim(),
+            showConfirmButton: false,
+            timer: alert.dataset.swalToast === 'success' ? 3500 : 5000,
+            timerProgressBar: true,
         });
+    });
+
+    document.addEventListener('submit', async (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement) || form.dataset.confirmed === 'true') return;
+
+        const submitter = event.submitter;
+        const message = submitter?.dataset.confirm || form.dataset.confirm;
+        if (!message) return;
+
+        event.preventDefault();
+
+        const isConfirmed = typeof window.Swal === 'undefined'
+            ? window.confirm(message)
+            : (await window.Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, lanjutkan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#c0392b',
+                cancelButtonColor: '#64748b',
+                reverseButtons: true,
+                focusCancel: true,
+            })).isConfirmed;
+
+        if (!isConfirmed) return;
+
+        form.dataset.confirmed = 'true';
+        if (submitter instanceof HTMLElement) {
+            form.requestSubmit(submitter);
+        } else {
+            form.submit();
+        }
     });
 
     document.querySelectorAll('[data-admin-modal-open]').forEach((button) => {

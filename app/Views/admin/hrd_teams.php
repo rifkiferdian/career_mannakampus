@@ -11,6 +11,7 @@ $oldFor = static fn (string $modal, string $field, mixed $fallback = ''): mixed 
     <meta name="robots" content="noindex,nofollow,noarchive">
     <title>Tim HRD | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=28">
 </head>
 <body class="admin-dashboard-page">
@@ -19,8 +20,8 @@ $oldFor = static fn (string $modal, string $field, mixed $fallback = ''): mixed 
     <main class="admin-main">
         <header class="admin-topbar"><button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button><div><span>Recruitment Team</span><strong>Tim HRD</strong></div><a class="view-career-link" href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">Lihat pelamar</a></header>
         <div class="admin-content access-content hrd-team-content">
-            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" role="status"><?= esc($success) ?></div><?php endif ?>
-            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" role="alert"><?= esc($error) ?></div><?php endif ?>
+            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($success) ?></div><?php endif ?>
+            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($error) ?></div><?php endif ?>
 
             <section class="dashboard-welcome department-heading">
                 <div><span class="login-eyebrow">Pembagian Pelamar</span><h1>Tim HRD</h1><p>Atur Divisi 1, Divisi 2, dan anggota yang berhak memilih serta memproses pelamar.</p></div>
@@ -57,6 +58,7 @@ $oldFor = static fn (string $modal, string $field, mixed $fallback = ''): mixed 
 <dialog class="admin-modal" id="team-edit-modal-<?= (int) $team['id'] ?>" aria-labelledby="team-edit-title-<?= (int) $team['id'] ?>" <?= $openModal === $modal ? 'data-auto-open' : '' ?>><div class="admin-modal-panel"><div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></svg></span><div><h2 id="team-edit-title-<?= (int) $team['id'] ?>">Edit <?= esc($team['name']) ?></h2><p>Perbarui nama, kode, atau status divisi.</p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div><form class="department-create-form hrd-team-form" action="<?= site_url('adminhrdmannakampus/tim-hrd/' . $team['id']) ?>" method="post"><?= csrf_field() ?><label>Nama divisi<input name="name" maxlength="120" value="<?= esc((string) $oldFor($modal, 'name', $team['name']), 'attr') ?>" required></label><label>Kode<input name="code" maxlength="60" value="<?= esc((string) $oldFor($modal, 'code', $team['code']), 'attr') ?>" required></label><label class="department-modal-description">Keterangan<textarea name="description" rows="3" maxlength="255"><?= esc((string) $oldFor($modal, 'description', $team['description'])) ?></textarea></label><div class="department-modal-actions"><label class="department-active-check"><input type="checkbox" name="is_active" value="1" <?= (string) $oldFor($modal, 'is_active', (string) $team['is_active']) === '1' ? 'checked' : '' ?>> Aktif</label><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit">Simpan perubahan</button></div></form></div></dialog>
 <?php endforeach ?>
 <?php endif ?>
+<script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>
 </html>

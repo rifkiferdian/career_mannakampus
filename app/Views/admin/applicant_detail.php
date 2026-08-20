@@ -27,6 +27,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     <meta name="theme-color" content="#102a43">
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
 </head>
 <body class="admin-dashboard-page">
@@ -122,6 +123,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
         </div>
     </main>
 </div>
+<script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>
 </html>

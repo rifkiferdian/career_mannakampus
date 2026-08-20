@@ -18,6 +18,7 @@ $statusLabels = ['draft' => 'Draft', 'open' => 'Dibuka', 'closed' => 'Ditutup', 
     <meta name="theme-color" content="#102a43">
     <title><?= $isEdit ? 'Edit ' . esc($vacancy['title']) : 'Tambah Lowongan' ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=36">
 </head>
 <body class="admin-dashboard-page">
@@ -30,8 +31,8 @@ $statusLabels = ['draft' => 'Draft', 'open' => 'Dibuka', 'closed' => 'Ditutup', 
             <a class="view-career-link" href="<?= site_url('adminhrdmannakampus/lowongan') ?>">Kembali ke daftar</a>
         </header>
         <div class="admin-content vacancy-form-content">
-            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert"><?= esc($success) ?></div><?php endif ?>
-            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert"><?= esc($error) ?></div><?php endif ?>
+            <?php if ($success): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success"><?= esc($success) ?></div><?php endif ?>
+            <?php if ($error): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error"><?= esc($error) ?></div><?php endif ?>
 
             <section class="dashboard-welcome department-heading">
                 <div><span class="login-eyebrow">Vacancy Editor</span><h1><?= $isEdit ? esc($vacancy['title']) : 'Lowongan Baru' ?></h1><p>Lengkapi informasi posisi, publikasi, sesi, dan screening dalam satu detail lowongan.</p></div>
@@ -130,6 +131,7 @@ $statusLabels = ['draft' => 'Draft', 'open' => 'Dibuka', 'closed' => 'Ditutup', 
         </div>
     </main>
 </div>
+<script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
 </body>
 </html>
