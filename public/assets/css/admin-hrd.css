@@ -733,12 +733,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-filter-form button, .candidate-filter-form > a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 11px; font-weight: 800; text-decoration: none; }
 .candidate-filter-form button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
 .candidate-filter-form > a { color: #657582; background: white; border: 1px solid #dce3e9; }
-.candidate-table { min-width: 1080px; }
+.candidate-table { min-width: 1020px; }
 .candidate-table th { font-size: 10px; }
 .candidate-table td { color: #5f707d; font-size: 11px; }
 .candidate-table .candidate-order { width: 54px; color: var(--admin-navy); font-weight: 700; text-align: center; }
 .candidate-table .report-applicant strong, .candidate-table .department-name-cell strong { font-size: 13px; }
 .candidate-table .report-applicant a, .candidate-table .report-applicant small, .candidate-table .department-name-cell code { font-size: 10px; }
+.candidate-whatsapp-link { display: inline-flex; align-items: center; gap: 6px; color: #16834f; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.candidate-whatsapp-link svg { width: 18px; height: 18px; flex: 0 0 18px; fill: #25d366; }
+.candidate-whatsapp-link:hover { text-decoration: underline; }
 .candidate-stage-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; color: var(--candidate-color); background: color-mix(in srgb, var(--candidate-color) 11%, white); border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
 .candidate-stage-pill i { width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
 .candidate-stage-age { color: #536879; font-size: 11px; font-weight: 800; white-space: nowrap; }
@@ -1134,16 +1137,8 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .applicant-division-badge { display: inline-flex; align-items: center; padding: 7px 10px; border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
 .applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
 .applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
-.applicant-assigned-by { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; white-space: nowrap; }
 .applicant-position-meta { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; }
-.applicant-position-statuses { min-width: 190px; display: grid; gap: 7px; }
-.applicant-position-statuses > span { display: grid; grid-template-columns: minmax(90px, 1fr) auto; align-items: center; gap: 8px; }
-.applicant-position-statuses strong { color: #425568; font-size: 10px; font-weight: 750; }
-.applicant-position-statuses small { padding: 5px 8px; color: #526879; background: #eef2f5; border-radius: 999px; font-size: 9px; font-weight: 800; white-space: nowrap; }
-.applicant-position-statuses .status-screening_passed, .applicant-position-statuses .status-accepted { color: #257052; background: #e7f5ee; }
-.applicant-position-statuses .status-screening_failed, .applicant-position-statuses .status-rejected { color: #a34c43; background: #fff0ed; }
 .candidate-filter-form.candidate-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.1fr) repeat(4, minmax(125px, .7fr)) auto auto; }
-.candidate-assignment-meta { display: block; margin-top: 5px; color: #87949e; font-size: 9px; white-space: nowrap; }
 
 @media (max-width: 1100px) {
     .candidate-filter-form.candidate-filter-with-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }

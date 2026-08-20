@@ -1,5 +1,4 @@
 <?php
-$screeningLabels = ['passed' => 'Lolos', 'failed' => 'Tidak lolos', 'pending' => 'Belum dinilai'];
 $candidateBaseUrl = site_url('adminhrdmannakampus/kandidat');
 $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $selectedTeamId : '');
 ?>
@@ -13,7 +12,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=32">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=38">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -59,17 +58,17 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                 <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg></span><div><h2>Pipeline <?= esc($selectedTeam['name'] ?? 'divisi') ?></h2><p>Hanya pelamar yang sudah dipilih untuk divisi ini.</p></div><span class="device-count"><?= count($applications) ?></span></div>
                 <div class="department-table-wrap">
                     <table class="department-table candidate-table">
-                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Posisi</th><th>Screening</th><th>Tahap saat ini</th><th>Lama di tahap</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
                         <tbody>
                             <?php if ($applications === []): ?><tr><td colspan="8" class="department-empty">Belum ada pelamar pada divisi ini.</td></tr><?php endif ?>
-                            <?php foreach ($applications as $index => $application): $screening = (string) ($application['screening_status'] ?: 'pending'); ?>
+                            <?php foreach ($applications as $index => $application): ?>
                                 <tr>
                                     <td class="candidate-order"><?= $index + 1 ?></td>
-                                    <td><div class="report-applicant"><strong><?= esc($application['full_name']) ?></strong><a href="mailto:<?= esc($application['email'], 'attr') ?>"><?= esc($application['email']) ?></a><small><?= esc($application['phone']) ?></small></div></td>
-                                    <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code><small><?= esc($application['process_template_name'] ?: 'Template belum ditentukan') ?></small><small class="candidate-assignment-meta">Dipilih <?= esc($application['assigned_by_name'] ?: '-') ?><?= $application['assigned_at'] ? ' · ' . esc(date('d/m/Y H:i', strtotime($application['assigned_at']))) : '' ?></small></div></td>
-                                    <td><span class="report-screening screening-<?= esc($screening, 'attr') ?>"><?= esc($screeningLabels[$screening] ?? 'Belum dinilai') ?></span><small class="report-score"><?= $application['screening_score'] !== null ? esc(number_format((float) $application['screening_score'], 2, ',', '.')) : '-' ?></small></td>
+                                    <td><div class="report-applicant"><strong><?= esc($application['full_name']) ?></strong><a href="mailto:<?= esc($application['email'], 'attr') ?>"><?= esc($application['email']) ?></a></div></td>
+                                    <td><?= $application['age'] === null ? '-' : (int) $application['age'] . ' tahun' ?></td>
+                                    <td><?php if ($application['whatsapp_number'] !== ''): ?><a class="candidate-whatsapp-link" href="https://wa.me/<?= esc($application['whatsapp_number'], 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="Hubungi <?= esc($application['full_name'], 'attr') ?> melalui WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Zm-8.4 18.2c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.4 4.7Zm5.4-7.3c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.6l-.9-2.1c-.2-.5-.5-.5-.7-.5H8c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2 2.2.9 3.1 1 4.2.8.7-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3l-1.4-.7Z"/></svg><span><?= esc($application['phone']) ?></span></a><?php else: ?>-<?php endif ?></td>
+                                    <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code><small><?= esc($application['process_template_name'] ?: 'Template belum ditentukan') ?></small></div></td>
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span></td>
-                                    <td><span class="candidate-stage-age <?= $application['is_overdue'] ? 'overdue' : '' ?>"><?= (int) $application['days_in_stage'] ?> hari</span><?php if ((int) $application['sla_days'] > 0): ?><small class="candidate-sla">SLA <?= (int) $application['sla_days'] ?> hari</small><?php endif ?></td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
                                     <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
                                 </tr>

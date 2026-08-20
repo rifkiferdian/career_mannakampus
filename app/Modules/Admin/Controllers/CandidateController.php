@@ -62,7 +62,19 @@ class CandidateController extends BaseController
         $this->applyFilters($builder, $filters);
         $applications = $builder->orderBy('applications.updated_at', 'DESC')->orderBy('applications.id', 'DESC')->get()->getResultArray();
         $now = time();
+        $today = new \DateTimeImmutable('today');
         foreach ($applications as &$application) {
+            $whatsAppNumber = preg_replace('/\D+/', '', (string) ($application['phone'] ?? '')) ?? '';
+            if (str_starts_with($whatsAppNumber, '0')) {
+                $whatsAppNumber = '62' . substr($whatsAppNumber, 1);
+            } elseif (str_starts_with($whatsAppNumber, '8')) {
+                $whatsAppNumber = '62' . $whatsAppNumber;
+            }
+            $application['whatsapp_number'] = $whatsAppNumber;
+            $birthDate = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) ($application['birth_date'] ?? ''));
+            $application['age'] = $birthDate !== false && $birthDate <= $today
+                ? $birthDate->diff($today)->y
+                : null;
             $since = strtotime((string) ($application['stage_changed_at'] ?: $application['submitted_at']));
             $application['days_in_stage'] = $since === false ? 0 : max(0, (int) floor(($now - $since) / 86400));
             $application['is_overdue'] = (int) $application['sla_days'] > 0 && $application['days_in_stage'] > (int) $application['sla_days'];
@@ -194,7 +206,7 @@ class CandidateController extends BaseController
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('recruitment_process_templates AS process_templates', 'process_templates.id = vacancies.recruitment_process_template_id', 'left')
