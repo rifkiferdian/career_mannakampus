@@ -28,7 +28,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=29">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=40">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -109,6 +109,19 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                         <div><span>Nilai screening</span><strong><?= $application['screening_score'] !== null ? esc(number_format((float) $application['screening_score'], 2, ',', '.')) : '-' ?></strong></div>
                         <div><span>Batch pendaftaran</span><strong><?= esc($application['batch_number']) ?></strong></div>
                     </div>
+                    <?php if (! empty($application['rejected_stage_name'])): ?>
+                        <div class="candidate-rejection-card">
+                            <span>Keputusan gugur</span>
+                            <h4>Gugur di <?= $application['rejected_stage_order'] !== null ? 'Tahap ' . (int) $application['rejected_stage_order'] . ' — ' : '' ?><?= esc($application['rejected_stage_name']) ?></h4>
+                            <dl>
+                                <div><dt>Alasan</dt><dd><strong><?= esc($application['rejection_reason_title']) ?></strong></dd></div>
+                                <div><dt>Diputuskan oleh</dt><dd><?= esc($application['rejected_by_name'] ?: 'Sistem') ?></dd></div>
+                                <div><dt>Waktu keputusan</dt><dd><?= esc($date($application['rejected_at'])) ?></dd></div>
+                                <div class="candidate-rejection-wide"><dt>Pesan untuk pelamar</dt><dd><?= nl2br(esc($value($application['rejection_reason_text']))) ?></dd></div>
+                                <?php if (trim((string) ($application['rejection_internal_notes'] ?? '')) !== ''): ?><div class="candidate-rejection-wide"><dt>Catatan internal</dt><dd><?= nl2br(esc($application['rejection_internal_notes'])) ?></dd></div><?php endif ?>
+                            </dl>
+                        </div>
+                    <?php endif ?>
                     <div class="candidate-narrative-grid">
                         <div class="candidate-work-experience"><span>Pengalaman kerja</span><?php if ($applicationWorkExperiences === []): ?><p><?= nl2br(esc($value($application['work_experience']))) ?></p><?php else: ?><?php foreach ($applicationWorkExperiences as $experience): ?><article><strong><?= esc($experience['company_name']) ?></strong><b><?= esc($value($experience['position_title'])) ?></b><small><?= (int) $experience['start_year'] ?>–<?= $experience['end_year'] === null ? 'Sekarang' : (int) $experience['end_year'] ?></small><p><?= nl2br(esc($experience['responsibilities'])) ?></p></article><?php endforeach ?><?php endif ?></div>
                         <div><span>Motivasi bekerja dan alasan ingin bergabung dengan Manna Kampus</span><p><?= nl2br(esc($value($application['work_motivation']))) ?></p></div>
@@ -124,6 +137,6 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     </main>
 </div>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=5" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=6" defer></script>
 </body>
 </html>

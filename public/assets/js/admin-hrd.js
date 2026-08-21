@@ -128,4 +128,25 @@
         items.forEach((item) => item.addEventListener('change', updateCheckAll));
         updateCheckAll();
     });
+
+    document.querySelectorAll('[data-candidate-stage-select]').forEach((stageSelect) => {
+        if (!(stageSelect instanceof HTMLSelectElement)) return;
+
+        const form = stageSelect.closest('form');
+        const context = form?.querySelector('[data-candidate-rejection-context]');
+        const reasonField = form?.querySelector('[data-candidate-rejection-reason]');
+        const reasonSelect = reasonField?.querySelector('select');
+        const updateRejectionFields = () => {
+            const isRejection = ['rejected', 'screening_failed'].includes(stageSelect.value);
+            if (context instanceof HTMLElement) context.hidden = !isRejection;
+            if (reasonField instanceof HTMLElement) reasonField.hidden = !isRejection;
+            if (reasonSelect instanceof HTMLSelectElement) {
+                reasonSelect.required = isRejection;
+                if (!isRejection) reasonSelect.value = '';
+            }
+        };
+
+        stageSelect.addEventListener('change', updateRejectionFields);
+        updateRejectionFields();
+    });
 })();

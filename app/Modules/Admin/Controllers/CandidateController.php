@@ -52,7 +52,22 @@ class CandidateController extends BaseController
         foreach ($stages as $stage) {
             $statusOptions[(string) $stage['code']] = (string) $stage['name'];
         }
-        $filters = $this->filters(array_keys($statusOptions));
+        $rejectionStageOptions = [];
+        foreach ($templateStages as $sequence) {
+            foreach ($sequence as $stage) {
+                if (! in_array((string) $stage['code'], ['accepted', 'rejected'], true)) {
+                    $rejectionStageOptions[(string) $stage['code']] = $this->rejectionStageLabel($stage);
+                }
+            }
+        }
+        foreach ($database->table('application_rejections')->select('stage_code, stage_name_snapshot, stage_order_snapshot')->distinct()->get()->getResultArray() as $rejection) {
+            $rejectionStageOptions[(string) $rejection['stage_code']] = $this->rejectionStageLabel([
+                'name' => $rejection['stage_name_snapshot'],
+                'display_order' => $rejection['stage_order_snapshot'],
+            ]);
+        }
+        asort($rejectionStageOptions);
+        $filters = $this->filters(array_keys($statusOptions), array_keys($rejectionStageOptions));
         $builder = $this->candidateQuery();
         if ($selectedTeamId > 0) {
             $builder->where('applicants.assigned_hrd_team_id', $selectedTeamId);
@@ -81,6 +96,17 @@ class CandidateController extends BaseController
             $application['status_label'] = $this->statusLabel((string) $application['application_status'], $stages);
             $application['stage_color'] = $this->stageColor((string) $application['application_status'], $stages);
             $application['available_stages'] = $this->nextStages((int) $application['recruitment_process_template_id'], (string) $application['application_status'], $templateStages, $stages);
+            $application['process_steps'] = $this->processSteps(
+                (int) $application['recruitment_process_template_id'],
+                (string) $application['application_status'],
+                $templateStages
+            );
+            $application['rejection_stage_label'] = $this->rejectionStageLabel($this->rejectionStageSnapshot(
+                (int) $application['recruitment_process_template_id'],
+                (string) $application['application_status'],
+                $templateStages,
+                $stages
+            ));
         }
         unset($application);
         $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update')
@@ -92,6 +118,7 @@ class CandidateController extends BaseController
             'applications' => $applications,
             'stages' => $stages,
             'statusOptions' => $statusOptions,
+            'rejectionStageOptions' => $rejectionStageOptions,
             'filters' => $filters,
             'vacancies' => $database->table('vacancies')->select('id, title')->where('deleted_at', null)->orderBy('title')->get()->getResultArray(),
             'periods' => $database->table('vacancy_recruitment_periods AS periods')->select('periods.id, periods.period_name, vacancies.title AS vacancy_title')->join('vacancies', 'vacancies.id = periods.vacancy_id')->where('periods.deleted_at', null)->orderBy('periods.opened_at', 'DESC')->get()->getResultArray(),
@@ -134,7 +161,8 @@ class CandidateController extends BaseController
             return $this->candidateError('Lamaran atau tahapan yang dipilih tidak valid.', $returnTeamId);
         }
         $allStages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
-        $allowedStages = $this->nextStages((int) $application['recruitment_process_template_id'], (string) $application['application_status'], $this->templateStages(), $allStages);
+        $templateStages = $this->templateStages();
+        $allowedStages = $this->nextStages((int) $application['recruitment_process_template_id'], (string) $application['application_status'], $templateStages, $allStages);
         $stage = null;
         foreach ($allowedStages as $allowedStage) {
             if ((string) $allowedStage['code'] === $newStage) {
@@ -155,22 +183,31 @@ class CandidateController extends BaseController
             return $this->candidateError('Kandidat sudah berada pada tahapan tersebut.', $returnTeamId);
         }
 
-        $notes = mb_substr(trim((string) $this->request->getPost('notes')), 0, 2000);
+        $internalNotes = mb_substr(trim((string) $this->request->getPost('notes')), 0, 2000);
+        $historyNotes = $internalNotes;
+        $rejectionTemplate = null;
+        $rejectionSnapshot = null;
+        $isRejectionDecision = in_array($newStage, ['rejected', 'screening_failed'], true);
         $publicMessage = 'Lamaran Anda saat ini berada pada tahap ' . $stage['name'] . '.';
         if ($newStage === 'document_screening') {
             $publicMessage = 'Lamaran Anda sedang diperiksa oleh tim HRD.';
         } elseif ($newStage === 'screening_passed') {
             $publicMessage = 'Lamaran Anda dinyatakan lolos screening oleh tim HRD.';
-        } elseif ($newStage === 'screening_failed') {
-            $publicMessage = 'Terima kasih atas minat Anda. Setelah pemeriksaan oleh tim HRD, lamaran belum dapat dilanjutkan.';
-        } elseif ($newStage === 'rejected') {
+        } elseif ($isRejectionDecision) {
             $templateId = (int) $this->request->getPost('rejection_template_id');
-            $template = $database->table('rejection_reason_templates')->where('id', $templateId)->where('is_active', 1)->get()->getRowArray();
-            if ($template === null) {
-                return $this->candidateError('Pilih template alasan penolakan terlebih dahulu.', $returnTeamId);
+            $rejectionTemplate = $database->table('rejection_reason_templates')->where('id', $templateId)->where('is_active', 1)->get()->getRowArray();
+            if ($rejectionTemplate === null) {
+                return $this->candidateError('Pilih alasan gugur terlebih dahulu.', $returnTeamId);
             }
-            $publicMessage = (string) $template['reason_text'];
-            $notes = 'Alasan penolakan: ' . $template['title'] . ($notes !== '' ? '. Catatan: ' . $notes : '');
+            $rejectionSnapshot = $this->rejectionStageSnapshot(
+                (int) $application['recruitment_process_template_id'],
+                (string) $application['application_status'],
+                $templateStages,
+                $allStages
+            );
+            $publicMessage = (string) $rejectionTemplate['reason_text'];
+            $historyNotes = 'Gugur di ' . $this->rejectionStageLabel($rejectionSnapshot) . '. Alasan: ' . $rejectionTemplate['title']
+                . ($internalNotes !== '' ? '. Catatan: ' . $internalNotes : '');
         } elseif ($newStage === 'accepted') {
             $publicMessage = 'Selamat, lamaran Anda dinyatakan diterima. Tim HRD akan menghubungi Anda untuk proses berikutnya.';
         }
@@ -180,18 +217,38 @@ class CandidateController extends BaseController
         $database->table('applications')->where('id', $applicationId)->update([
             'application_status' => $newStage,
             'screening_status' => $newStage === 'screening_passed' ? 'passed' : ($newStage === 'screening_failed' ? 'failed' : (string) $application['screening_status']),
-            'screening_notes' => in_array($newStage, ['screening_passed', 'screening_failed'], true) ? ($notes !== '' ? $notes : 'Screening diputuskan secara manual oleh HRD.') : $application['screening_notes'],
+            'screening_notes' => in_array($newStage, ['screening_passed', 'screening_failed'], true) ? ($historyNotes !== '' ? $historyNotes : 'Screening diputuskan secara manual oleh HRD.') : $application['screening_notes'],
             'public_message' => mb_substr($publicMessage, 0, 500),
             'reviewed_at' => $now,
             'reviewed_by' => $userId,
             'updated_at' => $now,
         ]);
+        if ($isRejectionDecision && $rejectionTemplate !== null && $rejectionSnapshot !== null) {
+            $rejectionData = [
+                'stage_code' => (string) $rejectionSnapshot['code'],
+                'stage_name_snapshot' => (string) $rejectionSnapshot['name'],
+                'stage_order_snapshot' => $rejectionSnapshot['display_order'] !== null ? (int) $rejectionSnapshot['display_order'] : null,
+                'reason_template_id' => (int) $rejectionTemplate['id'],
+                'reason_title_snapshot' => (string) $rejectionTemplate['title'],
+                'reason_text_snapshot' => (string) $rejectionTemplate['reason_text'],
+                'internal_notes' => $internalNotes !== '' ? $internalNotes : null,
+                'rejected_by' => $userId,
+                'rejected_at' => $now,
+                'updated_at' => $now,
+            ];
+            $existingRejection = $database->table('application_rejections')->where('application_id', $applicationId)->countAllResults() > 0;
+            if ($existingRejection) {
+                $database->table('application_rejections')->where('application_id', $applicationId)->update($rejectionData);
+            } else {
+                $database->table('application_rejections')->insert(['application_id' => $applicationId, 'created_at' => $now] + $rejectionData);
+            }
+        }
         $database->table('application_status_histories')->insert([
             'application_id' => $applicationId,
             'status_type' => 'application',
             'previous_status' => (string) $application['application_status'],
             'new_status' => $newStage,
-            'notes' => $notes !== '' ? $notes : 'Tahapan kandidat diubah menjadi ' . $stage['name'] . '.',
+            'notes' => $historyNotes !== '' ? $historyNotes : 'Tahapan kandidat diubah menjadi ' . $stage['name'] . '.',
             'changed_by' => $userId,
             'created_at' => $now,
         ]);
@@ -206,7 +263,7 @@ class CandidateController extends BaseController
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.rejected_at, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('recruitment_process_templates AS process_templates', 'process_templates.id = vacancies.recruitment_process_template_id', 'left')
@@ -215,6 +272,7 @@ class CandidateController extends BaseController
             ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id')
             ->join('users AS assigned_user', 'assigned_user.id = applicants.assigned_by_user_id', 'left')
             ->join('recruitment_stages AS stages', 'stages.code = applications.application_status', 'left')
+            ->join('application_rejections AS rejections', 'rejections.application_id = applications.id', 'left')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
     }
@@ -310,12 +368,53 @@ class CandidateController extends BaseController
         return $available;
     }
 
-    /** @param list<string> $statuses
-     * @return array{keyword: string, age: int, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string}
+    /**
+     * @param array<int, list<array<string, mixed>>> $templateStages
+     * @return list<array<string, mixed>>
      */
-    private function filters(array $statuses): array
+    private function processSteps(int $templateId, string $currentStatus, array $templateStages): array
+    {
+        $sequence = $templateStages[$templateId] ?? [];
+        if ($sequence === []) {
+            return [];
+        }
+
+        $normalizedStatus = in_array($currentStatus, ['screening_passed', 'screening_failed'], true)
+            ? 'document_screening'
+            : $currentStatus;
+        $currentIndex = null;
+        foreach ($sequence as $index => $stage) {
+            if ((string) $stage['code'] === $normalizedStatus || in_array($currentStatus, self::STATUS_ALIASES[(string) $stage['code']] ?? [], true)) {
+                $currentIndex = $index;
+                break;
+            }
+        }
+
+        foreach ($sequence as $index => &$stage) {
+            if ($currentIndex === null) {
+                $stage['progress_state'] = $index === 0 ? 'next' : 'upcoming';
+            } elseif ($index < $currentIndex) {
+                $stage['progress_state'] = 'previous';
+            } elseif ($index === $currentIndex) {
+                $stage['progress_state'] = 'current';
+            } elseif ($index === $currentIndex + 1) {
+                $stage['progress_state'] = 'next';
+            } else {
+                $stage['progress_state'] = 'upcoming';
+            }
+        }
+        unset($stage);
+
+        return $sequence;
+    }
+
+    /** @param list<string> $statuses @param list<string> $rejectionStageCodes
+     * @return array{keyword: string, age: int, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, rejection_stage_code: string}
+     */
+    private function filters(array $statuses, array $rejectionStageCodes): array
     {
         $status = trim((string) $this->request->getGet('status'));
+        $rejectionStageCode = trim((string) $this->request->getGet('rejection_stage_code'));
         $age = (int) $this->request->getGet('age');
 
         return [
@@ -325,10 +424,11 @@ class CandidateController extends BaseController
             'vacancy_period_id' => max(0, (int) $this->request->getGet('vacancy_period_id')),
             'department_id' => max(0, (int) $this->request->getGet('department_id')),
             'status' => in_array($status, $statuses, true) ? $status : '',
+            'rejection_stage_code' => in_array($rejectionStageCode, $rejectionStageCodes, true) ? $rejectionStageCode : '',
         ];
     }
 
-    /** @param array{keyword: string, age: int, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string} $filters */
+    /** @param array{keyword: string, age: int, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, rejection_stage_code: string} $filters */
     private function applyFilters(BaseBuilder $builder, array $filters): void
     {
         if ($filters['keyword'] !== '') {
@@ -353,6 +453,38 @@ class CandidateController extends BaseController
         if ($filters['status'] !== '') {
             $builder->whereIn('applications.application_status', self::STATUS_ALIASES[$filters['status']] ?? [$filters['status']]);
         }
+        if ($filters['rejection_stage_code'] !== '') {
+            $builder->where('rejections.stage_code', $filters['rejection_stage_code']);
+        }
+    }
+
+    /** @param array<int, list<array<string, mixed>>> $templateStages @param list<array<string, mixed>> $allStages @return array{code: string, name: string, display_order: int|null} */
+    private function rejectionStageSnapshot(int $templateId, string $currentStatus, array $templateStages, array $allStages): array
+    {
+        $normalizedStatus = match ($currentStatus) {
+            'screening_passed', 'screening_failed' => 'document_screening',
+            default => $currentStatus,
+        };
+        foreach ($templateStages[$templateId] ?? [] as $stage) {
+            if ((string) $stage['code'] === $normalizedStatus || in_array($currentStatus, self::STATUS_ALIASES[(string) $stage['code']] ?? [], true)) {
+                return ['code' => (string) $stage['code'], 'name' => (string) $stage['name'], 'display_order' => (int) $stage['display_order']];
+            }
+        }
+        foreach ($allStages as $stage) {
+            if ((string) $stage['code'] === $normalizedStatus || in_array($currentStatus, self::STATUS_ALIASES[(string) $stage['code']] ?? [], true)) {
+                return ['code' => (string) $stage['code'], 'name' => (string) $stage['name'], 'display_order' => null];
+            }
+        }
+
+        return ['code' => $normalizedStatus !== '' ? $normalizedStatus : 'unknown', 'name' => $this->statusLabel($currentStatus, $allStages), 'display_order' => null];
+    }
+
+    /** @param array<string, mixed> $stage */
+    private function rejectionStageLabel(array $stage): string
+    {
+        $order = isset($stage['display_order']) && $stage['display_order'] !== null ? (int) $stage['display_order'] : null;
+
+        return ($order !== null ? 'Tahap ' . $order . ' — ' : '') . (string) ($stage['name'] ?? 'Tahap tidak tercatat');
     }
 
     /** @param list<array<string, mixed>> $stages */

@@ -24,10 +24,12 @@ class ApplicantDetailController extends BaseController
         }
 
         $applications = $database->table('applications AS applications')
-            ->select('applications.*, vacancies.title AS vacancy_title, departments.name AS department_name, batches.batch_number')
+            ->select('applications.*, vacancies.title AS vacancy_title, departments.name AS department_name, batches.batch_number, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.reason_text_snapshot AS rejection_reason_text, rejections.internal_notes AS rejection_internal_notes, rejections.rejected_at, rejected_user.full_name AS rejected_by_name')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('application_batches AS batches', 'batches.id = applications.batch_id')
+            ->join('application_rejections AS rejections', 'rejections.application_id = applications.id', 'left')
+            ->join('users AS rejected_user', 'rejected_user.id = rejections.rejected_by', 'left')
             ->where('applications.applicant_id', $applicantId)
             ->where('applications.deleted_at', null)
             ->orderBy('applications.submitted_at', 'DESC')

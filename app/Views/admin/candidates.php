@@ -1,6 +1,7 @@
 <?php
 $candidateBaseUrl = site_url('adminhrdmannakampus/kandidat');
 $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $selectedTeamId : '');
+$progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', 'next' => 'Selanjutnya', 'upcoming' => 'Akan datang'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -12,7 +13,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=39">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=42">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -51,6 +52,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                     <select name="vacancy_period_id"><option value="">Semua sesi</option><?php foreach ($periods as $period): ?><option value="<?= (int) $period['id'] ?>" <?= $filters['vacancy_period_id'] === (int) $period['id'] ? 'selected' : '' ?>><?= esc($period['vacancy_title'] . ' — ' . $period['period_name']) ?></option><?php endforeach ?></select>
                     <select name="department_id"><option value="">Semua departemen</option><?php foreach ($departments as $department): ?><option value="<?= (int) $department['id'] ?>" <?= $filters['department_id'] === (int) $department['id'] ? 'selected' : '' ?>><?= esc($department['name']) ?></option><?php endforeach ?></select>
                     <select name="status"><option value="">Semua tahapan</option><?php foreach ($statusOptions as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $filters['status'] === $code ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select>
+                    <select name="rejection_stage_code"><option value="">Semua tahap gugur</option><?php foreach ($rejectionStageOptions as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $filters['rejection_stage_code'] === $code ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select>
                     <button type="submit">Terapkan</button><a href="<?= $candidateTeamUrl ?>">Reset</a>
                 </form>
             </section>
@@ -59,9 +61,9 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                 <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg></span><div><h2>Pipeline <?= esc($selectedTeam['name'] ?? 'divisi') ?></h2><p>Hanya pelamar yang sudah dipilih untuk divisi ini.</p></div><span class="device-count"><?= count($applications) ?></span></div>
                 <div class="department-table-wrap">
                     <table class="department-table candidate-table">
-                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Tahap gugur</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
                         <tbody>
-                            <?php if ($applications === []): ?><tr><td colspan="8" class="department-empty">Belum ada pelamar pada divisi ini.</td></tr><?php endif ?>
+                            <?php if ($applications === []): ?><tr><td colspan="9" class="department-empty">Belum ada pelamar pada divisi ini.</td></tr><?php endif ?>
                             <?php foreach ($applications as $index => $application): ?>
                                 <tr>
                                     <td class="candidate-order"><?= $index + 1 ?></td>
@@ -70,6 +72,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                                     <td><?php if ($application['whatsapp_number'] !== ''): ?><a class="candidate-whatsapp-link" href="https://wa.me/<?= esc($application['whatsapp_number'], 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="Hubungi <?= esc($application['full_name'], 'attr') ?> melalui WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Zm-8.4 18.2c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.4 4.7Zm5.4-7.3c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.6l-.9-2.1c-.2-.5-.5-.5-.7-.5H8c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2 2.2.9 3.1 1 4.2.8.7-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3l-1.4-.7Z"/></svg><span><?= esc($application['phone']) ?></span></a><?php else: ?>-<?php endif ?></td>
                                     <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code><small><?= esc($application['process_template_name'] ?: 'Template belum ditentukan') ?></small></div></td>
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span></td>
+                                    <td><?php if (! empty($application['rejected_stage_name'])): ?><span class="candidate-rejected-stage"><strong><?= $application['rejected_stage_order'] !== null ? 'Tahap ' . (int) $application['rejected_stage_order'] : 'Tahap' ?></strong><?= esc($application['rejected_stage_name']) ?><small><?= esc($application['rejection_reason_title']) ?></small></span><?php else: ?><span class="candidate-not-rejected">—</span><?php endif ?></td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
                                     <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
                                 </tr>
@@ -94,8 +97,28 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                     <?= csrf_field() ?>
                     <input type="hidden" name="team_id" value="<?= $selectedTeamId ?>">
                     <div class="candidate-current-stage"><span>Tahap saat ini</span><strong><?= esc($application['status_label']) ?></strong></div>
-                    <label>Tahap berikutnya<select name="stage" required><option value="">Pilih tahapan</option><?php foreach ($application['available_stages'] as $stage): ?><option value="<?= esc($stage['code'], 'attr') ?>"><?= esc($stage['name']) ?></option><?php endforeach ?></select><small>Hanya tahap berikutnya sesuai template lowongan yang dapat dipilih.</small></label>
-                    <label>Alasan penolakan<select name="rejection_template_id"><option value="">Wajib jika memilih Ditolak</option><?php foreach ($rejectionTemplates as $template): ?><option value="<?= (int) $template['id'] ?>"><?= esc($template['title']) ?></option><?php endforeach ?></select></label>
+                    <?php if ($application['process_steps'] !== []): ?>
+                        <div class="candidate-process-progress">
+                            <div class="candidate-process-progress-heading">
+                                <div><strong>Alur rekrutmen</strong><small><?= esc($application['process_template_name'] ?: 'Template proses lowongan') ?></small></div>
+                                <div class="candidate-process-legend" aria-label="Keterangan tahap"><span class="previous"><i></i>Sebelumnya</span><span class="current"><i></i>Saat ini</span><span class="next"><i></i>Selanjutnya</span></div>
+                            </div>
+                            <div class="candidate-process-progress-scroll">
+                                <ol class="candidate-process-stepper" style="--candidate-step-count: <?= count($application['process_steps']) ?>" aria-label="Urutan tahapan rekrutmen">
+                                    <?php foreach ($application['process_steps'] as $step): $progressState = (string) $step['progress_state']; ?>
+                                        <li class="is-<?= esc($progressState, 'attr') ?>" <?= $progressState === 'current' ? 'aria-current="step"' : '' ?>>
+                                            <span class="candidate-process-marker"><?= (int) $step['display_order'] ?></span>
+                                            <strong><?= esc($step['name']) ?></strong>
+                                            <small><?= esc($progressLabels[$progressState] ?? 'Akan datang') ?></small>
+                                        </li>
+                                    <?php endforeach ?>
+                                </ol>
+                            </div>
+                        </div>
+                    <?php endif ?>
+                    <label>Tahap berikutnya<select name="stage" required data-candidate-stage-select><option value="">Pilih tahapan</option><?php foreach ($application['available_stages'] as $stage): ?><option value="<?= esc($stage['code'], 'attr') ?>"><?= esc($stage['name']) ?></option><?php endforeach ?></select><small>Hanya tahap berikutnya sesuai template lowongan yang dapat dipilih.</small></label>
+                    <div class="candidate-rejection-context" data-candidate-rejection-context hidden><span>Keputusan akan tercatat sebagai</span><strong>Gugur di <?= esc($application['rejection_stage_label']) ?></strong><small>Nama dan urutan tahap disimpan permanen sebagai histori.</small></div>
+                    <label data-candidate-rejection-reason hidden>Alasan gugur<select name="rejection_template_id"><option value="">Pilih alasan gugur</option><?php foreach ($rejectionTemplates as $template): ?><option value="<?= (int) $template['id'] ?>"><?= esc($template['title']) ?></option><?php endforeach ?></select></label>
                     <label class="candidate-process-note">Catatan internal<textarea name="notes" rows="4" maxlength="2000" placeholder="Opsional, tersimpan pada riwayat status"></textarea></label>
                     <div class="candidate-process-buttons"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" data-confirm="Ubah tahapan kandidat ini?">Simpan tahapan</button></div>
                 </form>
@@ -104,6 +127,6 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
     <?php endforeach ?>
 <?php endif ?>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=5" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=6" defer></script>
 </body>
 </html>
