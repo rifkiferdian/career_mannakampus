@@ -6,7 +6,7 @@
     <meta name="description" content="Formulir lamaran <?= esc($vacancy['title'], 'attr') ?> di Manna Kampus.">
     <meta name="theme-color" content="#f5f7f8">
     <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
-    <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=16">
 </head>
 <body class="application-page">

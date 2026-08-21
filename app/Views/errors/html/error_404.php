@@ -10,7 +10,7 @@ $baseUrl = rtrim((string) $appConfig->baseURL, '/');
     <meta name="robots" content="noindex, follow">
     <meta name="theme-color" content="#fbf8f1">
     <title>Halaman Tidak Ditemukan | Manna Kampus</title>
-    <link rel="icon" href="<?= esc($baseUrl) ?>/favicon.ico">
+    <link rel="icon" href="<?= esc($baseUrl) ?>/favicon.ico?v=2">
     <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/career.css?v=25">
     <link rel="stylesheet" href="<?= esc($baseUrl) ?>/assets/css/not-found.css?v=3">
 </head>

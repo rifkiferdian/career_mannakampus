@@ -6,7 +6,7 @@
     <meta name="description" content="Pelajari tahapan seleksi dan proses rekrutmen di Manna Kampus.">
     <meta name="theme-color" content="#12372a">
     <title>Tahapan Seleksi | Karier Manna Kampus</title>
-    <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
 </head>
 <body>
