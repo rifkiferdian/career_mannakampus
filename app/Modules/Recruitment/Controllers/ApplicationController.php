@@ -36,10 +36,16 @@ class ApplicationController extends BaseController
         $questions = array_merge(...array_column($selectedVacancies, 'screening_questions'));
         $rules = $this->validationRules($questions);
 
-        if (!$this->validate($rules)) {
+        $isValid = $this->validate($rules, $this->validationMessages($questions));
+        $errors = array_merge(
+            $this->validator->getErrors(),
+            $this->workExperienceErrors($this->request->getPost('work_experiences')),
+        );
+
+        if (! $isValid || $errors !== []) {
             return redirect()->back()
                 ->withInput()
-                ->with('errors', $this->validator->getErrors());
+                ->with('errors', $errors);
         }
 
         try {
@@ -230,7 +236,6 @@ class ApplicationController extends BaseController
             'major'               => 'required|max_length[150]',
             'gpa'                 => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[4]',
             'training_experience' => 'permit_empty|max_length[3000]',
-            'work_experience'     => 'permit_empty|max_length[5000]',
             'work_motivation'     => 'required|min_length[20]|max_length[5000]',
             'career_goal'         => 'required|min_length[20]|max_length[5000]',
             'privacy_consent'     => 'required|in_list[1]',
@@ -245,5 +250,109 @@ class ApplicationController extends BaseController
         }
 
         return $rules;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $questions
+     * @return array<string, array<string, string>>
+     */
+    private function validationMessages(array $questions): array
+    {
+        $messages = [
+            'nik' => [
+                'required' => 'NIK wajib diisi.',
+                'numeric' => 'NIK hanya boleh berisi angka.',
+                'exact_length' => 'NIK harus terdiri dari 16 angka.',
+            ],
+            'full_name' => ['required' => 'Nama lengkap wajib diisi.'],
+            'email' => ['required' => 'Email wajib diisi.', 'valid_email' => 'Format email belum valid.'],
+            'phone' => ['required' => 'Nomor WhatsApp wajib diisi.', 'regex_match' => 'Format nomor WhatsApp belum valid. Gunakan contoh 081234567890.'],
+            'birth_place' => ['required' => 'Tempat lahir wajib diisi.'],
+            'birth_date' => ['required' => 'Tanggal lahir wajib diisi.', 'valid_date' => 'Tanggal lahir belum valid.'],
+            'gender' => ['required' => 'Jenis kelamin wajib dipilih.', 'in_list' => 'Pilihan jenis kelamin belum valid.'],
+            'marital_status' => ['required' => 'Status pernikahan wajib dipilih.', 'in_list' => 'Pilihan status pernikahan belum valid.'],
+            'religion' => ['required' => 'Agama wajib dipilih.'],
+            'address' => [
+                'required' => 'Alamat lengkap wajib diisi.',
+                'min_length' => 'Alamat lengkap minimal 10 karakter.',
+                'max_length' => 'Alamat lengkap maksimal 1.000 karakter.',
+            ],
+            'last_education' => ['required' => 'Jenjang pendidikan wajib dipilih.', 'in_list' => 'Jenjang pendidikan belum valid.'],
+            'institution' => ['required' => 'Nama sekolah atau perguruan tinggi wajib diisi.'],
+            'major' => ['required' => 'Jurusan wajib diisi.'],
+            'work_motivation' => ['required' => 'Motivasi bekerja wajib diisi.', 'min_length' => 'Motivasi bekerja minimal 20 karakter.'],
+            'career_goal' => ['required' => 'Target atau impian wajib diisi.', 'min_length' => 'Target atau impian minimal 20 karakter.'],
+            'privacy_consent' => ['required' => 'Persetujuan pemrosesan data wajib dicentang.', 'in_list' => 'Persetujuan pemrosesan data wajib dicentang.'],
+            'profile_photo' => [
+                'max_size' => 'Ukuran foto profil maksimal 2 MB.',
+                'ext_in' => 'Foto profil harus berformat JPG atau PNG.',
+                'is_image' => 'File foto profil belum valid.',
+            ],
+            'application_bundle' => [
+                'uploaded' => 'Berkas lamaran PDF wajib diunggah.',
+                'max_size' => 'Ukuran berkas lamaran maksimal 10 MB.',
+                'ext_in' => 'Berkas lamaran harus berformat PDF.',
+            ],
+        ];
+
+        foreach ($questions as $question) {
+            $messages['screening.' . $question['id']] = [
+                'required' => 'Pertanyaan screening “' . $question['question_text'] . '” wajib dijawab.',
+                'max_length' => 'Jawaban screening maksimal 255 karakter.',
+            ];
+        }
+
+        return $messages;
+    }
+
+    /** @return array<string, string> */
+    private function workExperienceErrors(mixed $submittedExperiences): array
+    {
+        if ($submittedExperiences === null || $submittedExperiences === '') {
+            return [];
+        }
+        if (! is_array($submittedExperiences)) {
+            return ['work_experiences' => 'Data pengalaman kerja tidak valid.'];
+        }
+        if (count($submittedExperiences) > 10) {
+            return ['work_experiences' => 'Maksimal 10 riwayat perusahaan dapat ditambahkan.'];
+        }
+
+        $errors = [];
+        $currentYear = (int) date('Y');
+        foreach (array_values($submittedExperiences) as $index => $experience) {
+            if (! is_array($experience)) {
+                $errors['work_experiences.' . $index] = 'Data perusahaan ke-' . ($index + 1) . ' tidak valid.';
+                continue;
+            }
+
+            $company = trim((string) ($experience['company_name'] ?? ''));
+            $positionTitle = trim((string) ($experience['position_title'] ?? ''));
+            $startYear = trim((string) ($experience['start_year'] ?? ''));
+            $endYear = trim((string) ($experience['end_year'] ?? ''));
+            $responsibilities = trim((string) ($experience['responsibilities'] ?? ''));
+            if ($company === '' && $positionTitle === '' && $startYear === '' && $endYear === '' && $responsibilities === '') {
+                continue;
+            }
+
+            $prefix = 'Perusahaan ke-' . ($index + 1) . ': ';
+            if ($company === '' || mb_strlen($company) > 150) {
+                $errors['work_experiences.' . $index . '.company_name'] = $prefix . 'nama PT/perusahaan wajib diisi dan maksimal 150 karakter.';
+            }
+            if ($positionTitle === '' || mb_strlen($positionTitle) > 150) {
+                $errors['work_experiences.' . $index . '.position_title'] = $prefix . 'jabatan/posisi wajib diisi dan maksimal 150 karakter.';
+            }
+            if (preg_match('/^\d{4}$/', $startYear) !== 1 || (int) $startYear < 1950 || (int) $startYear > $currentYear) {
+                $errors['work_experiences.' . $index . '.start_year'] = $prefix . 'tahun masuk tidak valid.';
+            }
+            if ($endYear !== '' && (preg_match('/^\d{4}$/', $endYear) !== 1 || (int) $endYear < (int) $startYear || (int) $endYear > $currentYear + 1)) {
+                $errors['work_experiences.' . $index . '.end_year'] = $prefix . 'tahun akhir harus sama atau setelah tahun masuk.';
+            }
+            if ($responsibilities === '' || mb_strlen($responsibilities) > 5000) {
+                $errors['work_experiences.' . $index . '.responsibilities'] = $prefix . 'deskripsi tugas dan tanggung jawab wajib diisi dan maksimal 5.000 karakter.';
+            }
+        }
+
+        return $errors;
     }
 }

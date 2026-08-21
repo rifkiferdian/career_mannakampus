@@ -36,7 +36,7 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
     <title>Pertanyaan Screening | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=26">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=27">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -99,7 +99,10 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
                 <?php if ($selectedVacancy): ?>
                     <div class="screening-vacancy-toolbar">
                         <div><strong><?= esc($selectedVacancy['title']) ?></strong><span><?= esc($selectedVacancy['code']) ?> · <?= esc($selectedVacancy['department_name'] ?: 'Tanpa departemen') ?></span></div>
-                        <?php if ($canManageVacancyQuestions): ?><button type="button" data-admin-modal-open="vacancy-create-modal">+ Pertanyaan khusus</button><?php endif ?>
+                        <?php if ($canManageVacancyQuestions): ?>
+                            <button type="button" data-admin-modal-open="vacancy-copy-modal">Salin dari default</button>
+                            <button type="button" data-admin-modal-open="vacancy-create-modal">+ Pertanyaan khusus</button>
+                        <?php endif ?>
                     </div>
                     <div class="department-table-wrap"><table class="department-table screening-management-table">
                         <thead><tr><th>No.</th><th>Pertanyaan</th><th>Urutan</th><th>Tipe</th><th>Evaluasi</th><th>Status</th><th>Aksi</th></tr></thead>
@@ -143,6 +146,39 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
 <?php endif ?>
 
 <?php if ($canManageVacancyQuestions && $selectedVacancy): ?>
+    <dialog class="admin-modal settings-form-modal" id="vacancy-copy-modal" aria-labelledby="vacancy-copy-title" <?= $openModal === 'vacancy-copy' ? 'data-auto-open' : '' ?>>
+        <div class="admin-modal-panel">
+            <div class="settings-card-heading admin-modal-heading">
+                <span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h11v11H8z"/><path d="M5 16H4V4h12v1"/></svg></span>
+                <div><h2 id="vacancy-copy-title">Salin pertanyaan default</h2><p>Pilih pertanyaan untuk <?= esc($selectedVacancy['title']) ?>.</p></div>
+                <button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button>
+            </div>
+            <form class="settings-modal-form screening-copy-form" action="<?= site_url('adminhrdmannakampus/pertanyaan-screening/lowongan/' . $selectedVacancyId . '/salin-default') ?>" method="post">
+                <?= csrf_field() ?>
+                <input type="hidden" name="screening_form" value="vacancy-copy">
+                <fieldset class="screening-copy-list">
+                    <legend>Pertanyaan yang akan disalin</legend>
+                    <div class="department-table-wrap screening-copy-table-wrap">
+                        <table class="department-table screening-copy-table">
+                            <thead><tr><th><label class="screening-check-all"><input type="checkbox" data-check-all="default-question-copy" <?= ! array_filter($copyableDefaultQuestions, static fn (array $question): bool => $question['is_copyable']) ? 'disabled' : '' ?>><span>Semua</span></label></th><th>Pertanyaan</th><th>Tipe</th><th>Urutan</th></tr></thead>
+                            <tbody>
+                            <?php if ($copyableDefaultQuestions === []): ?><tr><td class="department-empty" colspan="4">Belum ada pertanyaan default aktif.</td></tr><?php endif ?>
+                            <?php foreach ($copyableDefaultQuestions as $question): ?>
+                                <tr class="<?= ! $question['is_copyable'] ? 'department-row-inactive' : '' ?>">
+                                    <td><input class="screening-copy-checkbox" type="checkbox" name="default_question_ids[]" value="<?= (int) $question['id'] ?>" data-check-item="default-question-copy" aria-label="Pilih <?= esc($question['question_text'], 'attr') ?>" <?= ! $question['is_copyable'] ? 'disabled' : '' ?>></td>
+                                    <td><div class="department-name-cell screening-question-cell"><strong><?= esc($question['question_text']) ?></strong><code><?= esc($question['question_code']) ?></code></div></td>
+                                    <td><span class="screening-type-badge"><?= esc($answerTypeLabels[$question['answer_type']] ?? $question['answer_type']) ?></span></td>
+                                    <td><?= (int) $question['display_order'] ?></td>
+                                </tr>
+                            <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </fieldset>
+                <div class="department-modal-actions settings-modal-wide"><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" <?= ! array_filter($copyableDefaultQuestions, static fn (array $question): bool => $question['is_copyable']) ? 'disabled' : '' ?>>Salin pertanyaan terpilih</button></div>
+            </form>
+        </div>
+    </dialog>
     <?php $createVacancy = $modalQuestion('vacancy-create', ['display_order' => count($vacancyQuestions) + 1]); ?>
     <dialog class="admin-modal settings-form-modal" id="vacancy-create-modal" aria-labelledby="vacancy-create-title" <?= $openModal === 'vacancy-create' ? 'data-auto-open' : '' ?>>
         <div class="admin-modal-panel"><div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><div><h2 id="vacancy-create-title">Tambah pertanyaan khusus</h2><p><?= esc($selectedVacancy['title']) ?></p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
@@ -160,6 +196,6 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
 
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=3" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=5" defer></script>
 </body>
 </html>

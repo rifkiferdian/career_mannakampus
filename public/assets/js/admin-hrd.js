@@ -55,6 +55,9 @@
 
         event.preventDefault();
 
+        const activeModal = form.closest('dialog[open]');
+        if (activeModal instanceof HTMLDialogElement) activeModal.close();
+
         const isConfirmed = typeof window.Swal === 'undefined'
             ? window.confirm(message)
             : (await window.Swal.fire({
@@ -68,9 +71,16 @@
                 cancelButtonColor: '#64748b',
                 reverseButtons: true,
                 focusCancel: true,
+                returnFocus: false,
             })).isConfirmed;
 
-        if (!isConfirmed) return;
+        if (!isConfirmed) {
+            if (activeModal instanceof HTMLDialogElement && !activeModal.open) {
+                activeModal.showModal();
+                if (submitter instanceof HTMLElement) submitter.focus();
+            }
+            return;
+        }
 
         form.dataset.confirmed = 'true';
         if (submitter instanceof HTMLElement) {
@@ -97,5 +107,25 @@
             if (event.target === modal) modal.close();
         });
         if (modal.hasAttribute('data-auto-open')) modal.showModal();
+    });
+
+    document.querySelectorAll('[data-check-all]').forEach((checkAll) => {
+        if (!(checkAll instanceof HTMLInputElement)) return;
+
+        const group = checkAll.dataset.checkAll;
+        const items = [...document.querySelectorAll(`[data-check-item="${group}"]`)]
+            .filter((item) => item instanceof HTMLInputElement && !item.disabled);
+        const updateCheckAll = () => {
+            const selectedCount = items.filter((item) => item.checked).length;
+            checkAll.checked = items.length > 0 && selectedCount === items.length;
+            checkAll.indeterminate = selectedCount > 0 && selectedCount < items.length;
+        };
+
+        checkAll.addEventListener('change', () => {
+            items.forEach((item) => { item.checked = checkAll.checked; });
+            updateCheckAll();
+        });
+        items.forEach((item) => item.addEventListener('change', updateCheckAll));
+        updateCheckAll();
     });
 })();

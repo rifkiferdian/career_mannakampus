@@ -130,6 +130,6 @@ $statusLabels = ['draft' => 'Draft', 'open' => 'Dibuka', 'closed' => 'Ditutup', 
     </main>
 </div>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=5" defer></script>
 </body>
 </html>

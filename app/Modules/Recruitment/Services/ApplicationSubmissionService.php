@@ -54,6 +54,8 @@ class ApplicationSubmissionService
         $now = date('Y-m-d H:i:s');
         $batchUuid = $this->uuid();
         $storedFiles = [];
+        $workExperiences = $this->workExperiences($input['work_experiences'] ?? []);
+        $legacyWorkExperience = $this->legacyWorkExperienceText($workExperiences);
 
         $this->database->transBegin();
 
@@ -156,6 +158,17 @@ class ApplicationSubmissionService
                 'submitted_user_agent' => mb_substr($userAgent, 0, 500),
             ], true);
 
+            if ($workExperiences !== []) {
+                $this->database->table('application_work_experiences')->insertBatch(array_map(
+                    static fn (array $experience): array => $experience + [
+                        'batch_id' => $batchId,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ],
+                    $workExperiences,
+                ));
+            }
+
             $applicationBundle = $files['application_bundle'];
             $bundleMetadata = $this->fileMetadata($applicationBundle);
             $bundlePath = $this->storeFile($applicationBundle, $batchUuid, 'applications');
@@ -179,7 +192,7 @@ class ApplicationSubmissionService
                     'vacancy_id'           => (int) $vacancy['id'],
                     'vacancy_period_id'    => (int) $vacancy['vacancy_period_id'],
                     'preference_order'      => (int) $vacancy['preference_order'],
-                    'work_experience'      => trim((string) ($input['work_experience'] ?? '')),
+                    'work_experience'      => $legacyWorkExperience,
                     'work_motivation'      => trim((string) $input['work_motivation']),
                     'career_goal'          => trim((string) $input['career_goal']),
                     'screening_status'     => 'pending',
@@ -263,6 +276,70 @@ class ApplicationSubmissionService
         }
 
         return $answers;
+    }
+
+    /**
+     * @return list<array{company_name: string, position_title: string, start_year: int, end_year: int|null, responsibilities: string, display_order: int}>
+     */
+    private function workExperiences(mixed $submittedExperiences): array
+    {
+        if ($submittedExperiences === null || $submittedExperiences === '') {
+            return [];
+        }
+        if (! is_array($submittedExperiences) || count($submittedExperiences) > 10) {
+            throw new DomainException('Data pengalaman kerja tidak valid.');
+        }
+
+        $experiences = [];
+        $currentYear = (int) date('Y');
+        foreach (array_values($submittedExperiences) as $experience) {
+            if (! is_array($experience)) {
+                throw new DomainException('Data pengalaman kerja tidak valid.');
+            }
+
+            $company = trim((string) ($experience['company_name'] ?? ''));
+            $positionTitle = trim((string) ($experience['position_title'] ?? ''));
+            $startYear = trim((string) ($experience['start_year'] ?? ''));
+            $endYear = trim((string) ($experience['end_year'] ?? ''));
+            $responsibilities = trim((string) ($experience['responsibilities'] ?? ''));
+            if ($company === '' && $positionTitle === '' && $startYear === '' && $endYear === '' && $responsibilities === '') {
+                continue;
+            }
+            if ($company === '' || mb_strlen($company) > 150 || $positionTitle === '' || mb_strlen($positionTitle) > 150
+                || preg_match('/^\d{4}$/', $startYear) !== 1
+                || (int) $startYear < 1950 || (int) $startYear > $currentYear
+                || ($endYear !== '' && (preg_match('/^\d{4}$/', $endYear) !== 1 || (int) $endYear < (int) $startYear || (int) $endYear > $currentYear + 1))
+                || $responsibilities === '' || mb_strlen($responsibilities) > 5000) {
+                throw new DomainException('Lengkapi nama perusahaan, jabatan, periode, serta tugas dan tanggung jawab dengan benar.');
+            }
+
+            $experiences[] = [
+                'company_name' => $company,
+                'position_title' => $positionTitle,
+                'start_year' => (int) $startYear,
+                'end_year' => $endYear === '' ? null : (int) $endYear,
+                'responsibilities' => $responsibilities,
+                'display_order' => count($experiences) + 1,
+            ];
+        }
+
+        return $experiences;
+    }
+
+    /** @param list<array{company_name: string, position_title: string, start_year: int, end_year: int|null, responsibilities: string, display_order: int}> $experiences */
+    private function legacyWorkExperienceText(array $experiences): string
+    {
+        return implode("\n\n", array_map(
+            static fn (array $experience): string => sprintf(
+                "%s — %s (%d–%s)\n%s",
+                $experience['company_name'],
+                $experience['position_title'],
+                $experience['start_year'],
+                $experience['end_year'] ?? 'Sekarang',
+                $experience['responsibilities'],
+            ),
+            $experiences,
+        ));
     }
 
     /**

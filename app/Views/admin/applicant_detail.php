@@ -28,7 +28,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=29">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -96,6 +96,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                 $screening = (string) ($application['screening_status'] ?: 'pending');
                 $applicationAnswers = $answersByApplication[$applicationId] ?? [];
                 $applicationHistories = $historiesByApplication[$applicationId] ?? [];
+                $applicationWorkExperiences = $workExperiencesByBatch[(int) $application['batch_id']] ?? [];
             ?>
                 <section class="settings-card candidate-application-card">
                     <div class="candidate-application-heading">
@@ -109,7 +110,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                         <div><span>Batch pendaftaran</span><strong><?= esc($application['batch_number']) ?></strong></div>
                     </div>
                     <div class="candidate-narrative-grid">
-                        <div><span>Pengalaman kerja</span><p><?= nl2br(esc($value($application['work_experience']))) ?></p></div>
+                        <div class="candidate-work-experience"><span>Pengalaman kerja</span><?php if ($applicationWorkExperiences === []): ?><p><?= nl2br(esc($value($application['work_experience']))) ?></p><?php else: ?><?php foreach ($applicationWorkExperiences as $experience): ?><article><strong><?= esc($experience['company_name']) ?></strong><b><?= esc($value($experience['position_title'])) ?></b><small><?= (int) $experience['start_year'] ?>–<?= $experience['end_year'] === null ? 'Sekarang' : (int) $experience['end_year'] ?></small><p><?= nl2br(esc($experience['responsibilities'])) ?></p></article><?php endforeach ?><?php endif ?></div>
                         <div><span>Motivasi bekerja dan alasan ingin bergabung dengan Manna Kampus</span><p><?= nl2br(esc($value($application['work_motivation']))) ?></p></div>
                         <div><span>Target/impian yang akan dicapai</span><p><?= nl2br(esc($value($application['career_goal']))) ?></p></div>
                     </div>
@@ -123,6 +124,6 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     </main>
 </div>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=2" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=5" defer></script>
 </body>
 </html>

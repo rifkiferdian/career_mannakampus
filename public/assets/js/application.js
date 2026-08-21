@@ -18,6 +18,16 @@
     const positionChoices = [...form.querySelectorAll('[data-vacancy-choice]')];
     const positionCount = form.querySelector('#selected-position-count');
     const priorityInputs = [...form.querySelectorAll('[data-priority-input]')];
+    const workExperienceList = form.querySelector('[data-work-experience-list]');
+    const workExperienceTemplate = form.querySelector('#work-experience-template');
+    const addWorkExperienceButton = form.querySelector('[data-add-work-experience]');
+    let nextWorkExperienceIndex = form.querySelectorAll('[data-work-experience-entry]').length;
+    let serverValidationErrors = {};
+    try {
+        serverValidationErrors = JSON.parse(form.dataset.validationErrors || '{}');
+    } catch (error) {
+        serverValidationErrors = {};
+    }
     let positionOrder = positionChoices
         .filter((choice) => choice.checked)
         .sort((first, second) => {
@@ -94,6 +104,56 @@
         synchronizeScreening();
     };
 
+    const synchronizeWorkExperienceEntry = (entry) => {
+        const fields = [...entry.querySelectorAll('[data-experience-field]')];
+        const hasValue = fields.some((field) => field.value.trim() !== '');
+        fields.forEach((field) => {
+            const fieldName = field.name.match(/\[([^\]]+)]$/)?.[1];
+            field.required = hasValue && fieldName !== 'end_year';
+        });
+        const startYear = entry.querySelector('[name$="[start_year]"]');
+        const endYear = entry.querySelector('[name$="[end_year]"]');
+        if (endYear) {
+            const invalidPeriod = startYear?.value && endYear.value && Number(endYear.value) < Number(startYear.value);
+            endYear.setCustomValidity(invalidPeriod ? 'Tahun akhir harus sama atau setelah tahun masuk.' : '');
+        }
+    };
+
+    const fieldNameFromErrorKey = (errorKey) => {
+        const parts = errorKey.split('.');
+        return parts.length === 1 ? parts[0] : `${parts.shift()}${parts.map((part) => `[${part}]`).join('')}`;
+    };
+
+    const applyServerValidationErrors = () => {
+        let firstInvalidField = null;
+        Object.entries(serverValidationErrors).forEach(([errorKey, message]) => {
+            const fieldName = fieldNameFromErrorKey(errorKey);
+            const field = [...form.elements].find((element) => element.name === fieldName);
+            if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) return;
+
+            field.setCustomValidity(String(message));
+            firstInvalidField ||= field;
+            const clearServerError = () => {
+                field.setCustomValidity('');
+                field.removeEventListener('input', clearServerError);
+                field.removeEventListener('change', clearServerError);
+            };
+            field.addEventListener('input', clearServerError);
+            field.addEventListener('change', clearServerError);
+        });
+        return firstInvalidField;
+    };
+
+    const renumberWorkExperiences = () => {
+        const entries = [...form.querySelectorAll('[data-work-experience-entry]')];
+        entries.forEach((entry, index) => {
+            const number = entry.querySelector('[data-work-experience-number]');
+            if (number) number.textContent = String(index + 1);
+            synchronizeWorkExperienceEntry(entry);
+        });
+        if (addWorkExperienceButton) addWorkExperienceButton.disabled = entries.length >= 10;
+    };
+
     const validatePanel = (panel) => {
         synchronizeScreening();
         const fields = [...panel.querySelectorAll('input, select, textarea')];
@@ -109,8 +169,7 @@
         const review = form.querySelector('#application-review');
         if (!review) return;
 
-        const selectedText = (name) => {
-            const field = form.elements.namedItem(name);
+        const fieldText = (field) => {
             if (!field) return '-';
             if (field instanceof RadioNodeList) {
                 return field.value || '-';
@@ -118,34 +177,141 @@
             if (field instanceof HTMLSelectElement) {
                 return field.selectedOptions[0]?.textContent || '-';
             }
+            if (field instanceof HTMLInputElement && field.type === 'file') {
+                return field.files?.[0]?.name || '-';
+            }
             return field.value || '-';
         };
-
-        const items = [
-            ['Prioritas Posisi', positionOrder.map((vacancyId, index) => {
-                const choice = positionChoices.find((item) => item.value === vacancyId);
-                const title = choice?.closest('.position-option')?.querySelector('strong')?.textContent;
-                return title ? `${index + 1}. ${title}` : null;
-            }).filter(Boolean).join(', ')],
-            ['Nama Lengkap', selectedText('full_name')],
-            ['NIK', selectedText('nik').replace(/^(.{4}).*(.{4})$/, '$1********$2')],
-            ['Email', selectedText('email')],
-            ['WhatsApp', selectedText('phone')],
-            ['Pendidikan', selectedText('last_education')],
-            ['Institusi', selectedText('institution')],
-            ['Jurusan', selectedText('major')],
-        ];
-
-        review.replaceChildren(...items.map(([label, value]) => {
+        const selectedText = (name) => fieldText(form.elements.namedItem(name));
+        const reviewItem = (label, value) => {
             const item = document.createElement('div');
             const labelElement = document.createElement('span');
             const valueElement = document.createElement('strong');
+            const normalizedValue = value || '-';
             item.className = 'review-item';
+            if (normalizedValue.length > 90 || normalizedValue.includes('\n')) item.classList.add('review-item-wide');
+            if (normalizedValue === '-') item.classList.add('review-item-empty');
             labelElement.textContent = label;
-            valueElement.textContent = value;
+            valueElement.textContent = normalizedValue;
             item.append(labelElement, valueElement);
             return item;
-        }));
+        };
+        const reviewSection = (title, items) => {
+            const section = document.createElement('section');
+            const heading = document.createElement('div');
+            const number = document.createElement('span');
+            const headingText = document.createElement('div');
+            const headingTitle = document.createElement('h3');
+            const count = document.createElement('small');
+            const grid = document.createElement('div');
+            section.className = 'review-section';
+            if (items.length > 4 || items.some(([, value]) => (value || '').length > 90)) {
+                section.classList.add('review-section-wide');
+            }
+            heading.className = 'review-section-heading';
+            number.className = 'review-section-number';
+            headingText.className = 'review-section-title';
+            headingTitle.textContent = title;
+            count.textContent = `${items.length} data ditinjau`;
+            headingText.append(headingTitle, count);
+            heading.append(number, headingText);
+            grid.className = 'review-grid';
+            grid.append(...items.map(([label, value]) => reviewItem(label, value)));
+            section.append(heading, grid);
+            return section;
+        };
+        const maskedNik = selectedText('nik').replace(/^(\d{4})\d{8}(\d{4})$/, '$1********$2');
+        const birthPlaceAndDate = [selectedText('birth_place'), selectedText('birth_date')]
+            .filter((value) => value !== '-')
+            .join(', ') || '-';
+        const positionItems = positionOrder.map((vacancyId, index) => {
+            const choice = positionChoices.find((item) => item.value === vacancyId);
+            const title = choice?.closest('.position-option')?.querySelector('strong')?.textContent || '-';
+            return [`Prioritas ${index + 1}`, title];
+        });
+        const sections = [
+            reviewSection('Posisi yang Dilamar', positionItems),
+            reviewSection('Biodata & Identitas', [
+                ['NIK', maskedNik],
+                ['Nama lengkap', selectedText('full_name')],
+                ['Jenis kelamin', selectedText('gender')],
+                ['Tempat, tanggal lahir', birthPlaceAndDate],
+                ['Usia', ageOutput?.value || '-'],
+                ['Status pernikahan', selectedText('marital_status')],
+                ['Agama', selectedText('religion')],
+                ['Tinggi badan', selectedText('height_cm') === '-' ? '-' : `${selectedText('height_cm')} cm`],
+                ['Nomor WhatsApp', selectedText('phone')],
+                ['Email aktif', selectedText('email')],
+                ['Foto profil', selectedText('profile_photo')],
+            ]),
+            reviewSection('Alamat Domisili', [
+                ['Alamat lengkap saat ini', selectedText('address')],
+            ]),
+            reviewSection('Pendidikan Terakhir', [
+                ['Jenjang pendidikan', selectedText('last_education')],
+                ['Sekolah/perguruan tinggi', selectedText('institution')],
+                ['Jurusan', selectedText('major')],
+                ['IPK/Nilai akhir', selectedText('gpa')],
+                ['Pelatihan atau sertifikasi', selectedText('training_experience')],
+            ]),
+        ];
+
+        const experienceItems = [...form.querySelectorAll('[data-work-experience-entry]')]
+            .map((entry) => {
+                const company = fieldText(entry.querySelector('[name$="[company_name]"]'));
+                if (company === '-') return null;
+                const positionTitle = fieldText(entry.querySelector('[name$="[position_title]"]'));
+                const startYear = fieldText(entry.querySelector('[name$="[start_year]"]'));
+                const endYear = fieldText(entry.querySelector('[name$="[end_year]"]'));
+                const responsibilities = fieldText(entry.querySelector('[name$="[responsibilities]"]'));
+                return [company, `${positionTitle}\n${startYear}–${endYear === '-' ? 'Sekarang' : endYear}\n${responsibilities}`];
+            })
+            .filter(Boolean);
+        sections.push(reviewSection('Pengalaman Kerja', experienceItems.length > 0
+            ? experienceItems
+            : [['Riwayat perusahaan', 'Belum memiliki pengalaman kerja']]));
+
+        form.querySelectorAll('[data-screening-vacancy]').forEach((screeningSection) => {
+            if (screeningSection.hidden) return;
+
+            const vacancyTitle = screeningSection.querySelector('.screening-position-heading strong')?.textContent || 'Posisi';
+            const screeningItems = [...screeningSection.querySelectorAll('.screening-question')].map((question) => {
+                const label = question.querySelector('label')?.textContent?.replace(/\s*\*\s*$/, '').trim() || 'Pertanyaan';
+                const field = question.querySelector('input, select, textarea');
+                return [label, fieldText(field)];
+            });
+            if (screeningItems.length > 0) {
+                sections.push(reviewSection(`Screening Awal — ${vacancyTitle}`, screeningItems));
+            }
+        });
+
+        sections.push(
+            reviewSection('Motivasi', [
+                ['Motivasi bekerja dan alasan ingin bergabung', selectedText('work_motivation')],
+                ['Target/impian yang akan dicapai', selectedText('career_goal')],
+            ]),
+            reviewSection('Dokumen Pendukung', [
+                ['Berkas lamaran lengkap (PDF)', selectedText('application_bundle')],
+            ]),
+        );
+
+        const introduction = document.createElement('div');
+        const introductionIcon = document.createElement('span');
+        const introductionCopy = document.createElement('div');
+        const introductionTitle = document.createElement('strong');
+        const introductionText = document.createElement('p');
+        introduction.className = 'review-introduction';
+        introductionIcon.textContent = '✓';
+        introductionTitle.textContent = 'Data lamaran siap diperiksa';
+        introductionText.textContent = 'Periksa kembali setiap bagian. Gunakan tombol Kembali jika masih ada data yang perlu diperbaiki.';
+        introductionCopy.append(introductionTitle, introductionText);
+        introduction.append(introductionIcon, introductionCopy);
+
+        sections.forEach((section, index) => {
+            const number = section.querySelector('.review-section-number');
+            if (number) number.textContent = String(index + 1).padStart(2, '0');
+        });
+        review.replaceChildren(introduction, ...sections);
     };
 
     const showStep = (step) => {
@@ -198,9 +364,41 @@
         });
     });
 
+    addWorkExperienceButton?.addEventListener('click', () => {
+        if (!(workExperienceTemplate instanceof HTMLTemplateElement) || !workExperienceList) return;
+        if (form.querySelectorAll('[data-work-experience-entry]').length >= 10) return;
+
+        const wrapper = document.createElement('template');
+        wrapper.innerHTML = workExperienceTemplate.innerHTML.replaceAll('__INDEX__', String(nextWorkExperienceIndex++));
+        workExperienceList.append(wrapper.content.cloneNode(true));
+        renumberWorkExperiences();
+        workExperienceList.lastElementChild?.querySelector('input')?.focus();
+    });
+
+    workExperienceList?.addEventListener('input', (event) => {
+        const entry = event.target.closest?.('[data-work-experience-entry]');
+        if (entry) synchronizeWorkExperienceEntry(entry);
+    });
+    workExperienceList?.addEventListener('click', (event) => {
+        const removeButton = event.target.closest?.('[data-remove-work-experience]');
+        if (!removeButton) return;
+        removeButton.closest('[data-work-experience-entry]')?.remove();
+        renumberWorkExperiences();
+    });
+
     photoInput?.addEventListener('change', () => {
         const file = photoInput.files?.[0];
+        photoInput.setCustomValidity('');
         if (!file) return;
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            photoInput.setCustomValidity('Foto profil harus berformat JPG atau PNG.');
+        } else if (file.size > 2 * 1024 * 1024) {
+            photoInput.setCustomValidity('Ukuran foto profil maksimal 2 MB.');
+        }
+        if (!photoInput.checkValidity()) {
+            photoInput.reportValidity();
+            return;
+        }
         photoLabel.textContent = file.name;
 
         const image = document.createElement('img');
@@ -212,14 +410,27 @@
 
     form.querySelectorAll('.document-upload input').forEach((input) => {
         input.addEventListener('change', () => {
+            input.setCustomValidity('');
+            const file = input.files?.[0];
+            if (file && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                input.setCustomValidity('Berkas lamaran harus berformat PDF.');
+            } else if (file && file.size > 10 * 1024 * 1024) {
+                input.setCustomValidity('Ukuran berkas lamaran maksimal 10 MB.');
+            }
             const label = input.closest('.document-upload')?.querySelector('small');
-            if (label && input.files?.[0]) label.textContent = input.files[0].name;
+            if (label && file) label.textContent = file.name;
+            if (!input.checkValidity()) input.reportValidity();
         });
     });
 
     form.addEventListener('submit', (event) => {
-        if (!validatePanel(panels[panels.length - 1])) {
+        synchronizeScreening();
+        const invalidPanelIndex = panels.findIndex((panel) =>
+            [...panel.querySelectorAll('input, select, textarea')].some((field) => !field.checkValidity()));
+        if (invalidPanelIndex >= 0) {
             event.preventDefault();
+            showStep(invalidPanelIndex + 1);
+            validatePanel(panels[invalidPanelIndex]);
             return;
         }
         submitButton.disabled = true;
@@ -227,5 +438,13 @@
     });
 
     synchronizePositions();
-    showStep(1);
+    renumberWorkExperiences();
+    const firstServerInvalidField = applyServerValidationErrors();
+    const errorPanelIndex = firstServerInvalidField
+        ? panels.indexOf(firstServerInvalidField.closest('.wizard-panel'))
+        : -1;
+    showStep(errorPanelIndex >= 0 ? errorPanelIndex + 1 : 1);
+    if (firstServerInvalidField) {
+        window.setTimeout(() => firstServerInvalidField.reportValidity(), 100);
+    }
 })();

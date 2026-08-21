@@ -35,8 +35,10 @@ class ApplicantDetailController extends BaseController
             ->get()
             ->getResultArray();
         $applicationIds = array_map('intval', array_column($applications, 'id'));
+        $batchIds = array_values(array_unique(array_map('intval', array_column($applications, 'batch_id'))));
         $answers = [];
         $histories = [];
+        $workExperiencesByBatch = [];
         if ($applicationIds !== []) {
             $answers = $this->groupByApplication($database->table('application_screening_answers AS answers')
                 ->select('answers.application_id, answers.answer_value, answers.is_eligible, answers.score, questions.question_text, questions.answer_type, questions.is_knockout')
@@ -52,6 +54,15 @@ class ApplicantDetailController extends BaseController
                 ->orderBy('histories.created_at', 'DESC')
                 ->get()
                 ->getResultArray());
+        }
+        if ($batchIds !== []) {
+            foreach ($database->table('application_work_experiences')
+                ->whereIn('batch_id', $batchIds)
+                ->orderBy('display_order', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->get()->getResultArray() as $experience) {
+                $workExperiencesByBatch[(int) $experience['batch_id']][] = $experience;
+            }
         }
         $documents = $database->table('applicant_documents AS documents')
             ->select('documents.id, documents.batch_id, documents.document_type, documents.original_name, documents.mime_type, documents.file_size, documents.created_at, batches.batch_number')
@@ -69,6 +80,7 @@ class ApplicantDetailController extends BaseController
             'applications' => $applications,
             'answersByApplication' => $answers,
             'historiesByApplication' => $histories,
+            'workExperiencesByBatch' => $workExperiencesByBatch,
             'documents' => $documents,
             'canDownloadDocuments' => Services::authorization()->can($userId, 'candidates.cv.download'),
         ]);

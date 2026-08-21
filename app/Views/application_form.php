@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f5f7f8">
     <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=13">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=16">
 </head>
 <body class="application-page">
     <header class="application-header">
@@ -44,6 +44,10 @@
         $positionPriorities = is_array($oldPriorities)
             ? array_map('intval', $oldPriorities)
             : [(int) $vacancy['id'] => 1];
+        $oldWorkExperiences = old('work_experiences');
+        $workExperiences = is_array($oldWorkExperiences) && $oldWorkExperiences !== []
+            ? array_map(static fn (mixed $experience): array => is_array($experience) ? $experience : [], array_values($oldWorkExperiences))
+            : [['company_name' => '', 'position_title' => '', 'start_year' => '', 'end_year' => '', 'responsibilities' => '']];
         ?>
 
         <nav class="wizard-progress" aria-label="Tahapan formulir lamaran">
@@ -65,6 +69,7 @@
             method="post"
             enctype="multipart/form-data"
             novalidate
+            data-validation-errors="<?= esc(json_encode($errors, JSON_UNESCAPED_UNICODE), 'attr') ?>"
         >
             <?= csrf_field() ?>
 
@@ -190,7 +195,7 @@
                     </label>
                     <label class="field">
                         <span>Nomor WhatsApp <b>*</b></span>
-                        <input name="phone" type="tel" value="<?= esc(old('phone'), 'attr') ?>" placeholder="08xxxxxxxxxx" autocomplete="tel" required>
+                        <input name="phone" type="tel" value="<?= esc(old('phone'), 'attr') ?>" placeholder="08xxxxxxxxxx" autocomplete="tel" pattern="(?:\+?62|0)[0-9]{8,13}" title="Gunakan nomor Indonesia, contoh 081234567890" required>
                     </label>
                     <label class="field">
                         <span>Email aktif <b>*</b></span>
@@ -209,7 +214,7 @@
                 </div>
                 <label class="field field-full">
                     <span>Alamat lengkap saat ini <b>*</b></span>
-                    <textarea name="address" rows="7" maxlength="1000" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan, kota/kabupaten, dan provinsi" required><?= esc(old('address')) ?></textarea>
+                    <textarea name="address" rows="7" minlength="10" maxlength="1000" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan, kota/kabupaten, dan provinsi" required><?= esc(old('address')) ?></textarea>
                 </label>
             </section>
 
@@ -234,8 +239,34 @@
             </section>
 
             <section class="wizard-panel" data-step="4" aria-labelledby="step-title-4" hidden>
-                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 4 dari 8</span><h2 id="step-title-4">Pengalaman</h2><p>Ceritakan pengalaman kerja, organisasi, magang, atau proyek yang relevan.</p></div></div>
-                <label class="field field-full"><span>Pengalaman kerja</span><textarea name="work_experience" rows="10" maxlength="5000" placeholder="Nama perusahaan/organisasi, posisi, periode, dan tanggung jawab utama"><?= esc(old('work_experience')) ?></textarea></label>
+                <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 4 dari 8</span><h2 id="step-title-4">Pengalaman Kerja</h2><p>Tambahkan riwayat perusahaan tempat Anda pernah bekerja. Bagian ini opsional bagi pelamar tanpa pengalaman kerja.</p></div></div>
+                <div class="work-experience-list" data-work-experience-list>
+                    <?php foreach ($workExperiences as $experienceIndex => $experience): ?>
+                        <article class="work-experience-entry" data-work-experience-entry>
+                            <div class="work-experience-heading"><strong>Perusahaan <span data-work-experience-number><?= $experienceIndex + 1 ?></span></strong><button type="button" data-remove-work-experience>Hapus</button></div>
+                            <div class="form-grid">
+                                <label class="field field-full"><span>Nama PT/perusahaan</span><input name="work_experiences[<?= $experienceIndex ?>][company_name]" type="text" value="<?= esc((string) ($experience['company_name'] ?? ''), 'attr') ?>" maxlength="150" data-experience-field></label>
+                                <label class="field field-full"><span>Jabatan/posisi</span><input name="work_experiences[<?= $experienceIndex ?>][position_title]" type="text" value="<?= esc((string) ($experience['position_title'] ?? ''), 'attr') ?>" maxlength="150" placeholder="Contoh: Staff Administrasi" data-experience-field></label>
+                                <label class="field"><span>Tahun masuk</span><input name="work_experiences[<?= $experienceIndex ?>][start_year]" type="number" value="<?= esc((string) ($experience['start_year'] ?? ''), 'attr') ?>" min="1950" max="<?= date('Y') ?>" placeholder="Contoh: 2020" data-experience-field></label>
+                                <label class="field"><span>Tahun akhir</span><input name="work_experiences[<?= $experienceIndex ?>][end_year]" type="number" value="<?= esc((string) ($experience['end_year'] ?? ''), 'attr') ?>" min="1950" max="<?= date('Y') + 1 ?>" placeholder="Kosongkan jika masih bekerja" data-experience-field></label>
+                                <label class="field field-full"><span>Deskripsi tugas dan tanggung jawab</span><textarea name="work_experiences[<?= $experienceIndex ?>][responsibilities]" rows="5" maxlength="5000" placeholder="Jelaskan posisi, tugas utama, dan tanggung jawab Anda" data-experience-field><?= esc((string) ($experience['responsibilities'] ?? '')) ?></textarea></label>
+                            </div>
+                        </article>
+                    <?php endforeach ?>
+                </div>
+                <button class="add-work-experience" type="button" data-add-work-experience>+ Tambah PT/perusahaan</button>
+                <template id="work-experience-template">
+                    <article class="work-experience-entry" data-work-experience-entry>
+                        <div class="work-experience-heading"><strong>Perusahaan <span data-work-experience-number></span></strong><button type="button" data-remove-work-experience>Hapus</button></div>
+                        <div class="form-grid">
+                            <label class="field field-full"><span>Nama PT/perusahaan</span><input name="work_experiences[__INDEX__][company_name]" type="text" maxlength="150" data-experience-field></label>
+                            <label class="field field-full"><span>Jabatan/posisi</span><input name="work_experiences[__INDEX__][position_title]" type="text" maxlength="150" placeholder="Contoh: Staff Administrasi" data-experience-field></label>
+                            <label class="field"><span>Tahun masuk</span><input name="work_experiences[__INDEX__][start_year]" type="number" min="1950" max="<?= date('Y') ?>" placeholder="Contoh: 2020" data-experience-field></label>
+                            <label class="field"><span>Tahun akhir</span><input name="work_experiences[__INDEX__][end_year]" type="number" min="1950" max="<?= date('Y') + 1 ?>" placeholder="Kosongkan jika masih bekerja" data-experience-field></label>
+                            <label class="field field-full"><span>Deskripsi tugas dan tanggung jawab</span><textarea name="work_experiences[__INDEX__][responsibilities]" rows="5" maxlength="5000" placeholder="Jelaskan posisi, tugas utama, dan tanggung jawab Anda" data-experience-field></textarea></label>
+                        </div>
+                    </article>
+                </template>
             </section>
 
             <section class="wizard-panel" data-step="5" aria-labelledby="step-title-5" hidden>
@@ -287,7 +318,7 @@
                                         <?php $answerOptions = json_decode((string) ($question['answer_options'] ?? ''), true); $answerOptions = is_array($answerOptions) ? $answerOptions : []; ?>
                                         <select id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" <?= (int) $question['is_required'] === 1 ? 'required' : '' ?> <?= $isSelected ? '' : 'disabled' ?>><option value="">Pilih jawaban</option><?php foreach ($answerOptions as $option): ?><option value="<?= esc((string) $option, 'attr') ?>" <?= $oldAnswer === (string) $option ? 'selected' : '' ?>><?= esc((string) $option) ?></option><?php endforeach ?></select>
                                     <?php else: ?>
-                                        <input id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" type="<?= $question['answer_type'] === 'number' ? 'number' : 'text' ?>" value="<?= esc($oldAnswer, 'attr') ?>" <?= $question['question_code'] === 'age' ? 'data-autofill="age" readonly' : '' ?> <?= (int) $question['is_required'] === 1 ? 'required' : '' ?> <?= $isSelected ? '' : 'disabled' ?>>
+                                        <input id="screening-<?= (int) $question['id'] ?>" name="<?= esc($fieldName, 'attr') ?>" type="<?= $question['answer_type'] === 'number' ? 'number' : 'text' ?>" value="<?= esc($oldAnswer, 'attr') ?>" <?= $question['answer_type'] === 'text' ? 'maxlength="255"' : '' ?> <?= $question['question_code'] === 'age' ? 'data-autofill="age" readonly' : '' ?> <?= (int) $question['is_required'] === 1 ? 'required' : '' ?> <?= $isSelected ? '' : 'disabled' ?>>
                                     <?php endif ?>
                                 </div>
                             <?php endforeach ?>
@@ -345,6 +376,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=4" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=9" defer></script>
 </body>
 </html>

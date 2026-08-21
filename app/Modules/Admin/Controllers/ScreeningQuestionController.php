@@ -46,9 +46,27 @@ class ScreeningQuestionController extends BaseController
                 ->get()->getResultArray();
         }
 
+        $defaultQuestions = $database->table('default_screening_questions')
+            ->orderBy('display_order', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+        $existingDefaultIds = array_map('intval', array_filter(array_column($questions, 'source_default_question_id')));
+        $existingQuestionCodes = array_column($questions, 'question_code');
+        $copyableDefaultQuestions = array_map(
+            static function (array $question) use ($existingDefaultIds, $existingQuestionCodes): array {
+                $question['is_copyable'] = (int) $question['is_active'] === 1
+                    && ! in_array((int) $question['id'], $existingDefaultIds, true)
+                    && ! in_array($question['question_code'], $existingQuestionCodes, true);
+
+                return $question;
+            },
+            array_values(array_filter($defaultQuestions, static fn (array $question): bool => (int) $question['is_active'] === 1)),
+        );
+
         return view('admin/screening_questions', [
             'auth' => $auth,
-            'defaultQuestions' => $database->table('default_screening_questions')->orderBy('display_order', 'ASC')->orderBy('id', 'ASC')->get()->getResultArray(),
+            'defaultQuestions' => $defaultQuestions,
+            'copyableDefaultQuestions' => $copyableDefaultQuestions,
             'vacancies' => $vacancies,
             'selectedVacancyId' => $selectedVacancyId,
             'selectedVacancy' => $selectedVacancy,
@@ -87,6 +105,15 @@ class ScreeningQuestionController extends BaseController
         if ($this->findVacancy($vacancyId) === null) {
             return $this->error('Lowongan tidak ditemukan.', '#vacancy-questions');
         }
+
+        $submittedIds = $this->request->getPost('default_question_ids');
+        $selectedIds = is_array($submittedIds)
+            ? array_values(array_unique(array_filter(array_map('intval', $submittedIds), static fn (int $id): bool => $id > 0)))
+            : [];
+        if ($selectedIds === []) {
+            return $this->copyError($vacancyId, 'Pilih minimal satu pertanyaan default yang akan disalin.');
+        }
+
         $database = db_connect();
         $existing = $database->table('vacancy_screening_questions')
             ->select('question_code, source_default_question_id')
@@ -96,7 +123,17 @@ class ScreeningQuestionController extends BaseController
         $added = 0;
         $now = date('Y-m-d H:i:s');
 
-        foreach ($database->table('default_screening_questions')->where('is_active', 1)->orderBy('display_order', 'ASC')->get()->getResultArray() as $question) {
+        $selectedQuestions = $database->table('default_screening_questions')
+            ->where('is_active', 1)
+            ->whereIn('id', $selectedIds)
+            ->orderBy('display_order', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+        if ($selectedQuestions === []) {
+            return $this->copyError($vacancyId, 'Pertanyaan default yang dipilih tidak tersedia atau sudah nonaktif.');
+        }
+
+        foreach ($selectedQuestions as $question) {
             if (in_array((int) $question['id'], $existingSources, true) || in_array($question['question_code'], $existingCodes, true)) {
                 continue;
             }
@@ -119,7 +156,11 @@ class ScreeningQuestionController extends BaseController
             $added++;
         }
 
-        return $this->success($added . ' pertanyaan default berhasil disalin.', $this->vacancyAnchor($vacancyId));
+        if ($added === 0) {
+            return $this->copyError($vacancyId, 'Pertanyaan yang dipilih sudah ada pada lowongan ini.');
+        }
+
+        return $this->success($added . ' pertanyaan default terpilih berhasil disalin.', $this->vacancyAnchor($vacancyId));
     }
 
     public function createVacancyQuestion(int $vacancyId): RedirectResponse
@@ -284,6 +325,13 @@ class ScreeningQuestionController extends BaseController
             $redirect->with('screening_form', $form);
         }
         return $redirect;
+    }
+
+    private function copyError(int $vacancyId, string $message): RedirectResponse
+    {
+        return $this->error($message, $this->vacancyAnchor($vacancyId))
+            ->withInput()
+            ->with('screening_form', 'vacancy-copy');
     }
 
     private function disableClientCaching(): void
