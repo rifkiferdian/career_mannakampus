@@ -137,6 +137,6 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     </main>
 </div>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=6" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=7" defer></script>
 </body>
 </html>

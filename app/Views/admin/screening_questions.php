@@ -196,6 +196,6 @@ $modalOptions = static function (string $key, array $question = []) use ($openMo
 
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=5" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=7" defer></script>
 </body>
 </html>

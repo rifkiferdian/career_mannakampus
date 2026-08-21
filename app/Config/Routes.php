@@ -71,6 +71,10 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('pelamar/(:num)/dokumen/(:num)', 'ApplicantDetailController::downloadDocument/$1/$2', ['filter' => 'permission:candidates.cv.download', 'as' => 'hrd.applicant.document']);
     $routes->get('kandidat', 'CandidateController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates']);
     $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);
+    $routes->get('talent-pool', 'TalentPoolController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.talent.pool']);
+    $routes->post('talent-pool/simpan/(:num)', 'TalentPoolController::save/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.talent.pool.save']);
+    $routes->post('talent-pool/(:num)', 'TalentPoolController::update/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.talent.pool.update']);
+    $routes->post('talent-pool/(:num)/panggil', 'TalentPoolController::contact/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.talent.pool.contact']);
     $routes->get('tim-hrd', 'HrdTeamController::index', ['filter' => 'permission:hrd.teams.view', 'as' => 'hrd.teams']);
     $routes->post('tim-hrd', 'HrdTeamController::create', ['filter' => 'permission:hrd.teams.manage', 'as' => 'hrd.teams.create']);
     $routes->post('tim-hrd/(:num)', 'HrdTeamController::update/$1', ['filter' => 'permission:hrd.teams.manage', 'as' => 'hrd.teams.update']);

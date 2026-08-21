@@ -779,6 +779,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-table-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .candidate-table-actions a, .candidate-table-actions button { min-height: 32px; display: inline-flex; align-items: center; padding: 0 10px; color: white; background: var(--admin-navy); border: 1px solid var(--admin-navy); border-radius: 7px; font-family: inherit; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .candidate-table-actions .candidate-process-link { color: #a95027; background: #fff5ef; border-color: #f0d6c8; }
+.candidate-table-actions .candidate-talent-trigger { color: #247052; background: #eff9f4; border-color: #cbe7da; }
+.candidate-table-actions .candidate-talent-saved { color: #247052; background: #e8f5ef; border-color: #cbe7da; }
+.candidate-heading-actions { display: flex; align-items: center; gap: 9px; }
+.talent-pool-page-link, .talent-pool-back-link { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; color: white; background: #267052; border-radius: 8px; font-size: 11px; font-weight: 800; text-decoration: none; }
+.talent-pool-page-link svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.talent-pool-page-link:hover, .talent-pool-back-link:hover { background: #1e5d43; }
 .candidate-process-form { display: grid; grid-template-columns: 1.1fr 1fr 1fr; align-items: end; gap: 12px; padding: 17px; border: 1px solid #f0d9cc; border-radius: 10px; }
 .candidate-process-title { grid-column: 1 / -1; padding-bottom: 11px; border-bottom: 1px solid #f0e1d8; }
 .candidate-process-title strong, .candidate-process-title span { display: block; }
@@ -829,6 +835,154 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-rejection-context strong { margin-top: 4px; color: #8e3f34; font-size: 13px; }
 .candidate-rejection-context small { margin-top: 4px; color: #987b75; font-size: 9px; }
 .candidate-process-buttons .candidate-modal-cancel { color: #687783; background: white; border: 1px solid #dce3e9; }
+.talent-pool-save-modal, .talent-edit-modal { width: min(820px, calc(100vw - 24px)); }
+.talent-detail-modal .admin-modal-heading h2,
+.talent-history-modal .admin-modal-heading h2,
+.talent-edit-modal .admin-modal-heading h2,
+.talent-call-modal .admin-modal-heading h2 { font-size: 17px; }
+.talent-detail-modal .admin-modal-heading p,
+.talent-history-modal .admin-modal-heading p,
+.talent-edit-modal .admin-modal-heading p,
+.talent-call-modal .admin-modal-heading p { font-size: 12px; }
+.talent-pool-form, .talent-call-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 21px 23px 24px; }
+.talent-pool-form label, .talent-call-form label { color: #526474; font-size: 13px; font-weight: 750; }
+.talent-pool-form input, .talent-pool-form select, .talent-pool-form textarea,
+.talent-call-form input, .talent-call-form select, .talent-call-form textarea { width: 100%; min-height: 42px; display: block; margin-top: 7px; padding: 9px 11px; color: #3d5062; background: #fbfcfd; border: 1px solid #dce3e9; border-radius: 8px; font: inherit; font-size: 13px; outline: 0; }
+.talent-pool-form textarea, .talent-call-form textarea { resize: vertical; line-height: 1.5; }
+.talent-field-help { display: block; margin-top: 6px; color: #87949e; font-size: 11px; font-weight: 500; line-height: 1.45; }
+.talent-pool-form input:focus, .talent-pool-form select:focus, .talent-pool-form textarea:focus,
+.talent-call-form input:focus, .talent-call-form select:focus, .talent-call-form textarea:focus { background: white; border-color: #80ad99; box-shadow: 0 0 0 3px rgba(38,112,82,.08); }
+.talent-pool-wide { grid-column: 1 / -1; }
+.talent-call-help { grid-column: 1 / -1; padding: 12px 14px; color: #507263; background: #f0f8f4; border: 1px solid #d5e9df; border-radius: 8px; }
+.talent-call-help strong, .talent-call-help span { display: block; }
+.talent-call-help strong { font-size: 12px; }
+.talent-call-help span { margin-top: 3px; font-size: 11px; line-height: 1.5; }
+.talent-call-form .talent-confirm-check { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 9px; padding: 12px 14px; color: #496254; background: #f6faf8; border: 1px solid #d9e8e0; border-radius: 8px; line-height: 1.5; cursor: pointer; }
+.talent-call-form .talent-confirm-check input { flex: 0 0 16px; width: 16px; min-height: 16px; margin: 2px 0 0; accent-color: #267052; }
+.talent-call-form .talent-confirm-check span { font-size: 12px; }
+.talent-edit-modal .candidate-process-buttons button,
+.talent-call-modal .candidate-process-buttons button { font-size: 12px; }
+.talent-pool-content { width: min(1480px, calc(100% - 32px)); max-width: 1480px; padding-bottom: 60px; }
+.talent-pool-heading { align-items: center; }
+.talent-pool-back-link { background: var(--admin-navy); }
+.talent-pool-summary { margin-bottom: 20px; }
+.talent-pool-filter-card { margin-bottom: 20px; }
+.talent-pool-filter { display: grid; grid-template-columns: minmax(200px, 1.2fr) repeat(3, minmax(125px, .75fr)) auto auto; gap: 9px; padding: 15px 18px; }
+.talent-pool-filter.talent-pool-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(200px, 1.2fr) repeat(3, minmax(125px, .75fr)) auto auto; }
+.talent-pool-filter input, .talent-pool-filter select { min-width: 0; height: 42px; padding: 0 11px; color: #3d5062; background: #fbfcfd; border: 1px solid #dce3e9; border-radius: 8px; font-size: 11px; outline: 0; }
+.talent-pool-filter button, .talent-pool-filter > a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 11px; font-weight: 800; text-decoration: none; }
+.talent-pool-filter button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
+.talent-pool-filter > a { color: #657582; background: white; border: 1px solid #dce3e9; }
+.talent-pool-table-card { margin-bottom: 24px; }
+.talent-pool-table { min-width: 1060px; }
+.talent-pool-table th { font-size: 11px; }
+.talent-pool-table td { padding: 12px; font-size: 12px; }
+.talent-pool-table tr.talent-row-due td { background: #fffaf9; }
+.talent-pool-table tr.talent-row-due:hover td { background: #fff6f4; }
+.talent-table-number { width: 48px; color: var(--admin-navy); font-weight: 800; text-align: center !important; }
+.talent-table-person { min-width: 170px; display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 9px; }
+.talent-table-avatar { width: 38px; height: 38px; display: grid; place-items: center; color: white; background: linear-gradient(145deg, #2f7f5e, #1e6045); border-radius: 10px; font-size: 12px; font-weight: 850; }
+.talent-table-person strong, .talent-table-person a, .talent-table-person small,
+.talent-table-copy strong, .talent-table-copy small { display: block; }
+.talent-table-person strong, .talent-table-copy strong { color: #344c5e; font-size: 12px; }
+.talent-table-person a { margin-top: 2px; overflow-wrap: anywhere; color: #718491; font-size: 10px; text-decoration: none; }
+.talent-table-person .talent-table-name { margin-top: 0; color: #344c5e; font-size: 12px; font-weight: 800; }
+.talent-table-person .talent-table-name:hover { color: var(--admin-orange-dark); text-decoration: underline; }
+.talent-table-person .talent-table-email { color: #718491; font-size: 10px; }
+.talent-table-person small, .talent-table-copy small { margin-top: 3px; color: #919ca4; font-size: 9px; }
+.talent-table-copy { min-width: 110px; }
+.talent-priority { display: inline-flex; margin-top: 6px; padding: 4px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; }
+.talent-priority.priority-high { color: #a3453b; background: #fff0ee; }
+.talent-priority.priority-normal { color: #356a94; background: #eaf3fa; }
+.talent-priority.priority-low { color: #687680; background: #eef1f3; }
+.talent-table-dates { min-width: 110px; }
+.talent-table-dates span, .talent-table-dates small { display: block; }
+.talent-table-dates span { color: #7a8994; font-size: 10px; line-height: 1.7; }
+.talent-table-dates span strong { color: #465b6b; }
+.talent-table-dates .due, .talent-table-dates .due strong { color: #a4463d; }
+.talent-table-dates > small { margin-top: 3px; color: #a4463d; font-size: 9px; font-weight: 800; }
+.talent-table-whatsapp { min-height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; color: #247052; background: #eff9f4; border: 1px solid #cbe7da; border-radius: 7px; font-size: 9px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.talent-table-whatsapp:hover { background: #e3f4eb; border-color: #acd8c3; }
+.talent-table-whatsapp svg { width: 16px; height: 16px; fill: none; stroke: #25a866; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.talent-table-actions { min-width: 130px; display: flex; flex-wrap: wrap; gap: 5px; }
+.talent-table-actions button { min-height: 31px; padding: 0 9px; color: #526879; background: white; border: 1px solid #dce3e9; border-radius: 6px; font-family: inherit; font-size: 9px; font-weight: 800; cursor: pointer; }
+.talent-table-actions .talent-detail-button { color: white; background: var(--admin-navy); border-color: var(--admin-navy); }
+.talent-table-actions .talent-call-button { color: #a95027; background: #fff5ef; border-color: #f0d6c8; }
+.talent-pool-table .talent-status, .talent-detail-profile .talent-status { font-size: 10px; }
+.talent-detail-profile .talent-status { font-size: 12px; }
+.talent-detail-modal { width: min(820px, calc(100vw - 24px)); }
+.talent-detail-body { padding: 20px 23px 23px; }
+.talent-detail-profile { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px; background: #f7faf8; border: 1px solid #dfebe5; border-radius: 10px; }
+.talent-detail-profile > div > strong, .talent-detail-profile > div > a, .talent-detail-profile > div > small { display: block; }
+.talent-detail-profile > div > strong { color: var(--admin-navy); font-size: 15px; }
+.talent-detail-profile > div > a { margin-top: 3px; color: #637987; font-size: 13px; text-decoration: none; }
+.talent-detail-profile > div > small { margin-top: 3px; color: #89959e; font-size: 12px; }
+.talent-detail-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 15px 0 0; border: 1px solid #e5eaee; border-radius: 10px; overflow: hidden; }
+.talent-detail-grid > div { min-width: 0; padding: 12px; border-right: 1px solid #e8ecef; border-bottom: 1px solid #e8ecef; }
+.talent-detail-grid > div:nth-child(4n) { border-right: 0; }
+.talent-detail-grid > div:nth-last-child(-n + 4) { border-bottom: 0; }
+.talent-detail-grid dt { color: #89959f; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.talent-detail-grid dd { margin: 5px 0 0; color: #405667; font-size: 13px; font-weight: 750; line-height: 1.45; }
+.talent-detail-grid dd small { display: block; margin-top: 3px; color: #929da5; font-size: 11px; font-weight: 500; }
+.talent-detail-grid .due dt, .talent-detail-grid .due dd { color: #a4463d; }
+.talent-detail-note { margin-top: 12px; padding: 13px 14px; background: #fafcfd; border: 1px solid #e7ecef; border-radius: 9px; }
+.talent-detail-note.strength { background: #fffaf5; border-color: #f1e2d5; }
+.talent-detail-note.internal { background: #f6f8fb; border-color: #e1e7ed; }
+.talent-detail-note span { color: #7e8b95; font-size: 11px; font-weight: 850; text-transform: uppercase; }
+.talent-detail-note p { margin: 5px 0 0; color: #4f6272; font-size: 13px; line-height: 1.65; }
+.talent-detail-footer { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+.talent-detail-footer a, .talent-detail-footer button { min-height: 36px; display: inline-flex; align-items: center; padding: 0 12px; color: #526879; background: white; border: 1px solid #dce3e9; border-radius: 7px; font-family: inherit; font-size: 12px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.talent-detail-footer .talent-whatsapp { color: #247052; background: #eff9f4; border-color: #cbe7da; }
+.talent-pool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 16px; }
+.talent-card { overflow: hidden; background: white; border: 1px solid var(--admin-line); border-radius: 14px; box-shadow: 0 8px 24px rgba(18,42,63,.035); }
+.talent-card.follow-up-due { border-color: #e7bbb5; box-shadow: 0 8px 24px rgba(157,65,57,.07); }
+.talent-card > header { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #e9edf0; }
+.talent-avatar { width: 48px; height: 48px; display: grid; place-items: center; color: white; background: linear-gradient(145deg, #2f7f5e, #1e6045); border-radius: 13px; font-size: 17px; font-weight: 850; }
+.talent-card header h2 { margin: 0; color: var(--admin-navy); font-size: 16px; }
+.talent-card header a, .talent-card header small { display: block; margin-top: 3px; color: #7d8c97; font-size: 9px; text-decoration: none; }
+.talent-card header a:hover { color: var(--admin-orange-dark); }
+.talent-status { padding: 6px 9px; border-radius: 999px; font-size: 9px; font-weight: 850; white-space: nowrap; }
+.talent-status.status-available { color: #247052; background: #e8f5ef; }
+.talent-status.status-contacted { color: #356a94; background: #eaf3fa; }
+.talent-status.status-processing { color: #785c20; background: #fff4d7; }
+.talent-status.status-unavailable { color: #9d4139; background: #fff0ee; }
+.talent-status.status-hired { color: #5e4390; background: #f1ebfb; }
+.talent-status.status-archived { color: #66737e; background: #eef1f3; }
+.talent-recommendation { padding: 15px 20px; background: linear-gradient(135deg, #f2faf6, #fbfdfc); border-bottom: 1px solid #e2eee8; }
+.talent-recommendation span, .talent-recommendation strong, .talent-recommendation small { display: block; }
+.talent-recommendation span { color: #728d81; font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; }
+.talent-recommendation strong { margin-top: 4px; color: #245f47; font-size: 14px; }
+.talent-recommendation small { margin-top: 4px; color: #789187; font-size: 9px; }
+.talent-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; padding: 4px 20px; }
+.talent-meta > div { min-width: 0; padding: 12px 0; border-bottom: 1px solid #edf0f2; }
+.talent-meta > div:nth-child(odd) { padding-right: 14px; border-right: 1px solid #edf0f2; }
+.talent-meta > div:nth-child(even) { padding-left: 14px; }
+.talent-meta dt { color: #8b969f; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.talent-meta dd { margin: 4px 0 0; color: #465b6b; font-size: 10px; font-weight: 750; }
+.talent-meta dd small { display: block; margin-top: 3px; color: #929da5; font-size: 8px; font-weight: 500; }
+.talent-meta .due dt, .talent-meta .due dd { color: #a4463d; }
+.talent-note, .talent-strength { margin: 14px 20px 0; padding: 12px 13px; background: #fafcfd; border: 1px solid #e8ecef; border-radius: 9px; }
+.talent-strength { background: #fffaf5; border-color: #f1e2d5; }
+.talent-note span, .talent-strength span { color: #83909a; font-size: 8px; font-weight: 850; text-transform: uppercase; }
+.talent-note p, .talent-strength p { margin: 5px 0 0; color: #586b79; font-size: 10px; line-height: 1.55; }
+.talent-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 16px 20px 19px; }
+.talent-actions a, .talent-actions button { min-height: 33px; display: inline-flex; align-items: center; padding: 0 10px; color: #526879; background: white; border: 1px solid #dce3e9; border-radius: 7px; font-family: inherit; font-size: 9px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.talent-actions .talent-whatsapp { color: #247052; background: #eff9f4; border-color: #cbe7da; }
+.talent-actions .talent-call-button { margin-left: auto; color: white; background: var(--admin-orange); border-color: var(--admin-orange); }
+.talent-pool-empty { padding: 55px 25px; text-align: center; }
+.talent-pool-empty > span { color: #2c7859; font-size: 38px; }
+.talent-pool-empty h2 { margin: 9px 0 5px; color: var(--admin-navy); font-size: 20px; }
+.talent-pool-empty p { margin: 0; color: #7f8c96; font-size: 11px; }
+.talent-pool-empty a { min-height: 38px; display: inline-flex; align-items: center; margin-top: 17px; padding: 0 13px; color: white; background: var(--admin-navy); border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; }
+.talent-history-modal { width: min(680px, calc(100vw - 24px)); }
+.talent-history-list { padding: 7px 23px 18px; }
+.talent-history-list article { position: relative; display: grid; grid-template-columns: 11px minmax(0, 1fr); gap: 11px; padding: 14px 0; }
+.talent-history-list article:not(:last-child)::after { content: ''; position: absolute; top: 26px; bottom: -13px; left: 5px; width: 1px; background: #dfe6eb; }
+.talent-history-list article > i { width: 10px; height: 10px; margin-top: 4px; background: #2f7f5e; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 3px #dff1e9; z-index: 1; }
+.talent-history-list strong { color: #385064; font-size: 14px; }
+.talent-history-list p { margin: 4px 0; color: #697985; font-size: 13px; line-height: 1.55; }
+.talent-history-list span { display: block; margin-bottom: 4px; color: #2f7054; font-size: 12px; font-weight: 750; }
+.talent-history-list small { color: #929da5; font-size: 11px; }
 .analytics-dashboard-content { width: min(1380px, calc(100% - 60px)); padding-bottom: 65px; }
 .analytics-welcome { margin-bottom: 22px; }
 .dashboard-period-badge { min-width: 175px; padding: 11px 14px; background: white; border: 1px solid var(--admin-line); border-radius: 10px; }
@@ -1212,6 +1366,40 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 @media (max-width: 1100px) {
     .candidate-filter-form,
     .candidate-filter-form.candidate-filter-with-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1250px) {
+    .talent-pool-filter,
+    .talent-pool-filter.talent-pool-filter-with-team { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+    .talent-pool-grid { grid-template-columns: 1fr; }
+    .talent-pool-filter,
+    .talent-pool-filter.talent-pool-filter-with-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+    .candidate-heading-actions, .talent-pool-heading { width: 100%; align-items: stretch; flex-direction: column; }
+    .talent-pool-page-link, .talent-pool-back-link { width: 100%; }
+    .talent-pool-filter, .talent-pool-filter.talent-pool-filter-with-team, .talent-pool-form, .talent-call-form { grid-template-columns: 1fr; padding-inline: 14px; }
+    .talent-pool-wide, .talent-call-help, .talent-call-form .talent-confirm-check { grid-column: auto; }
+    .talent-card > header { grid-template-columns: 44px minmax(0, 1fr); padding-inline: 15px; }
+    .talent-avatar { width: 44px; height: 44px; }
+    .talent-status { grid-column: 2; justify-self: start; }
+    .talent-recommendation, .talent-meta, .talent-actions { padding-inline: 15px; }
+    .talent-note, .talent-strength { margin-inline: 15px; }
+    .talent-actions .talent-call-button { width: 100%; justify-content: center; margin-left: 0; }
+    .talent-detail-body { padding-inline: 14px; }
+    .talent-detail-profile { grid-template-columns: 44px minmax(0, 1fr); }
+    .talent-detail-profile .talent-status { grid-column: 2; justify-self: start; }
+    .talent-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .talent-detail-grid > div:nth-child(4n) { border-right: 1px solid #e8ecef; }
+    .talent-detail-grid > div:nth-child(2n) { border-right: 0; }
+    .talent-detail-grid > div:nth-last-child(-n + 4) { border-bottom: 1px solid #e8ecef; }
+    .talent-detail-grid > div:nth-last-child(-n + 2) { border-bottom: 0; }
+    .talent-detail-footer { align-items: stretch; flex-direction: column; }
+    .talent-detail-footer a, .talent-detail-footer button { width: 100%; justify-content: center; }
 }
 
 /* Compact icon actions shared by admin data tables. */

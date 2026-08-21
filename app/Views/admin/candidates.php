@@ -13,7 +13,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=42">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=44">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -31,7 +31,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
 
             <section class="dashboard-welcome department-heading">
                 <div><span class="login-eyebrow">Pelamar Divisi</span><h1><?= $selectedTeam ? 'Pelamar ' . esc($selectedTeam['name']) : 'Pelamar Divisi' ?></h1><p>Pelamar yang telah dipilih dan menjadi tanggung jawab divisi ini.</p></div>
-                <?php if (! $canUpdateStatus): ?><span class="read-only-badge">Mode lihat saja</span><?php endif ?>
+                <div class="candidate-heading-actions"><a class="talent-pool-page-link" href="<?= site_url('adminhrdmannakampus/talent-pool' . ($selectedTeamId > 0 ? '?team_id=' . $selectedTeamId : '')) ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15l-7-3-7 3V5Z"/><path d="M9 9h6M9 12h6"/></svg>Talent Pool</a><?php if (! $canUpdateStatus): ?><span class="read-only-badge">Mode lihat saja</span><?php endif ?></div>
             </section>
 
             <?php if ($selectedTeam === null): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert">Akun Anda belum memiliki divisi HRD. Hubungi pengelola Tim HRD agar dapat melihat dan memproses pelamar divisi.</div><?php endif ?>
@@ -74,7 +74,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span></td>
                                     <td><?php if (! empty($application['rejected_stage_name'])): ?><span class="candidate-rejected-stage"><strong><?= $application['rejected_stage_order'] !== null ? 'Tahap ' . (int) $application['rejected_stage_order'] : 'Tahap' ?></strong><?= esc($application['rejected_stage_name']) ?><small><?= esc($application['rejection_reason_title']) ?></small></span><?php else: ?><span class="candidate-not-rejected">—</span><?php endif ?></td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
-                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
+                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?><?php if (! empty($application['talent_pool_id'])): ?><a class="candidate-talent-saved" href="<?= site_url('adminhrdmannakampus/talent-pool?team_id=' . $selectedTeamId) ?>">Cadangan</a><?php elseif ($canUpdateStatus): ?><button class="candidate-talent-trigger" type="button" data-admin-modal-open="candidate-talent-modal-<?= (int) $application['id'] ?>">Simpan cadangan</button><?php endif ?></div></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -125,8 +125,31 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
             </div>
         </dialog>
     <?php endforeach ?>
+    <?php foreach ($applications as $application): if (! empty($application['talent_pool_id'])) { continue; } ?>
+        <dialog class="admin-modal talent-pool-save-modal" id="candidate-talent-modal-<?= (int) $application['id'] ?>" aria-labelledby="candidate-talent-title-<?= (int) $application['id'] ?>">
+            <div class="admin-modal-panel">
+                <div class="settings-card-heading admin-modal-heading">
+                    <span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15l-7-3-7 3V5Z"/><path d="M9 9h6M9 12h6"/></svg></span>
+                    <div><h2 id="candidate-talent-title-<?= (int) $application['id'] ?>">Simpan <?= esc($application['full_name']) ?> sebagai cadangan</h2><p><?= esc($application['vacancy_title']) ?> · <?= esc($application['application_number']) ?></p></div>
+                    <button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button>
+                </div>
+                <form class="talent-pool-form" action="<?= site_url('adminhrdmannakampus/talent-pool/simpan/' . $application['id']) ?>" method="post">
+                    <?= csrf_field() ?>
+                    <label>Posisi rekomendasi<input type="text" name="recommended_position" value="<?= esc($application['vacancy_title'], 'attr') ?>" minlength="3" maxlength="150" required></label>
+                    <label>Departemen rekomendasi<select name="target_department_id" required><option value="">Pilih departemen</option><?php foreach ($departments as $department): ?><option value="<?= (int) $department['id'] ?>" <?= (int) $application['department_id'] === (int) $department['id'] ? 'selected' : '' ?>><?= esc($department['name']) ?></option><?php endforeach ?></select></label>
+                    <label>Prioritas<select name="priority" required><option value="high">Tinggi</option><option value="normal" selected>Normal</option><option value="low">Rendah</option></select></label>
+                    <label>Tersedia mulai<input type="date" name="available_from"><small class="talent-field-help">Tanggal kandidat siap bekerja atau siap mengikuti proses rekrutmen kembali. Boleh dikosongkan jika belum diketahui.</small></label>
+                    <label>Tindak lanjut<input type="date" name="follow_up_at"><small class="talent-field-help">Tanggal pengingat bagi HRD untuk menghubungi kandidat kembali. Kandidat akan ditandai jika tanggalnya sudah jatuh tempo.</small></label>
+                    <label class="talent-pool-wide">Alasan disimpan<textarea name="reason" rows="3" minlength="5" maxlength="1000" required placeholder="Contoh: posisi sudah terisi, tetapi kandidat memenuhi kualifikasi"></textarea></label>
+                    <label class="talent-pool-wide">Kelebihan kandidat<textarea name="strength_notes" rows="3" maxlength="4000" placeholder="Keahlian, pengalaman, atau karakter yang menonjol"></textarea></label>
+                    <label class="talent-pool-wide">Catatan internal<textarea name="internal_notes" rows="3" maxlength="4000" placeholder="Catatan hanya untuk tim HRD"></textarea></label>
+                    <div class="candidate-process-buttons"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" data-confirm="Simpan pelamar ini ke Talent Pool?">Simpan Talent Pool</button></div>
+                </form>
+            </div>
+        </dialog>
+    <?php endforeach ?>
 <?php endif ?>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=6" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=7" defer></script>
 </body>
 </html>

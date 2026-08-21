@@ -67,7 +67,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Ya, lanjutkan',
                 cancelButtonText: 'Batal',
-                confirmButtonColor: '#c0392b',
+                confirmButtonColor: '#f87638',
                 cancelButtonColor: '#64748b',
                 reverseButtons: true,
                 focusCancel: true,
