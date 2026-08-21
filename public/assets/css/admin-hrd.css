@@ -745,7 +745,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidates-content .dashboard-welcome p { font-size: 12px; }
 .candidate-summary strong { font-size: 26px; }
 .candidate-summary span { font-size: 10px; }
-.candidate-filter-form { display: grid; grid-template-columns: minmax(190px, 1.15fr) minmax(135px, .7fr) minmax(175px, 1fr) minmax(130px, .7fr) minmax(130px, .7fr) auto auto; gap: 9px; padding: 15px 18px; }
+.candidate-filter-form { display: grid; grid-template-columns: minmax(190px, 1.15fr) 88px minmax(135px, .7fr) minmax(175px, 1fr) minmax(130px, .7fr) minmax(130px, .7fr) auto auto; gap: 9px; padding: 15px 18px; }
 .candidate-filter-form input, .candidate-filter-form select { min-width: 0; height: 42px; padding: 0 11px; color: #3d5062; background: #fbfcfd; border: 1px solid #dce3e9; border-radius: 8px; font-size: 11px; outline: 0; }
 .candidate-filter-form button, .candidate-filter-form > a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 11px; font-weight: 800; text-decoration: none; }
 .candidate-filter-form button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
@@ -1155,7 +1155,7 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
 .applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
 .applicant-position-meta { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; }
-.candidate-filter-form.candidate-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.1fr) repeat(4, minmax(125px, .7fr)) auto auto; }
+.candidate-filter-form.candidate-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.1fr) 88px repeat(4, minmax(125px, .7fr)) auto auto; }
 
 @media (max-width: 1100px) {
     .candidate-filter-form.candidate-filter-with-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }

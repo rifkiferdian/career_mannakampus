@@ -12,7 +12,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=38">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=39">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -46,6 +46,7 @@ $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $se
                 <form class="candidate-filter-form <?= $canManageTeams ? 'candidate-filter-with-team' : '' ?>" action="<?= $candidateBaseUrl ?>" method="get">
                     <?php if ($canManageTeams): ?><select name="team_id"><option value="">Pilih divisi</option><?php foreach ($teams as $team): ?><option value="<?= (int) $team['id'] ?>" <?= $selectedTeamId === (int) $team['id'] ? 'selected' : '' ?>><?= esc($team['name']) ?></option><?php endforeach ?></select><?php endif ?>
                     <input type="search" name="keyword" value="<?= esc($filters['keyword'], 'attr') ?>" placeholder="Cari nama, email, WA, atau nomor lamaran">
+                    <input class="candidate-age-filter" type="number" name="age" value="<?= $filters['age'] > 0 ? (int) $filters['age'] : '' ?>" min="15" max="80" inputmode="numeric" placeholder="Umur">
                     <select name="vacancy_id"><option value="">Semua posisi</option><?php foreach ($vacancies as $vacancy): ?><option value="<?= (int) $vacancy['id'] ?>" <?= $filters['vacancy_id'] === (int) $vacancy['id'] ? 'selected' : '' ?>><?= esc($vacancy['title']) ?></option><?php endforeach ?></select>
                     <select name="vacancy_period_id"><option value="">Semua sesi</option><?php foreach ($periods as $period): ?><option value="<?= (int) $period['id'] ?>" <?= $filters['vacancy_period_id'] === (int) $period['id'] ? 'selected' : '' ?>><?= esc($period['vacancy_title'] . ' — ' . $period['period_name']) ?></option><?php endforeach ?></select>
                     <select name="department_id"><option value="">Semua departemen</option><?php foreach ($departments as $department): ?><option value="<?= (int) $department['id'] ?>" <?= $filters['department_id'] === (int) $department['id'] ? 'selected' : '' ?>><?= esc($department['name']) ?></option><?php endforeach ?></select>

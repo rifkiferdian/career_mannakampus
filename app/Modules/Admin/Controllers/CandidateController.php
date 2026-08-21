@@ -311,14 +311,16 @@ class CandidateController extends BaseController
     }
 
     /** @param list<string> $statuses
-     * @return array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string}
+     * @return array{keyword: string, age: int, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string}
      */
     private function filters(array $statuses): array
     {
         $status = trim((string) $this->request->getGet('status'));
+        $age = (int) $this->request->getGet('age');
 
         return [
             'keyword' => mb_substr(trim((string) $this->request->getGet('keyword')), 0, 100),
+            'age' => $age >= 15 && $age <= 80 ? $age : 0,
             'vacancy_id' => max(0, (int) $this->request->getGet('vacancy_id')),
             'vacancy_period_id' => max(0, (int) $this->request->getGet('vacancy_period_id')),
             'department_id' => max(0, (int) $this->request->getGet('department_id')),
@@ -326,11 +328,18 @@ class CandidateController extends BaseController
         ];
     }
 
-    /** @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string} $filters */
+    /** @param array{keyword: string, age: int, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string} $filters */
     private function applyFilters(BaseBuilder $builder, array $filters): void
     {
         if ($filters['keyword'] !== '') {
             $builder->groupStart()->like('applicants.full_name', $filters['keyword'])->orLike('applicants.email', $filters['keyword'])->orLike('applicants.phone', $filters['keyword'])->orLike('applications.application_number', $filters['keyword'])->groupEnd();
+        }
+        if ($filters['age'] > 0) {
+            $today = new \DateTimeImmutable('today');
+            $latestBirthDate = $today->modify('-' . $filters['age'] . ' years')->format('Y-m-d');
+            $earliestBirthDate = $today->modify('-' . ($filters['age'] + 1) . ' years')->modify('+1 day')->format('Y-m-d');
+            $builder->where('applicants.birth_date >=', $earliestBirthDate)
+                ->where('applicants.birth_date <=', $latestBirthDate);
         }
         if ($filters['vacancy_id'] > 0) {
             $builder->where('applications.vacancy_id', $filters['vacancy_id']);
