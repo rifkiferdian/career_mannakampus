@@ -128,6 +128,20 @@
         });
     });
 
+    document.querySelectorAll('[data-blacklist-duration]').forEach((select) => {
+        if (!(select instanceof HTMLSelectElement)) return;
+        const form = select.closest('form');
+        const customDateField = form?.querySelector('[data-blacklist-custom-date]');
+        const customDateInput = customDateField?.querySelector('input[type="date"]');
+        const updateCustomDate = () => {
+            const isCustom = select.value === 'custom';
+            if (customDateField instanceof HTMLElement) customDateField.hidden = !isCustom;
+            if (customDateInput instanceof HTMLInputElement) customDateInput.required = isCustom;
+        };
+        select.addEventListener('change', updateCustomDate);
+        updateCustomDate();
+    });
+
     document.querySelectorAll('.admin-modal').forEach((modal) => {
         if (!(modal instanceof HTMLDialogElement)) return;
 

@@ -284,6 +284,9 @@ class CandidateController extends BaseController
         if ($application === null) {
             return $this->candidateError('Lamaran atau tahapan yang dipilih tidak valid.', $returnTeamId);
         }
+        if (Services::applicantBlacklist()->isActive((int) $application['applicant_id'])) {
+            return $this->candidateError('Pelamar berada dalam blacklist aktif dan tahap seleksinya tidak dapat diubah.', $returnTeamId);
+        }
         $allStages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
         $templateStages = $this->templateStages();
         $allowedStages = $this->nextStages((int) $application['recruitment_process_template_id'], (string) $application['application_status'], $templateStages, $allStages);
@@ -387,7 +390,7 @@ class CandidateController extends BaseController
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.rejected_at, talent_pool.id AS talent_pool_id, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.rejected_at, talent_pool.id AS talent_pool_id, active_blacklist.id AS active_blacklist_id, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('recruitment_process_templates AS process_templates', 'process_templates.id = vacancies.recruitment_process_template_id', 'left')
@@ -398,6 +401,7 @@ class CandidateController extends BaseController
             ->join('recruitment_stages AS stages', 'stages.code = applications.application_status', 'left')
             ->join('application_rejections AS rejections', 'rejections.application_id = applications.id', 'left')
             ->join('talent_pool_candidates AS talent_pool', 'talent_pool.applicant_id = applications.applicant_id', 'left')
+            ->join('applicant_blacklists AS active_blacklist', 'active_blacklist.applicant_id = applicants.id AND active_blacklist.revoked_at IS NULL AND active_blacklist.starts_at <= NOW() AND (active_blacklist.is_permanent = 1 OR active_blacklist.ends_at >= NOW())', 'left', false)
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
     }

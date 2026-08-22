@@ -17,6 +17,17 @@ $answerValue = static function (array $answer): string {
     return $raw !== '' ? $raw : '-';
 };
 $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
+$blacklistStatusLabels = ['active' => 'Aktif', 'permanent' => 'Permanen', 'expired' => 'Berakhir', 'revoked' => 'Dicabut'];
+$blacklistHistoryLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 'revoked' => 'Dicabut', 'reactivated' => 'Diaktifkan kembali'];
+$blacklistDurationLabels = ['1_month' => '1 bulan', '3_months' => '3 bulan', '6_months' => '6 bulan', '1_year' => '1 tahun', '2_years' => '2 tahun', 'custom' => 'Tanggal khusus', 'permanent' => 'Permanen'];
+$isBlacklistActive = $blacklist !== null && in_array($blacklist['computed_status'], ['active', 'permanent'], true);
+$whatsAppNumber = preg_replace('/\D+/', '', (string) ($applicant['phone'] ?? '')) ?? '';
+if (str_starts_with($whatsAppNumber, '0')) {
+    $whatsAppNumber = '62' . substr($whatsAppNumber, 1);
+} elseif (str_starts_with($whatsAppNumber, '8')) {
+    $whatsAppNumber = '62' . $whatsAppNumber;
+}
+$whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekrutmen Manna Kampus ingin menghubungi Anda terkait proses lamaran kerja. Apakah Anda bersedia melanjutkan komunikasi melalui WhatsApp?\n\nTerima kasih.";
 ?>
 <!doctype html>
 <html lang="id">
@@ -28,7 +39,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=40">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=50">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -41,7 +52,9 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
         </header>
 
         <div class="admin-content candidate-detail-content">
-            <section class="candidate-profile-card">
+            <?php if ($blacklistSuccess): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($blacklistSuccess) ?></div><?php endif ?>
+            <?php if ($blacklistError): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($blacklistError) ?></div><?php endif ?>
+            <section class="candidate-profile-card <?= $isBlacklistActive ? 'is-blacklisted' : 'is-clear' ?>">
                 <div class="candidate-avatar" aria-hidden="true"><?= esc($initial) ?></div>
                 <div class="candidate-profile-copy">
                     <span class="login-eyebrow">Applicant Profile</span>
@@ -50,9 +63,21 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                 </div>
                 <div class="candidate-profile-actions">
                     <span class="account-status <?= (int) $applicant['is_active'] === 1 ? 'active' : 'inactive' ?>"><i></i><?= (int) $applicant['is_active'] === 1 ? 'Aktif' : 'Nonaktif' ?></span>
-                    <a href="mailto:<?= esc($applicant['email'], 'attr') ?>">Kirim email</a>
+                    <div class="candidate-profile-action-buttons">
+                        <?php if ($canManageBlacklist): ?><button class="candidate-profile-action candidate-blacklist-button <?= $isBlacklistActive ? 'is-active' : '' ?>" type="button" data-admin-modal-open="applicant-blacklist-modal"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg><span><?= $isBlacklistActive ? 'Kelola blacklist' : ($blacklist === null ? 'Masukkan blacklist' : 'Aktifkan blacklist') ?></span></button><?php endif ?>
+                        <a class="candidate-profile-action candidate-email-button" href="mailto:<?= esc($applicant['email'], 'attr') ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><span>Kirim email</span></a>
+                        <?php if ($whatsAppNumber !== ''): ?><a class="candidate-profile-action candidate-whatsapp-button" href="https://wa.me/<?= esc($whatsAppNumber, 'attr') ?>?text=<?= esc(rawurlencode($whatsAppMessage), 'attr') ?>" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Z"/><path d="M8.1 6.8c-.3 0-.7.1-1 .5-.4.4-1.3 1.3-1.3 3s1.3 3.5 1.5 3.7c.2.2 2.5 3.9 6.1 5.3 3 .9 3.7.7 4.4.6.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.4.2-1.6-.1-.2-.4-.3-.8-.5l-2.3-1.1c-.3-.1-.6-.2-.8.2l-1 1.2c-.2.3-.4.3-.8.1-2.1-1-3.5-2.6-4-3.5-.2-.4 0-.6.2-.8l.7-.8c.2-.2.2-.5.3-.7.1-.2 0-.5-.1-.7l-1-2.4c-.2-.6-.5-.8-.7-.8Z"/></svg><span>Kirim WhatsApp</span></a><?php endif ?>
+                    </div>
                 </div>
             </section>
+
+            <?php if ($canViewBlacklist && $blacklist !== null): ?>
+                <section class="candidate-blacklist-card status-<?= esc($blacklist['computed_status'], 'attr') ?>">
+                    <span class="candidate-blacklist-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg></span>
+                    <div><span>Status blacklist</span><h2><?= esc($blacklistStatusLabels[$blacklist['computed_status']] ?? 'Tidak diketahui') ?></h2><p><?= esc($blacklist['reason']) ?></p><small><?= (int) $blacklist['is_permanent'] === 1 ? 'Berlaku permanen' : 'Berlaku sampai ' . esc($date($blacklist['ends_at'], 'd M Y')) ?> · diperbarui oleh <?= esc($blacklist['updated_by_name'] ?: $blacklist['created_by_name'] ?: 'Sistem') ?></small></div>
+                    <a href="<?= site_url('adminhrdmannakampus/blacklist-pelamar?keyword=' . rawurlencode($applicant['email'])) ?>">Lihat riwayat</a>
+                </section>
+            <?php endif ?>
 
             <div class="candidate-detail-grid">
                 <section class="settings-card candidate-info-card">
@@ -84,7 +109,7 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
                 <div class="candidate-document-list">
                     <?php if ($documents === []): ?><p class="candidate-empty">Belum ada dokumen tersimpan.</p><?php endif ?>
                     <?php foreach ($documents as $document): ?>
-                        <article><span class="candidate-document-icon"><svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6V4Z"/><path d="M14 4v4h4"/></svg></span><div><strong><?= esc($document['original_name']) ?></strong><small><?= $document['document_type'] === 'application_bundle' ? 'Berkas lamaran lengkap' : 'Dokumen lama' ?> · <?= esc($document['batch_number']) ?> · <?= esc(number_format(((int) $document['file_size']) / 1024, 1, ',', '.')) ?> KB</small></div><?php if ($canDownloadDocuments): ?><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $applicant['id'] . '/dokumen/' . $document['id']) ?>">Unduh</a><?php else: ?><span class="protected-label">Tanpa akses unduh</span><?php endif ?></article>
+                        <article><span class="candidate-document-icon"><svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6V4Z"/><path d="M14 4v4h4"/></svg></span><div><strong><?= esc($document['original_name']) ?></strong><small><?= $document['document_type'] === 'application_bundle' ? 'Berkas lamaran lengkap' : 'Dokumen lama' ?> · <?= esc($document['batch_number']) ?> · <?= esc(number_format(((int) $document['file_size']) / 1024, 1, ',', '.')) ?> KB</small></div><?php if ($canDownloadDocuments): ?><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $applicant['id'] . '/dokumen/' . $document['id']) ?>" target="_blank" rel="noopener noreferrer" aria-label="Lihat <?= esc($document['original_name'], 'attr') ?> di tab baru">Lihat</a><?php else: ?><span class="protected-label">Tanpa akses lihat</span><?php endif ?></article>
                     <?php endforeach ?>
                 </div>
             </section>
@@ -136,7 +161,11 @@ $initial = mb_strtoupper(mb_substr((string) $applicant['full_name'], 0, 1));
         </div>
     </main>
 </div>
+<?php if ($canManageBlacklist): ?>
+<dialog class="admin-modal blacklist-form-modal" id="applicant-blacklist-modal" aria-labelledby="applicant-blacklist-title"><div class="admin-modal-panel"><div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg></span><div><h2 id="applicant-blacklist-title"><?= $isBlacklistActive ? 'Kelola blacklist' : ($blacklist === null ? 'Masukkan ke blacklist' : 'Aktifkan kembali blacklist') ?></h2><p><?= esc($applicant['full_name']) ?> tidak dapat mendaftar ke seluruh lowongan selama blacklist aktif.</p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div><form class="blacklist-form" action="<?= $isBlacklistActive ? site_url('adminhrdmannakampus/blacklist-pelamar/' . $blacklist['id']) : site_url('adminhrdmannakampus/blacklist-pelamar/pelamar/' . $applicant['id']) ?>" method="post"><?= csrf_field() ?><input type="hidden" name="return_to" value="detail"><label>Alasan blacklist<textarea name="reason" rows="3" minlength="5" maxlength="1000" required placeholder="Jelaskan alasan pelamar diblokir"><?= esc((string) ($blacklist['reason'] ?? '')) ?></textarea><small>Hanya terlihat oleh tim HRD dan tidak ditampilkan kepada pelamar.</small></label><label>Catatan internal<textarea name="internal_notes" rows="3" maxlength="5000"><?= esc((string) ($blacklist['internal_notes'] ?? '')) ?></textarea></label><label>Masa berlaku<select name="duration" required data-blacklist-duration><option value="">Pilih masa berlaku</option><?php foreach ($blacklistDurationLabels as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $code === ((int) ($blacklist['is_permanent'] ?? 0) === 1 ? 'permanent' : ($blacklist === null ? '' : 'custom')) ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label><label data-blacklist-custom-date <?= $blacklist === null || (int) ($blacklist['is_permanent'] ?? 0) === 1 ? 'hidden' : '' ?>>Berakhir pada<input type="date" name="ends_on" value="<?= ! empty($blacklist['ends_at']) ? esc(date('Y-m-d', strtotime($blacklist['ends_at'])), 'attr') : '' ?>" min="<?= date('Y-m-d') ?>"></label><div class="blacklist-form-warning"><strong>Konsekuensi blacklist</strong><span>Semua pendaftaran baru menggunakan identitas pelamar ini akan ditolak oleh backend.</span></div><div class="department-modal-actions"><?php if ($isBlacklistActive): ?><button class="blacklist-revoke-open" type="button" data-admin-modal-open="applicant-blacklist-revoke-modal">Cabut blacklist</button><?php endif ?><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" data-confirm-title="<?= $isBlacklistActive ? 'Simpan perubahan blacklist?' : 'Aktifkan blacklist pelamar?' ?>" data-confirm="<?= esc($applicant['full_name'], 'attr') ?> tidak akan dapat mendaftar ke lowongan mana pun." data-confirm-details="Pemblokiran diperiksa langsung oleh backend.|Alasan internal tidak ditampilkan kepada pelamar." data-confirm-button="<?= $isBlacklistActive ? 'Ya, simpan perubahan' : 'Ya, aktifkan blacklist' ?>" data-confirm-color="#dc2626">Simpan blacklist</button></div></form></div></dialog>
+<?php if ($isBlacklistActive): ?><dialog class="admin-modal blacklist-form-modal" id="applicant-blacklist-revoke-modal" aria-labelledby="applicant-blacklist-revoke-title"><div class="admin-modal-panel"><div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg></span><div><h2 id="applicant-blacklist-revoke-title">Cabut blacklist</h2><p><?= esc($applicant['full_name']) ?> akan dapat mendaftar kembali.</p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div><form class="blacklist-form" action="<?= site_url('adminhrdmannakampus/blacklist-pelamar/' . $blacklist['id'] . '/cabut') ?>" method="post"><?= csrf_field() ?><input type="hidden" name="return_to" value="detail"><label>Alasan pencabutan<textarea name="revocation_reason" rows="4" minlength="5" maxlength="1000" required></textarea></label><div class="department-modal-actions"><button class="admin-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" data-confirm-title="Cabut blacklist pelamar?" data-confirm="Pelamar akan dapat mendaftar ke seluruh lowongan kembali." data-confirm-button="Ya, cabut blacklist">Cabut blacklist</button></div></form></div></dialog><?php endif ?>
+<?php endif ?>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=7" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=9" defer></script>
 </body>
 </html>

@@ -69,6 +69,10 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('laporan-pelamar/export', 'ApplicantReportController::export', ['filter' => 'permission:applicants.pool.view']);
     $routes->get('pelamar/(:num)', 'ApplicantDetailController::show/$1', ['filter' => 'permission:candidates.view', 'as' => 'hrd.applicant.detail']);
     $routes->get('pelamar/(:num)/dokumen/(:num)', 'ApplicantDetailController::downloadDocument/$1/$2', ['filter' => 'permission:candidates.cv.download', 'as' => 'hrd.applicant.document']);
+    $routes->get('blacklist-pelamar', 'ApplicantBlacklistController::index', ['filter' => 'permission:applicants.blacklist.view', 'as' => 'hrd.applicant.blacklist']);
+    $routes->post('blacklist-pelamar/pelamar/(:num)', 'ApplicantBlacklistController::create/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.applicant.blacklist.create']);
+    $routes->post('blacklist-pelamar/(:num)', 'ApplicantBlacklistController::update/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.applicant.blacklist.update']);
+    $routes->post('blacklist-pelamar/(:num)/cabut', 'ApplicantBlacklistController::revoke/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.applicant.blacklist.revoke']);
     $routes->get('kandidat', 'CandidateController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates']);
     $routes->post('kandidat/pelamar/(:num)/batal-pilih', 'CandidateController::cancelAssignment/$1', ['filter' => 'permission:applicants.assign', 'as' => 'hrd.candidates.assignment.cancel']);
     $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);

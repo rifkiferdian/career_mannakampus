@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
+use App\Modules\Recruitment\Services\ApplicantBlacklistService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\DownloadResponse;
 use Config\Services;
@@ -75,6 +76,28 @@ class ApplicantDetailController extends BaseController
             ->getResultArray();
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
+        $canViewBlacklist = Services::authorization()->can($userId, 'applicants.blacklist.view');
+        $blacklist = null;
+        $blacklistHistories = [];
+        if ($canViewBlacklist) {
+            $blacklist = $database->table('applicant_blacklists AS blacklists')
+                ->select('blacklists.*, creator.full_name AS created_by_name, updater.full_name AS updated_by_name, revoker.full_name AS revoked_by_name')
+                ->join('users AS creator', 'creator.id = blacklists.created_by', 'left')
+                ->join('users AS updater', 'updater.id = blacklists.updated_by', 'left')
+                ->join('users AS revoker', 'revoker.id = blacklists.revoked_by', 'left')
+                ->where('blacklists.applicant_id', $applicantId)
+                ->get()->getRowArray() ?: null;
+            if ($blacklist !== null) {
+                $blacklist['computed_status'] = ApplicantBlacklistService::statusOf($blacklist);
+                $blacklistHistories = $database->table('applicant_blacklist_histories AS histories')
+                    ->select('histories.*, users.full_name AS changed_by_name')
+                    ->join('users', 'users.id = histories.changed_by', 'left')
+                    ->where('histories.blacklist_id', (int) $blacklist['id'])
+                    ->orderBy('histories.created_at', 'DESC')
+                    ->orderBy('histories.id', 'DESC')
+                    ->get()->getResultArray();
+            }
+        }
 
         return view('admin/applicant_detail', [
             'auth' => $auth,
@@ -85,6 +108,12 @@ class ApplicantDetailController extends BaseController
             'workExperiencesByBatch' => $workExperiencesByBatch,
             'documents' => $documents,
             'canDownloadDocuments' => Services::authorization()->can($userId, 'candidates.cv.download'),
+            'canViewBlacklist' => $canViewBlacklist,
+            'canManageBlacklist' => Services::authorization()->can($userId, 'applicants.blacklist.manage'),
+            'blacklist' => $blacklist,
+            'blacklistHistories' => $blacklistHistories,
+            'blacklistSuccess' => session()->getFlashdata('blacklist_success'),
+            'blacklistError' => session()->getFlashdata('blacklist_error'),
         ]);
     }
 
@@ -105,14 +134,18 @@ class ApplicantDetailController extends BaseController
             throw PageNotFoundException::forPageNotFound('File dokumen tidak ditemukan.');
         }
 
-        $filename = trim((string) $document['original_name']);
-        $filename = preg_replace('~[\x00-\x1F\x7F"/\\\\]+~u', '-', $filename) ?: 'dokumen-pelamar.pdf';
+        $extension = mb_strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+        $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?: 'pdf';
+        $objectName = substr(hash('sha256', $documentId . ':' . $document['file_path']), 0, 12) . '.' . $extension;
         $response = $this->response->download($path, null, true);
         if (! $response instanceof DownloadResponse) {
-            throw PageNotFoundException::forPageNotFound('File dokumen tidak dapat diunduh.');
+            throw PageNotFoundException::forPageNotFound('File dokumen tidak dapat ditampilkan.');
         }
 
-        return $response->setFileName($filename);
+        return $response
+            ->setFileName($objectName)
+            ->setHeader('Content-Disposition', 'inline; filename="' . $objectName . '"')
+            ->setHeader('Cache-Control', 'private, no-store, max-age=0');
     }
 
     /** @param list<array<string, mixed>> $rows

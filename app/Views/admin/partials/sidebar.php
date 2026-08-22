@@ -11,6 +11,7 @@ $canViewProcessTemplates = $authorization->can($userId, 'recruitment.templates.v
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
 $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.view');
 $canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
+$canViewApplicantBlacklist = $authorization->can($userId, 'applicants.blacklist.view');
 $canViewCandidates = $authorization->can($userId, 'candidates.view');
 $canViewHrdTeams = $authorization->can($userId, 'hrd.teams.view');
 $activeVacancyCount = 0;
@@ -34,10 +35,21 @@ if ($canViewApplicantPool) {
     $unassignedApplicantCount = (int) (db_connect()->table('applications AS applications')
         ->select('COUNT(DISTINCT applications.applicant_id) AS total', false)
         ->join('applicants', 'applicants.id = applications.applicant_id')
+        ->join('applicant_blacklists AS active_blacklist', 'active_blacklist.applicant_id = applicants.id AND active_blacklist.revoked_at IS NULL AND active_blacklist.starts_at <= NOW() AND (active_blacklist.is_permanent = 1 OR active_blacklist.ends_at >= NOW())', 'left', false)
         ->where('applicants.assigned_hrd_team_id', null)
+        ->where('active_blacklist.id', null)
         ->where('applications.deleted_at', null)
         ->where('applicants.deleted_at', null)
         ->get()->getRowArray()['total'] ?? 0);
+}
+$activeBlacklistCount = 0;
+if ($canViewApplicantBlacklist) {
+    $blacklistNow = date('Y-m-d H:i:s');
+    $activeBlacklistCount = (int) db_connect()->table('applicant_blacklists')
+        ->where('revoked_at', null)
+        ->where('starts_at <=', $blacklistNow)
+        ->groupStart()->where('is_permanent', 1)->orWhere('ends_at >=', $blacklistNow)->groupEnd()
+        ->countAllResults();
 }
 $canManageHrdTeams = $authorization->can($userId, 'hrd.teams.manage');
 $candidateTeams = [];
@@ -58,7 +70,9 @@ if ($canViewCandidates) {
         $newCandidateRows = db_connect()->table('applications AS applications')
             ->select('applicants.assigned_hrd_team_id, COUNT(DISTINCT applications.applicant_id) AS total', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->join('applicant_blacklists AS active_blacklist', 'active_blacklist.applicant_id = applicants.id AND active_blacklist.revoked_at IS NULL AND active_blacklist.starts_at <= NOW() AND (active_blacklist.is_permanent = 1 OR active_blacklist.ends_at >= NOW())', 'left', false)
             ->whereIn('applicants.assigned_hrd_team_id', $availableCandidateTeamIds)
+            ->where('active_blacklist.id', null)
             ->where('applications.application_status', 'lamaran_baru')
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null)
@@ -138,6 +152,13 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
                 List Pelamar
                 <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD" aria-label="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?> Baru</span><?php endif ?>
+            </a>
+        <?php endif ?>
+        <?php if ($canViewApplicantBlacklist): ?>
+            <a<?= $activeClass('applicant-blacklist') ?> href="<?= site_url('adminhrdmannakampus/blacklist-pelamar') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg>
+                Blacklist Pelamar
+                <?php if ($activeBlacklistCount > 0): ?><span class="sidebar-notification-badge" title="<?= $activeBlacklistCount ?> blacklist aktif" aria-label="<?= $activeBlacklistCount ?> blacklist aktif"><?= $activeBlacklistCount > 99 ? '99+' : $activeBlacklistCount ?></span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewCandidates && $candidateTeams !== []): ?>

@@ -58,7 +58,7 @@ class ApplicantReportController extends BaseController
             'summary' => [
                 'applicants' => count($applications),
                 'applications' => $applicationCount,
-                'unassigned' => count(array_filter($applications, static fn (array $row): bool => empty($row['assigned_hrd_team_id']))),
+                'unassigned' => count(array_filter($applications, static fn (array $row): bool => empty($row['assigned_hrd_team_id']) && empty($row['active_blacklist_id']))),
                 'assigned' => count(array_filter($applications, static fn (array $row): bool => ! empty($row['assigned_hrd_team_id']))),
             ],
         ]);
@@ -101,6 +101,9 @@ class ApplicantReportController extends BaseController
         $team = $this->currentTeam($userId);
         if ($team === null) {
             return $this->poolError('Akun Anda belum ditempatkan pada divisi HRD aktif. Hubungi pengelola Tim HRD.');
+        }
+        if (Services::applicantBlacklist()->isActive($applicantId)) {
+            return $this->poolError('Pelamar berada dalam blacklist aktif dan tidak dapat dipilih oleh divisi.');
         }
 
         $now = date('Y-m-d H:i:s');
@@ -165,19 +168,20 @@ class ApplicantReportController extends BaseController
     private function reportRows(array $filters, array $statusLabels): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, applicants.address, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
+            ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, applicants.address, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, active_blacklist.id AS active_blacklist_id, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id', 'left')
             ->join('users AS assigned_user', 'assigned_user.id = applicants.assigned_by_user_id', 'left')
+            ->join('applicant_blacklists AS active_blacklist', 'active_blacklist.applicant_id = applicants.id AND active_blacklist.revoked_at IS NULL AND active_blacklist.starts_at <= NOW() AND (active_blacklist.is_permanent = 1 OR active_blacklist.ends_at >= NOW())', 'left', false)
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
         $this->applyFilters($builder, $filters);
 
         $rows = $builder
-            ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'applicants.address', 'teams.name', 'assigned_user.full_name'])
+            ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'applicants.address', 'teams.name', 'assigned_user.full_name', 'active_blacklist.id'])
             ->orderBy('submitted_at', 'DESC')
             ->orderBy('applicants.id', 'DESC')
             ->get()->getResultArray();

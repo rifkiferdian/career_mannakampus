@@ -667,14 +667,26 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .report-detail-link { min-height: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0 11px; color: white; background: var(--admin-navy); border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; }
 .candidate-detail-content { max-width: 1280px; padding-bottom: 65px; }
 .candidate-profile-card { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; gap: 18px; margin-bottom: 20px; padding: 24px; background: linear-gradient(135deg, #fff, #fffaf7); border: 1px solid #eadfd8; border-radius: 15px; box-shadow: 0 12px 30px rgba(16,42,67,.07); }
+.candidate-profile-card.is-clear { background: linear-gradient(135deg, #fff, #f1fbf6); border-color: #cde7d9; box-shadow: 0 12px 30px rgba(31, 112, 78, .08); }
+.candidate-profile-card.is-clear .candidate-avatar { background: #2f8060; border-color: #e5f6ed; }
+.candidate-profile-card.is-clear .candidate-profile-copy .login-eyebrow { color: #267052; }
+.candidate-profile-card.is-blacklisted { background: linear-gradient(135deg, #fff8f7 0%, #ffe7e3 52%, #ffd7d1 100%); border-color: #df9188; box-shadow: 0 14px 32px rgba(180, 35, 24, .17); }
+.candidate-profile-card.is-blacklisted .candidate-avatar { background: #b42318; border-color: #ffe2de; }
+.candidate-profile-card.is-blacklisted .candidate-profile-copy .login-eyebrow { color: #a1261d; }
 .candidate-avatar { width: 72px; height: 72px; display: grid; place-items: center; color: white; background: var(--admin-orange); border: 5px solid #fff0e8; border-radius: 20px; font-size: 27px; font-weight: 850; }
 .candidate-profile-copy .login-eyebrow { color: var(--admin-orange-dark); }
 .candidate-profile-copy h1 { margin: 5px 0 5px; color: var(--admin-navy); font-size: clamp(29px, 3vw, 40px); letter-spacing: -.035em; }
 .candidate-profile-copy p { display: flex; align-items: center; gap: 9px; margin: 0; color: #657786; font-size: 12px; }
 .candidate-profile-copy p i { width: 4px; height: 4px; background: #a1adb6; border-radius: 50%; }
-.candidate-profile-actions { display: flex; align-items: center; gap: 9px; }
+.candidate-profile-actions { display: flex; align-items: flex-end; flex-direction: column; gap: 10px; }
 .candidate-profile-actions .account-status { font-size: 11px; }
-.candidate-profile-actions > a { min-height: 38px; display: inline-flex; align-items: center; padding: 0 13px; color: var(--admin-navy); background: white; border: 1px solid #d5dfe6; border-radius: 8px; font-size: 11px; font-weight: 800; text-decoration: none; }
+.candidate-profile-action-buttons { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.candidate-profile-action { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border-radius: 9px; font-family: inherit; font-size: 10px; font-weight: 800; line-height: 1; text-decoration: none; white-space: nowrap; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.candidate-profile-action:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgba(20, 42, 61, .12); }
+.candidate-profile-action svg { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.candidate-profile-action.candidate-email-button { color: #315a78; background: #f1f7fb; border: 1px solid #cbdde9; }
+.candidate-profile-action.candidate-whatsapp-button { color: #176b49; background: #ecf9f2; border: 1px solid #bfe4d1; }
+.candidate-profile-action.candidate-whatsapp-button svg { fill: currentColor; stroke: none; }
 .candidate-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }
 .candidate-info-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 8px 23px 20px; }
 .candidate-info-list > div { min-height: 69px; padding: 15px 10px 13px 0; border-bottom: 1px solid #edf0f3; }
@@ -783,11 +795,68 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-table-actions .candidate-talent-trigger { color: #247052; background: #eff9f4; border-color: #cbe7da; }
 .candidate-table-actions .candidate-talent-saved { color: #247052; background: #e8f5ef; border-color: #cbe7da; }
 .candidate-table-actions .candidate-cancel-assignment { color: #b42318; background: #fff1f0; border-color: #f3c7c3; }
+.candidate-blacklist-inline { display: block; width: max-content; margin-top: 5px; padding: 4px 7px; color: #a1261d; background: #fff0ed; border-radius: 999px; font-size: 8px; font-weight: 850; }
 .admin-confirm-popup { border-top: 5px solid #dc2626; }
 .admin-confirm-consequences { margin-top: 18px; padding: 14px 16px; color: #7f1d1d; background: #fff1f0; border: 1px solid #fecaca; border-radius: 10px; text-align: left; }
 .admin-confirm-consequences strong { display: block; margin-bottom: 8px; font-size: 13px; }
 .admin-confirm-consequences ul { margin: 0; padding-left: 19px; }
 .admin-confirm-consequences li { margin: 5px 0; font-size: 12px; line-height: 1.5; }
+.settings-icon-red { color: #b42318; background: #fff1f0; }
+.blacklist-content { max-width: 1440px; padding-bottom: 65px; }
+.blacklist-pick-link { text-decoration: none; }
+.blacklist-filter-form { display: grid; grid-template-columns: minmax(240px, 1fr) 190px auto auto; align-items: center; gap: 9px; }
+.blacklist-filter-form input, .blacklist-filter-form select { width: 100%; min-height: 40px; padding: 0 11px; color: var(--admin-navy); background: #fff; border: 1px solid #dce3e9; border-radius: 8px; font: inherit; font-size: 11px; }
+.blacklist-filter-form button, .blacklist-filter-form a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 0 15px; border-radius: 8px; font-size: 10px; font-weight: 800; text-decoration: none; }
+.blacklist-filter-form button { color: #fff; background: var(--admin-navy); border: 0; cursor: pointer; }
+.blacklist-filter-form a { color: #667785; background: #fff; border: 1px solid #dce3e9; }
+.blacklist-table { min-width: 1180px; }
+.blacklist-reason-cell { min-width: 230px; max-width: 340px; }
+.blacklist-reason-cell strong, .blacklist-reason-cell small, .blacklist-author strong, .blacklist-author small, .blacklist-period strong, .blacklist-period small { display: block; }
+.blacklist-reason-cell strong { color: #8f2822; font-size: 11px; line-height: 1.5; }
+.blacklist-reason-cell small { margin-top: 4px; overflow: hidden; color: #76838d; font-size: 9px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.blacklist-period strong, .blacklist-author strong { color: var(--admin-navy); font-size: 11px; }
+.blacklist-period small, .blacklist-author small, .blacklist-revoked-note { display: block; margin-top: 4px; color: #82909a; font-size: 9px; }
+.blacklist-status { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
+.blacklist-status i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.blacklist-status.status-active, .blacklist-status.status-permanent { color: #a1261d; background: #fff0ed; }
+.blacklist-status.status-expired { color: #8a6724; background: #fff6dd; }
+.blacklist-status.status-revoked { color: #247052; background: #e8f5ef; }
+.blacklist-actions .blacklist-history-trigger { color: #4b6172; background: #f4f7f9; border-color: #dce4e9; }
+.blacklist-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; padding: 20px 23px 23px; }
+.blacklist-form > label { display: flex; flex-direction: column; gap: 7px; color: #324b5e; font-size: 11px; font-weight: 800; }
+.blacklist-form > label:first-of-type, .blacklist-form > label:nth-of-type(2), .blacklist-form-warning, .blacklist-form .department-modal-actions { grid-column: 1 / -1; }
+.blacklist-form textarea, .blacklist-form select, .blacklist-form input { width: 100%; padding: 10px 11px; color: var(--admin-navy); background: #fff; border: 1px solid #d7e0e6; border-radius: 8px; font: inherit; font-size: 11px; }
+.blacklist-form select, .blacklist-form input { min-height: 42px; }
+.blacklist-form textarea { resize: vertical; line-height: 1.5; }
+.blacklist-form label small { color: #83909a; font-size: 9px; font-weight: 600; }
+.blacklist-form-warning { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; color: #8d211a; background: #fff1f0; border: 1px solid #fecaca; border-radius: 9px; }
+.blacklist-form-warning strong { font-size: 11px; }
+.blacklist-form-warning span { font-size: 10px; line-height: 1.5; }
+.blacklist-form .department-modal-actions > button[type="submit"] { background: #dc2626; }
+.blacklist-form .department-modal-actions .blacklist-revoke-open { margin-right: auto; color: #247052; background: #eef8f3; border: 1px solid #cbe7da; }
+.blacklist-history-list { display: flex; flex-direction: column; padding: 18px 23px 24px; }
+.blacklist-history-list article { position: relative; display: grid; grid-template-columns: 14px 1fr; gap: 10px; padding: 0 0 18px; }
+.blacklist-history-list article:not(:last-child)::before { position: absolute; top: 12px; bottom: 0; left: 5px; width: 2px; content: ''; background: #e7edf1; }
+.blacklist-history-list article > i { z-index: 1; width: 11px; height: 11px; margin-top: 3px; background: #d04438; border: 3px solid #fff0ed; border-radius: 50%; box-sizing: content-box; }
+.blacklist-history-list strong { color: var(--admin-navy); font-size: 12px; }
+.blacklist-history-list p { margin: 4px 0; color: #60717e; font-size: 11px; line-height: 1.5; }
+.blacklist-history-list small { color: #8a969f; font-size: 9px; }
+.candidate-profile-actions .candidate-blacklist-button { color: #a1261d; background: #fff1f0; border: 1px solid #f3c7c3; }
+.candidate-profile-actions .candidate-blacklist-button.is-active { color: #fff; background: #b42318; border-color: #b42318; }
+.candidate-blacklist-card { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 14px; margin: -4px 0 20px; padding: 17px 19px; color: #8f2822; background: linear-gradient(135deg, #fff4f2, #fff); border: 1px solid #f3c7c3; border-radius: 13px; }
+.candidate-blacklist-card.status-expired, .candidate-blacklist-card.status-revoked { color: #566b79; background: #f7f9fa; border-color: #dce4e9; }
+.candidate-blacklist-icon { width: 44px; height: 44px; display: grid; place-items: center; background: rgba(180,35,24,.09); border-radius: 11px; }
+.candidate-blacklist-icon svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.candidate-blacklist-card span, .candidate-blacklist-card small { display: block; font-size: 9px; }
+.candidate-blacklist-card h2 { margin: 2px 0; font-size: 17px; }
+.candidate-blacklist-card p { margin: 0 0 5px; color: #354d5e; font-size: 11px; }
+.candidate-blacklist-card a { min-height: 36px; display: inline-flex; align-items: center; padding: 0 12px; color: currentColor; background: #fff; border: 1px solid currentColor; border-radius: 8px; font-size: 10px; font-weight: 800; text-decoration: none; }
+@media (max-width: 760px) {
+    .blacklist-filter-form, .blacklist-form { grid-template-columns: 1fr; }
+    .blacklist-form > label:first-of-type, .blacklist-form > label:nth-of-type(2), .blacklist-form-warning, .blacklist-form .department-modal-actions { grid-column: auto; }
+    .candidate-blacklist-card { grid-template-columns: 44px minmax(0, 1fr); }
+    .candidate-blacklist-card > a { grid-column: 1 / -1; justify-content: center; }
+}
 .candidate-heading-actions { display: flex; align-items: center; gap: 9px; }
 .talent-pool-page-link, .talent-pool-back-link { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; color: white; background: #267052; border-radius: 8px; font-size: 11px; font-weight: 800; text-decoration: none; }
 .talent-pool-page-link svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -1174,7 +1243,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .candidate-avatar { width: 58px; height: 58px; border-radius: 16px; font-size: 22px; }
     .candidate-profile-copy p { align-items: flex-start; flex-direction: column; gap: 3px; }
     .candidate-profile-copy p i { display: none; }
-    .candidate-profile-actions { grid-column: 1 / -1; justify-content: flex-end; }
+    .candidate-profile-actions { grid-column: 1 / -1; align-items: stretch; }
+    .candidate-profile-actions .account-status { align-self: flex-end; }
+    .candidate-profile-action-buttons { display: grid; grid-template-columns: 1fr; }
+    .candidate-profile-action { width: 100%; }
     .candidate-info-list, .candidate-narrative-grid, .candidate-rejection-card dl { grid-template-columns: 1fr; }
     .candidate-rejection-card { margin-inline: 14px; }
     .candidate-info-wide { grid-column: auto; }
@@ -1362,6 +1434,7 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .applicant-division-badge { display: inline-flex; align-items: center; padding: 7px 10px; border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
 .applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
 .applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
+.applicant-division-badge.blacklisted { color: #a1261d; background: #fff0ed; }
 .applicant-position-meta { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; }
 .candidate-filter-form.candidate-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.1fr) 88px repeat(5, minmax(125px, .7fr)) auto auto; }
 

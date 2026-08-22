@@ -145,6 +145,9 @@ class TalentPoolController extends BaseController
         if ($application === null || ! $this->canManageTeam($userId, $teamId)) {
             return $this->saveError('Lamaran tidak ditemukan atau tidak dapat Anda kelola.', $teamId);
         }
+        if (Services::applicantBlacklist()->isActive((int) $application['applicant_id'])) {
+            return $this->saveError('Pelamar berada dalam blacklist aktif dan tidak dapat disimpan ke Talent Pool.', $teamId);
+        }
         if ($database->table('talent_pool_candidates')->where('applicant_id', (int) $application['applicant_id'])->countAllResults() > 0) {
             return $this->saveError('Pelamar ini sudah tersimpan di Talent Pool melalui salah satu lamarannya.', $teamId);
         }

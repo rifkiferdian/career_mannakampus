@@ -67,9 +67,13 @@ class ApplicationSubmissionService
                 throw new DomainException('Email sudah digunakan oleh pelamar lain.');
             }
 
+            if ($applicant !== null && Services::applicantBlacklist()->isActive((int) $applicant['id'], $now)) {
+                throw new DomainException('Lamaran belum dapat diproses. Silakan menghubungi tim rekrutmen untuk informasi lebih lanjut.');
+            }
+
             $photoPath = $applicant['profile_photo_path'] ?? null;
             if (($files['profile_photo'] ?? null)?->isValid()) {
-                $photoPath = $this->storeFile($files['profile_photo'], $batchUuid, 'profile');
+                $photoPath = $this->storeFile($files['profile_photo'], $batchUuid);
                 $storedFiles[] = $photoPath;
             }
 
@@ -171,7 +175,7 @@ class ApplicationSubmissionService
 
             $applicationBundle = $files['application_bundle'];
             $bundleMetadata = $this->fileMetadata($applicationBundle);
-            $bundlePath = $this->storeFile($applicationBundle, $batchUuid, 'applications');
+            $bundlePath = $this->storeFile($applicationBundle, $batchUuid);
             $storedFiles[] = $bundlePath;
             $this->saveDocument($applicantId, $batchId, 'application_bundle', $bundlePath, $bundleMetadata, $now);
 
@@ -413,7 +417,7 @@ class ApplicationSubmissionService
         ]);
     }
 
-    private function storeFile(UploadedFile $file, string $applicationUuid, string $prefix): string
+    private function storeFile(UploadedFile $file, string $applicationUuid): string
     {
         if (!$file->isValid() || $file->hasMoved()) {
             throw new RuntimeException('Berkas unggahan tidak valid.');
@@ -426,7 +430,10 @@ class ApplicationSubmissionService
             throw new RuntimeException('Direktori unggahan tidak dapat dibuat.');
         }
 
-        $filename = $prefix . '-' . bin2hex(random_bytes(8)) . '.' . $file->getExtension();
+        $extension = mb_strtolower((string) $file->getExtension());
+        $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?: 'bin';
+        $objectKey = rtrim(strtr(base64_encode(random_bytes(9)), '+/', '-_'), '=');
+        $filename = $objectKey . '.' . $extension;
         $file->move($absoluteDirectory, $filename);
 
         return $relativeDirectory . '/' . $filename;
