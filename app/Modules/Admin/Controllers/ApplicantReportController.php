@@ -168,7 +168,7 @@ class ApplicantReportController extends BaseController
     private function reportRows(array $filters, array $statusLabels): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, applicants.address, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, active_blacklist.id AS active_blacklist_id, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
+            ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, applicants.address, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, active_blacklist.id AS active_blacklist_id, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
@@ -181,7 +181,7 @@ class ApplicantReportController extends BaseController
         $this->applyFilters($builder, $filters);
 
         $rows = $builder
-            ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'applicants.address', 'teams.name', 'assigned_user.full_name', 'active_blacklist.id'])
+            ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'applicants.birth_date', 'applicants.address', 'teams.name', 'assigned_user.full_name', 'active_blacklist.id'])
             ->orderBy('submitted_at', 'DESC')
             ->orderBy('applicants.id', 'DESC')
             ->get()->getResultArray();
@@ -201,6 +201,9 @@ class ApplicantReportController extends BaseController
             $row['position_names'] = str_replace('||', ', ', (string) $row['position_names']);
             $row['period_names'] = str_replace('||', ', ', (string) $row['period_names']);
             $row['department_names'] = str_replace('||', ', ', (string) $row['department_names']);
+            $birthDate = DateTimeImmutable::createFromFormat('!Y-m-d', (string) ($row['birth_date'] ?? ''));
+            $today = new DateTimeImmutable('today');
+            $row['age'] = $birthDate !== false && $birthDate <= $today ? $birthDate->diff($today)->y : null;
 
             return $row;
         }, $rows);
