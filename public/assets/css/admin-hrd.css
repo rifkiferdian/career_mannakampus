@@ -687,6 +687,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-profile-action.candidate-email-button { color: #315a78; background: #f1f7fb; border: 1px solid #cbdde9; }
 .candidate-profile-action.candidate-whatsapp-button { color: #176b49; background: #ecf9f2; border: 1px solid #bfe4d1; }
 .candidate-profile-action.candidate-whatsapp-button svg { fill: currentColor; stroke: none; }
+.candidate-profile-action-form { margin: 0; }
+.candidate-profile-action.candidate-cancel-detail-button { color: #a1261d; background: #fff1f0; border: 1px solid #f0c5c1; }
 .candidate-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }
 .candidate-info-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 8px 23px 20px; }
 .candidate-info-list > div { min-height: 69px; padding: 15px 10px 13px 0; border-bottom: 1px solid #edf0f3; }
@@ -713,6 +715,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-application-heading > div > span { color: var(--admin-orange-dark); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
 .candidate-application-heading h3 { margin: 6px 0 5px; color: var(--admin-navy); font-size: 23px; }
 .candidate-application-heading code { color: #8a969f; font-size: 10px; }
+.candidate-application-heading-actions { display: flex; align-items: flex-end; flex-direction: column; gap: 8px; }
+.candidate-detail-talent-button, .candidate-detail-talent-saved { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; color: #247052; background: #eff9f4; border: 1px solid #cbe7da; border-radius: 8px; font-family: inherit; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.candidate-detail-talent-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.candidate-detail-talent-saved { background: #e8f5ef; cursor: pointer; }
 .candidate-application-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #f8fafb; border-bottom: 1px solid #e9edf0; }
 .candidate-application-metrics div { padding: 15px 18px; border-right: 1px solid #e5eaee; }
 .candidate-application-metrics div:last-child { border-right: 0; }
@@ -781,9 +787,17 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-whatsapp-link:hover { text-decoration: underline; }
 .candidate-stage-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; color: var(--candidate-color); background: color-mix(in srgb, var(--candidate-color) 11%, white); border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
 .candidate-stage-pill i { width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
-.candidate-rejected-stage { min-width: 118px; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; color: #8f4036; }
+.candidate-rejected-stage { min-width: 185px; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px; color: #8f4036; }
 .candidate-rejected-stage strong { padding: 3px 6px; color: #a34437; background: #fdeae6; border-radius: 999px; font-size: 9px; }
+.candidate-rejected-stage b { color: #79372f; font-size: 11px; }
 .candidate-rejected-stage small { max-width: 150px; color: #9a7771; font-size: 9px; line-height: 1.35; }
+.candidate-rejected-stage time { margin-top: 4px; color: #5f6f7b; font-size: 9px; font-style: normal; font-weight: 750; }
+.candidate-rejected-stage em { color: #7d8a94; font-size: 9px; font-style: normal; }
+.candidate-reapply-status { margin-top: 4px; padding: 5px 7px; border-radius: 6px; font-size: 9px; font-style: normal; font-weight: 850; line-height: 1.35; }
+.candidate-reapply-status.waiting, .candidate-reapply-status.blocked { color: #9a3412; background: #fff0e8; border: 1px solid #f5c9b4; }
+.candidate-reapply-status.blocked { color: #a1261d; background: #fff0ef; border-color: #efc5c1; }
+.candidate-reapply-status.eligible { color: #176b49; background: #eaf8f1; border: 1px solid #bfe4d1; }
+.candidate-reapply-status.neutral { color: #536879; background: #f0f4f6; border: 1px solid #dce4e9; }
 .candidate-not-rejected { color: #b0b9bf; }
 .candidate-stage-age { color: #536879; font-size: 11px; font-weight: 800; white-space: nowrap; }
 .candidate-stage-age.overdue { color: #a34c43; }
@@ -1247,6 +1261,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .candidate-profile-actions .account-status { align-self: flex-end; }
     .candidate-profile-action-buttons { display: grid; grid-template-columns: 1fr; }
     .candidate-profile-action { width: 100%; }
+    .candidate-profile-action-form { width: 100%; }
+    .candidate-application-heading { align-items: flex-start; flex-direction: column; }
+    .candidate-application-heading-actions { width: 100%; align-items: stretch; }
+    .candidate-detail-talent-button, .candidate-detail-talent-saved { width: 100%; }
     .candidate-info-list, .candidate-narrative-grid, .candidate-rejection-card dl { grid-template-columns: 1fr; }
     .candidate-rejection-card { margin-inline: 14px; }
     .candidate-info-wide { grid-column: auto; }

@@ -133,6 +133,7 @@ class TalentPoolController extends BaseController
     {
         $database = db_connect();
         $userId = $this->currentUserId();
+        $returnToDetail = (string) $this->request->getPost('return_to') === 'detail';
         $application = $database->table('applications AS applications')
             ->select('applications.id, applications.applicant_id, applicants.assigned_hrd_team_id, vacancies.title AS vacancy_title, vacancies.department_id')
             ->join('applicants', 'applicants.id = applications.applicant_id')
@@ -142,19 +143,20 @@ class TalentPoolController extends BaseController
             ->where('applicants.deleted_at', null)
             ->get()->getRowArray();
         $teamId = (int) ($application['assigned_hrd_team_id'] ?? 0);
+        $detailApplicantId = $returnToDetail && $application !== null ? (int) $application['applicant_id'] : null;
         if ($application === null || ! $this->canManageTeam($userId, $teamId)) {
-            return $this->saveError('Lamaran tidak ditemukan atau tidak dapat Anda kelola.', $teamId);
+            return $this->saveError('Lamaran tidak ditemukan atau tidak dapat Anda kelola.', $teamId, $detailApplicantId);
         }
         if (Services::applicantBlacklist()->isActive((int) $application['applicant_id'])) {
-            return $this->saveError('Pelamar berada dalam blacklist aktif dan tidak dapat disimpan ke Talent Pool.', $teamId);
+            return $this->saveError('Pelamar berada dalam blacklist aktif dan tidak dapat disimpan ke Talent Pool.', $teamId, $detailApplicantId);
         }
         if ($database->table('talent_pool_candidates')->where('applicant_id', (int) $application['applicant_id'])->countAllResults() > 0) {
-            return $this->saveError('Pelamar ini sudah tersimpan di Talent Pool melalui salah satu lamarannya.', $teamId);
+            return $this->saveError('Pelamar ini sudah tersimpan di Talent Pool melalui salah satu lamarannya.', $teamId, $detailApplicantId);
         }
 
         $data = $this->validatedData((string) $application['vacancy_title'], (int) $application['department_id']);
         if (is_string($data)) {
-            return $this->saveError($data, $teamId);
+            return $this->saveError($data, $teamId, $detailApplicantId);
         }
         $now = date('Y-m-d H:i:s');
         $database->transStart();
@@ -183,9 +185,13 @@ class TalentPoolController extends BaseController
         ]);
         $database->transComplete();
 
+        $returnUrl = $detailApplicantId !== null
+            ? site_url('adminhrdmannakampus/pelamar/' . $detailApplicantId)
+            : $this->candidateUrl($teamId);
+
         return $database->transStatus()
-            ? redirect()->to($this->candidateUrl($teamId))->with('candidate_success', 'Pelamar berhasil disimpan ke Talent Pool.')
-            : $this->saveError('Pelamar gagal disimpan ke Talent Pool.', $teamId);
+            ? redirect()->to($returnUrl)->with('candidate_success', 'Pelamar berhasil disimpan ke Talent Pool.')
+            : $this->saveError('Pelamar gagal disimpan ke Talent Pool.', $teamId, $detailApplicantId);
     }
 
     public function update(int $candidateId): RedirectResponse
@@ -546,9 +552,13 @@ class TalentPoolController extends BaseController
         return redirect()->to($this->url($teamId))->with('talent_pool_error', $message);
     }
 
-    private function saveError(string $message, int $teamId): RedirectResponse
+    private function saveError(string $message, int $teamId, ?int $applicantId = null): RedirectResponse
     {
-        return redirect()->to($this->candidateUrl($teamId))->with('candidate_error', $message);
+        $url = $applicantId !== null && $applicantId > 0
+            ? site_url('adminhrdmannakampus/pelamar/' . $applicantId)
+            : $this->candidateUrl($teamId);
+
+        return redirect()->to($url)->with('candidate_error', $message);
     }
 
     private function disableClientCaching(): void

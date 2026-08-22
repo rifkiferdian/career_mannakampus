@@ -13,7 +13,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=47">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=52">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -61,7 +61,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                 <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg></span><div><h2>Pipeline <?= esc($selectedTeam['name'] ?? 'divisi') ?></h2><p>Hanya pelamar yang sudah dipilih untuk divisi ini.</p></div><span class="device-count"><?= count($applications) ?></span></div>
                 <div class="department-table-wrap">
                     <table class="department-table candidate-table">
-                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Tahap gugur</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Keguguran &amp; masa tunggu</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
                         <tbody>
                             <?php if ($applications === []): ?><tr><td colspan="9" class="department-empty">Belum ada pelamar pada divisi ini.</td></tr><?php endif ?>
                             <?php foreach ($applications as $index => $application): $isBlacklisted = ! empty($application['active_blacklist_id']); ?>
@@ -72,9 +72,32 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                                     <td><?php if ($application['whatsapp_number'] !== ''): ?><a class="candidate-whatsapp-link" href="https://wa.me/<?= esc($application['whatsapp_number'], 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="Hubungi <?= esc($application['full_name'], 'attr') ?> melalui WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Zm-8.4 18.2c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.4 4.7Zm5.4-7.3c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.6l-.9-2.1c-.2-.5-.5-.5-.7-.5H8c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2 2.2.9 3.1 1 4.2.8.7-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3l-1.4-.7Z"/></svg><span><?= esc($application['phone']) ?></span></a><?php else: ?>-<?php endif ?></td>
                                     <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code><small><?= esc($application['process_template_name'] ?: 'Template belum ditentukan') ?></small></div></td>
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span><?php if ($isBlacklisted): ?><span class="candidate-blacklist-inline">Blacklist aktif</span><?php endif ?></td>
-                                    <td><?php if (! empty($application['rejected_stage_name'])): ?><span class="candidate-rejected-stage"><strong><?= $application['rejected_stage_order'] !== null ? 'Tahap ' . (int) $application['rejected_stage_order'] : 'Tahap' ?></strong><?= esc($application['rejected_stage_name']) ?><small><?= esc($application['rejection_reason_title']) ?></small></span><?php else: ?><span class="candidate-not-rejected">—</span><?php endif ?></td>
+                                    <td>
+                                        <?php if (! empty($application['rejected_stage_name'])): ?>
+                                            <span class="candidate-rejected-stage">
+                                                <strong><?= $application['rejected_stage_order'] !== null ? 'Tahap ' . (int) $application['rejected_stage_order'] : 'Tahap' ?></strong>
+                                                <b><?= esc($application['rejected_stage_name']) ?></b>
+                                                <small><?= esc($application['rejection_reason_title']) ?></small>
+                                                <time datetime="<?= esc(date('c', strtotime($application['rejected_at'])), 'attr') ?>">Gugur <?= esc(date('d/m/Y H:i', strtotime($application['rejected_at']))) ?></time>
+                                                <em><?= (int) $application['rejection_elapsed_days'] ?> hari sejak gugur</em>
+                                                <?php if ($application['reapply_status'] === 'blacklisted'): ?>
+                                                    <span class="candidate-reapply-status blocked">Belum boleh melamar · blacklist aktif</span>
+                                                <?php elseif ($application['reapply_status'] === 'waiting'): ?>
+                                                    <span class="candidate-reapply-status waiting">Belum boleh melamar · <?= (int) $application['reapply_remaining_days'] ?> hari lagi</span>
+                                                    <small>Boleh mulai <?= esc(date('d/m/Y H:i', strtotime($application['reapply_available_at']))) ?></small>
+                                                <?php elseif ($application['reapply_status'] === 'eligible'): ?>
+                                                    <span class="candidate-reapply-status eligible">Sudah boleh melamar kembali</span>
+                                                    <small>Masa tunggu selesai <?= esc(date('d/m/Y H:i', strtotime($application['reapply_available_at']))) ?></small>
+                                                <?php else: ?>
+                                                    <span class="candidate-reapply-status neutral">Tidak terkena masa tunggu 3 bulan</span>
+                                                <?php endif ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="candidate-not-rejected">—</span>
+                                        <?php endif ?>
+                                    </td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
-                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if (! $isBlacklisted && $canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?><?php if (! $isBlacklisted && ! empty($application['talent_pool_id'])): ?><a class="candidate-talent-saved" href="<?= site_url('adminhrdmannakampus/talent-pool?team_id=' . $selectedTeamId) ?>">Cadangan</a><?php elseif (! $isBlacklisted && $canUpdateStatus): ?><button class="candidate-talent-trigger" type="button" data-admin-modal-open="candidate-talent-modal-<?= (int) $application['id'] ?>">Simpan cadangan</button><?php endif ?><?php if ($canCancelAssignment): ?><form action="<?= site_url('adminhrdmannakampus/kandidat/pelamar/' . $application['applicant_id'] . '/batal-pilih') ?>" method="post"><?= csrf_field() ?><input type="hidden" name="team_id" value="<?= $selectedTeamId ?>"><button class="candidate-cancel-assignment" type="submit" data-confirm-title="Batalkan pilihan pelamar?" data-confirm="<?= esc($application['full_name'], 'attr') ?> akan dikeluarkan dari <?= esc($selectedTeam['name'], 'attr') ?>." data-confirm-details="Divisi Pusat menjadi Belum dipilih.|Data Cadangan dan seluruh riwayat Talent Pool dihapus permanen.|Seluruh Alur Rekrutmen direset kembali ke Lamaran Baru." data-confirm-button="Ya, batalkan pilihan" data-cancel-button="Jangan batalkan" data-confirm-color="#dc2626">Batal pilih</button></form><?php endif ?></div></td>
+                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if (! $isBlacklisted && $canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -125,7 +148,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
             </div>
         </dialog>
     <?php endforeach ?>
-    <?php foreach ($applications as $application): if (! empty($application['talent_pool_id'])) { continue; } ?>
+    <?php if (false): foreach ($applications as $application): if (! empty($application['talent_pool_id'])) { continue; } ?>
         <dialog class="admin-modal talent-pool-save-modal" id="candidate-talent-modal-<?= (int) $application['id'] ?>" aria-labelledby="candidate-talent-title-<?= (int) $application['id'] ?>">
             <div class="admin-modal-panel">
                 <div class="settings-card-heading admin-modal-heading">
@@ -147,7 +170,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                 </form>
             </div>
         </dialog>
-    <?php endforeach ?>
+    <?php endforeach; endif ?>
 <?php endif ?>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=8" defer></script>

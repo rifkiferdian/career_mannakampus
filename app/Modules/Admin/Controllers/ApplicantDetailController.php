@@ -14,10 +14,11 @@ class ApplicantDetailController extends BaseController
     {
         $this->disableClientCaching();
         $database = db_connect();
-        $applicant = $database->table('applicants')
-            ->select('id, full_name, email, phone, profile_photo_path, birth_place, birth_date, height_cm, gender, marital_status, religion, address, last_education, institution, major, gpa, training_experience, is_active, created_at, updated_at')
-            ->where('id', $applicantId)
-            ->where('deleted_at', null)
+        $applicant = $database->table('applicants AS applicants')
+            ->select('applicants.id, applicants.full_name, applicants.email, applicants.phone, applicants.profile_photo_path, applicants.birth_place, applicants.birth_date, applicants.height_cm, applicants.gender, applicants.marital_status, applicants.religion, applicants.address, applicants.last_education, applicants.institution, applicants.major, applicants.gpa, applicants.training_experience, applicants.is_active, applicants.assigned_hrd_team_id, applicants.created_at, applicants.updated_at, teams.name AS assigned_hrd_team_name')
+            ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id', 'left')
+            ->where('applicants.id', $applicantId)
+            ->where('applicants.deleted_at', null)
             ->get()
             ->getRowArray();
         if ($applicant === null) {
@@ -25,12 +26,13 @@ class ApplicantDetailController extends BaseController
         }
 
         $applications = $database->table('applications AS applications')
-            ->select('applications.*, vacancies.title AS vacancy_title, departments.name AS department_name, batches.batch_number, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.reason_text_snapshot AS rejection_reason_text, rejections.internal_notes AS rejection_internal_notes, rejections.rejected_at, rejected_user.full_name AS rejected_by_name')
+            ->select('applications.*, vacancies.title AS vacancy_title, vacancies.department_id, departments.name AS department_name, batches.batch_number, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.reason_text_snapshot AS rejection_reason_text, rejections.internal_notes AS rejection_internal_notes, rejections.rejected_at, rejected_user.full_name AS rejected_by_name, talent_pool.id AS talent_pool_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('application_batches AS batches', 'batches.id = applications.batch_id')
             ->join('application_rejections AS rejections', "rejections.application_id = applications.id AND applications.application_status IN ('rejected', 'screening_failed')", 'left', false)
             ->join('users AS rejected_user', 'rejected_user.id = rejections.rejected_by', 'left')
+            ->join('talent_pool_candidates AS talent_pool', 'talent_pool.applicant_id = applications.applicant_id', 'left')
             ->where('applications.applicant_id', $applicantId)
             ->where('applications.deleted_at', null)
             ->orderBy('applications.submitted_at', 'DESC')
@@ -76,6 +78,15 @@ class ApplicantDetailController extends BaseController
             ->getResultArray();
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
+        $currentTeam = $database->table('hrd_team_users AS team_users')
+            ->select('teams.id, teams.name')
+            ->join('hrd_teams AS teams', 'teams.id = team_users.hrd_team_id')
+            ->where('team_users.user_id', $userId)
+            ->where('teams.is_active', 1)
+            ->get()->getRowArray();
+        $assignedTeamId = (int) ($applicant['assigned_hrd_team_id'] ?? 0);
+        $canManageAssignedTeam = $assignedTeamId > 0
+            && (Services::authorization()->can($userId, 'hrd.teams.manage') || (int) ($currentTeam['id'] ?? 0) === $assignedTeamId);
         $canViewBlacklist = Services::authorization()->can($userId, 'applicants.blacklist.view');
         $blacklist = null;
         $blacklistHistories = [];
@@ -110,10 +121,15 @@ class ApplicantDetailController extends BaseController
             'canDownloadDocuments' => Services::authorization()->can($userId, 'candidates.cv.download'),
             'canViewBlacklist' => $canViewBlacklist,
             'canManageBlacklist' => Services::authorization()->can($userId, 'applicants.blacklist.manage'),
+            'canSaveTalentPool' => Services::authorization()->can($userId, 'candidates.status.update') && $canManageAssignedTeam,
+            'canCancelAssignment' => Services::authorization()->can($userId, 'applicants.assign') && $canManageAssignedTeam,
+            'departments' => $database->table('departments')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray(),
             'blacklist' => $blacklist,
             'blacklistHistories' => $blacklistHistories,
             'blacklistSuccess' => session()->getFlashdata('blacklist_success'),
             'blacklistError' => session()->getFlashdata('blacklist_error'),
+            'candidateSuccess' => session()->getFlashdata('candidate_success'),
+            'candidateError' => session()->getFlashdata('candidate_error'),
         ]);
     }
 

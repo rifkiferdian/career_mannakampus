@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
+use App\Modules\Recruitment\Services\ApplicationEligibilityService;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\Services;
@@ -77,6 +78,7 @@ class CandidateController extends BaseController
         $this->applyFilters($builder, $filters);
         $applications = $builder->orderBy('applications.updated_at', 'DESC')->orderBy('applications.id', 'DESC')->get()->getResultArray();
         $now = time();
+        $nowDateTime = new \DateTimeImmutable();
         $today = new \DateTimeImmutable('today');
         foreach ($applications as &$application) {
             $whatsAppNumber = preg_replace('/\D+/', '', (string) ($application['phone'] ?? '')) ?? '';
@@ -107,6 +109,7 @@ class CandidateController extends BaseController
                 $templateStages,
                 $stages
             ));
+            $this->addRejectionTiming($application, $templateStages, $nowDateTime);
         }
         unset($application);
         $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update')
@@ -152,6 +155,7 @@ class CandidateController extends BaseController
         $currentTeam = $this->currentTeam($userId);
         $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
         $returnTeamId = max(0, (int) $this->request->getPost('team_id'));
+        $returnToDetail = (string) $this->request->getPost('return_to') === 'detail';
         $applicant = $database->table('applicants AS applicants')
             ->select('applicants.id, applicants.full_name, applicants.assigned_hrd_team_id, teams.name AS hrd_team_name')
             ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id', 'left')
@@ -160,12 +164,12 @@ class CandidateController extends BaseController
             ->get()->getRowArray();
 
         if ($applicant === null || empty($applicant['assigned_hrd_team_id'])) {
-            return $this->candidateError('Pelamar sudah berstatus Belum dipilih atau data tidak lagi tersedia.', $returnTeamId);
+            return $this->candidateError('Pelamar sudah berstatus Belum dipilih atau data tidak lagi tersedia.', $returnTeamId, $returnToDetail ? $applicantId : null);
         }
 
         $assignedTeamId = (int) $applicant['assigned_hrd_team_id'];
         if (! $canManageTeams && (int) ($currentTeam['id'] ?? 0) !== $assignedTeamId) {
-            return $this->candidateError('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda batalkan.', $returnTeamId);
+            return $this->candidateError('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda batalkan.', $returnTeamId, $returnToDetail ? $applicantId : null);
         }
 
         $applications = $database->table('applications')
@@ -250,10 +254,14 @@ class CandidateController extends BaseController
         $database->transComplete();
 
         if (! $cancelled || ! $database->transStatus()) {
-            return $this->candidateError('Pilihan pelamar gagal dibatalkan. Silakan muat ulang halaman.', $returnTeamId);
+            return $this->candidateError('Pilihan pelamar gagal dibatalkan. Silakan muat ulang halaman.', $returnTeamId, $returnToDetail ? $applicantId : null);
         }
 
-        return redirect()->to($this->candidateUrl($returnTeamId))
+        $returnUrl = $returnToDetail
+            ? site_url('adminhrdmannakampus/pelamar/' . $applicantId)
+            : $this->candidateUrl($returnTeamId);
+
+        return redirect()->to($returnUrl)
             ->with(
                 'candidate_success',
                 $applicant['full_name'] . ' berhasil dikembalikan ke Belum dipilih.'
@@ -416,6 +424,60 @@ class CandidateController extends BaseController
             $result[(int) $row['template_id']][] = $row;
         }
         return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $application
+     * @param array<int, list<array<string, mixed>>> $templateStages
+     */
+    private function addRejectionTiming(array &$application, array $templateStages, \DateTimeImmutable $now): void
+    {
+        $application['rejection_elapsed_days'] = null;
+        $application['reapply_available_at'] = null;
+        $application['reapply_remaining_days'] = null;
+        $application['reapply_status'] = null;
+
+        if (empty($application['rejected_at'])) {
+            return;
+        }
+
+        $rejectedAt = new \DateTimeImmutable((string) $application['rejected_at']);
+        $application['rejection_elapsed_days'] = $now >= $rejectedAt
+            ? $rejectedAt->setTime(0, 0)->diff($now->setTime(0, 0))->days
+            : 0;
+
+        if (! empty($application['active_blacklist_id'])) {
+            $application['reapply_status'] = 'blacklisted';
+            return;
+        }
+
+        $firstWrittenTestOrder = null;
+        foreach ($templateStages[(int) $application['recruitment_process_template_id']] ?? [] as $stage) {
+            if (preg_match('/\Awritten_test(?:_|\z)/', (string) $stage['code']) === 1) {
+                $firstWrittenTestOrder = (int) $stage['display_order'];
+                break;
+            }
+        }
+
+        $rejectedStageOrder = isset($application['rejected_stage_order']) ? (int) $application['rejected_stage_order'] : null;
+        if ($firstWrittenTestOrder === null || $rejectedStageOrder === null || $rejectedStageOrder < $firstWrittenTestOrder) {
+            $application['reapply_status'] = 'not_applicable';
+            return;
+        }
+
+        $availableAt = ApplicationEligibilityService::availableAt($rejectedAt);
+        $application['reapply_available_at'] = $availableAt->format('Y-m-d H:i:s');
+        if ($now >= $availableAt) {
+            $application['reapply_status'] = 'eligible';
+            $application['reapply_remaining_days'] = 0;
+            return;
+        }
+
+        $application['reapply_status'] = 'waiting';
+        $application['reapply_remaining_days'] = max(
+            1,
+            (int) ceil(($availableAt->getTimestamp() - $now->getTimestamp()) / 86400),
+        );
     }
 
     /**
@@ -655,9 +717,13 @@ class CandidateController extends BaseController
         return '#64748B';
     }
 
-    private function candidateError(string $message, int $teamId = 0): RedirectResponse
+    private function candidateError(string $message, int $teamId = 0, ?int $applicantId = null): RedirectResponse
     {
-        return redirect()->to($this->candidateUrl($teamId))->with('candidate_error', $message);
+        $url = $applicantId !== null && $applicantId > 0
+            ? site_url('adminhrdmannakampus/pelamar/' . $applicantId)
+            : $this->candidateUrl($teamId);
+
+        return redirect()->to($url)->with('candidate_error', $message);
     }
 
     /** @return array<string, mixed>|null */
