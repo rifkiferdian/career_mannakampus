@@ -53,6 +53,28 @@ class ApplicantBlacklistController extends BaseController
             $row['computed_status'] = $this->status($row, $now);
         }
         unset($row);
+
+        $vacanciesByApplicant = [];
+        $applicantIds = array_values(array_unique(array_map('intval', array_column($allRows, 'applicant_id'))));
+        if ($applicantIds !== []) {
+            foreach ($database->table('applications AS applications')
+                ->select('applications.applicant_id, applications.vacancy_id, applications.application_number, applications.submitted_at, vacancies.title AS vacancy_title')
+                ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+                ->whereIn('applications.applicant_id', $applicantIds)
+                ->where('applications.deleted_at', null)
+                ->orderBy('applications.submitted_at', 'DESC')
+                ->orderBy('applications.id', 'DESC')
+                ->get()->getResultArray() as $application) {
+                $applicantId = (int) $application['applicant_id'];
+                $vacancyId = (int) $application['vacancy_id'];
+                $vacanciesByApplicant[$applicantId][$vacancyId] ??= $application;
+            }
+        }
+        foreach ($allRows as &$row) {
+            $row['applied_vacancies'] = array_values($vacanciesByApplicant[(int) $row['applicant_id']] ?? []);
+        }
+        unset($row);
+
         $rows = $status === '' ? $allRows : array_values(array_filter(
             $allRows,
             static fn (array $row): bool => $row['computed_status'] === $status

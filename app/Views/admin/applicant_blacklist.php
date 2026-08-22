@@ -13,7 +13,7 @@ $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 're
     <title>Blacklist Pelamar | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=47">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=55">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -47,7 +47,7 @@ $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 're
 
             <section class="settings-card blacklist-table-card">
                 <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg></span><div><h2>Daftar blacklist</h2><p>Data tidak dihapus saat masa berlaku berakhir atau blacklist dicabut.</p></div><span class="device-count"><?= count($blacklists) ?></span></div>
-                <div class="department-table-wrap"><table class="department-table blacklist-table"><thead><tr><th>No.</th><th>Pelamar</th><th>Alasan</th><th>Masa berlaku</th><th>Status</th><th>Dicatat oleh</th><th>Aksi</th></tr></thead><tbody>
+                <div class="department-table-wrap"><table class="department-table blacklist-table"><thead><tr><th>No.</th><th>Pelamar</th><th>Alasan</th><th>Masa berlaku</th><th>Lowongan yang dilamar</th><th>Dicatat oleh</th><th>Aksi</th></tr></thead><tbody>
                     <?php if ($blacklists === []): ?><tr><td colspan="7" class="department-empty">Data blacklist tidak ditemukan.</td></tr><?php endif ?>
                     <?php foreach ($blacklists as $index => $blacklist): $isActive = in_array($blacklist['computed_status'], ['active', 'permanent'], true); ?>
                         <tr>
@@ -55,7 +55,7 @@ $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 're
                             <td><div class="report-applicant"><strong><?= esc($blacklist['full_name']) ?></strong><a href="mailto:<?= esc($blacklist['email'], 'attr') ?>"><?= esc($blacklist['email']) ?></a><small><?= esc($blacklist['phone'] ?: '-') ?></small></div></td>
                             <td class="blacklist-reason-cell"><strong><?= esc($blacklist['reason']) ?></strong><?php if (trim((string) $blacklist['internal_notes']) !== ''): ?><small><?= esc($blacklist['internal_notes']) ?></small><?php endif ?></td>
                             <td><div class="blacklist-period"><strong><?= (int) $blacklist['is_permanent'] === 1 ? 'Permanen' : esc($date($blacklist['ends_at'], 'd M Y')) ?></strong><small>Mulai <?= esc($date($blacklist['starts_at'], 'd M Y')) ?></small></div></td>
-                            <td><span class="blacklist-status status-<?= esc($blacklist['computed_status'], 'attr') ?>"><i></i><?= esc($statusLabels[$blacklist['computed_status']] ?? 'Tidak diketahui') ?></span><?php if ($blacklist['computed_status'] === 'revoked'): ?><small class="blacklist-revoked-note"><?= esc($blacklist['revocation_reason'] ?: '-') ?></small><?php endif ?></td>
+                            <td><div class="blacklist-vacancy-list"><?php if ($blacklist['applied_vacancies'] === []): ?><span>Belum ada riwayat lowongan</span><?php endif ?><?php foreach ($blacklist['applied_vacancies'] as $vacancy): ?><div><strong><?= esc($vacancy['vacancy_title']) ?></strong><small><?= esc($vacancy['application_number']) ?> · <?= esc($date($vacancy['submitted_at'], 'd M Y')) ?></small></div><?php endforeach ?></div></td>
                             <td><div class="blacklist-author"><strong><?= esc($blacklist['updated_by_name'] ?: $blacklist['created_by_name'] ?: 'Sistem') ?></strong><small><?= esc($date($blacklist['updated_at'])) ?></small></div></td>
                             <td><div class="candidate-table-actions blacklist-actions"><?php if ($canViewCandidate): ?><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $blacklist['applicant_id']) ?>">Detail</a><?php endif ?><button class="blacklist-history-trigger" type="button" data-admin-modal-open="blacklist-history-<?= (int) $blacklist['id'] ?>">Riwayat</button><?php if ($canManage): ?><button class="candidate-process-link" type="button" data-admin-modal-open="blacklist-edit-<?= (int) $blacklist['id'] ?>"><?= $isActive ? 'Ubah' : 'Aktifkan kembali' ?></button><?php if ($isActive): ?><button class="candidate-cancel-assignment" type="button" data-admin-modal-open="blacklist-revoke-<?= (int) $blacklist['id'] ?>">Cabut</button><?php endif ?><?php endif ?></div></td>
                         </tr>
