@@ -13,7 +13,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=44">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=46">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -74,7 +74,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span></td>
                                     <td><?php if (! empty($application['rejected_stage_name'])): ?><span class="candidate-rejected-stage"><strong><?= $application['rejected_stage_order'] !== null ? 'Tahap ' . (int) $application['rejected_stage_order'] : 'Tahap' ?></strong><?= esc($application['rejected_stage_name']) ?><small><?= esc($application['rejection_reason_title']) ?></small></span><?php else: ?><span class="candidate-not-rejected">—</span><?php endif ?></td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
-                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?><?php if (! empty($application['talent_pool_id'])): ?><a class="candidate-talent-saved" href="<?= site_url('adminhrdmannakampus/talent-pool?team_id=' . $selectedTeamId) ?>">Cadangan</a><?php elseif ($canUpdateStatus): ?><button class="candidate-talent-trigger" type="button" data-admin-modal-open="candidate-talent-modal-<?= (int) $application['id'] ?>">Simpan cadangan</button><?php endif ?></div></td>
+                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>">Detail</a><?php if ($canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?><?php if (! empty($application['talent_pool_id'])): ?><a class="candidate-talent-saved" href="<?= site_url('adminhrdmannakampus/talent-pool?team_id=' . $selectedTeamId) ?>">Cadangan</a><?php elseif ($canUpdateStatus): ?><button class="candidate-talent-trigger" type="button" data-admin-modal-open="candidate-talent-modal-<?= (int) $application['id'] ?>">Simpan cadangan</button><?php endif ?><?php if ($canCancelAssignment): ?><form action="<?= site_url('adminhrdmannakampus/kandidat/pelamar/' . $application['applicant_id'] . '/batal-pilih') ?>" method="post"><?= csrf_field() ?><input type="hidden" name="team_id" value="<?= $selectedTeamId ?>"><button class="candidate-cancel-assignment" type="submit" data-confirm-title="Batalkan pilihan pelamar?" data-confirm="<?= esc($application['full_name'], 'attr') ?> akan dikeluarkan dari <?= esc($selectedTeam['name'], 'attr') ?>." data-confirm-details="Divisi Pusat menjadi Belum dipilih.|Data Cadangan dan seluruh riwayat Talent Pool dihapus permanen.|Seluruh Alur Rekrutmen direset kembali ke Lamaran Baru." data-confirm-button="Ya, batalkan pilihan" data-cancel-button="Jangan batalkan" data-confirm-color="#dc2626">Batal pilih</button></form><?php endif ?></div></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -150,6 +150,6 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <?php endforeach ?>
 <?php endif ?>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=7" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=8" defer></script>
 </body>
 </html>

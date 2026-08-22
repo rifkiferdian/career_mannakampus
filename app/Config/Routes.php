@@ -70,6 +70,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('pelamar/(:num)', 'ApplicantDetailController::show/$1', ['filter' => 'permission:candidates.view', 'as' => 'hrd.applicant.detail']);
     $routes->get('pelamar/(:num)/dokumen/(:num)', 'ApplicantDetailController::downloadDocument/$1/$2', ['filter' => 'permission:candidates.cv.download', 'as' => 'hrd.applicant.document']);
     $routes->get('kandidat', 'CandidateController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates']);
+    $routes->post('kandidat/pelamar/(:num)/batal-pilih', 'CandidateController::cancelAssignment/$1', ['filter' => 'permission:applicants.assign', 'as' => 'hrd.candidates.assignment.cancel']);
     $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);
     $routes->get('talent-pool', 'TalentPoolController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.talent.pool']);
     $routes->post('talent-pool/simpan/(:num)', 'TalentPoolController::save/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.talent.pool.save']);

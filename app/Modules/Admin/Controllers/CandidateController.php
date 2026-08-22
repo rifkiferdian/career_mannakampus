@@ -112,6 +112,9 @@ class CandidateController extends BaseController
         $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update')
             && $selectedTeamId > 0
             && ($canManageTeams || (int) ($currentTeam['id'] ?? 0) === $selectedTeamId);
+        $canCancelAssignment = Services::authorization()->can($userId, 'applicants.assign')
+            && $selectedTeamId > 0
+            && ($canManageTeams || (int) ($currentTeam['id'] ?? 0) === $selectedTeamId);
 
         return view('admin/candidates', [
             'auth' => $auth,
@@ -130,6 +133,7 @@ class CandidateController extends BaseController
             'selectedTeamId' => $selectedTeamId,
             'canManageTeams' => $canManageTeams,
             'canUpdateStatus' => $canUpdateStatus,
+            'canCancelAssignment' => $canCancelAssignment,
             'summary' => [
                 'total' => count($applications),
                 'overdue' => count(array_filter($applications, static fn (array $row): bool => (bool) $row['is_overdue'])),
@@ -139,6 +143,126 @@ class CandidateController extends BaseController
             'success' => session()->getFlashdata('candidate_success'),
             'error' => session()->getFlashdata('candidate_error'),
         ]);
+    }
+
+    public function cancelAssignment(int $applicantId): RedirectResponse
+    {
+        $database = db_connect();
+        $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
+        $currentTeam = $this->currentTeam($userId);
+        $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
+        $returnTeamId = max(0, (int) $this->request->getPost('team_id'));
+        $applicant = $database->table('applicants AS applicants')
+            ->select('applicants.id, applicants.full_name, applicants.assigned_hrd_team_id, teams.name AS hrd_team_name')
+            ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id', 'left')
+            ->where('applicants.id', $applicantId)
+            ->where('applicants.deleted_at', null)
+            ->get()->getRowArray();
+
+        if ($applicant === null || empty($applicant['assigned_hrd_team_id'])) {
+            return $this->candidateError('Pelamar sudah berstatus Belum dipilih atau data tidak lagi tersedia.', $returnTeamId);
+        }
+
+        $assignedTeamId = (int) $applicant['assigned_hrd_team_id'];
+        if (! $canManageTeams && (int) ($currentTeam['id'] ?? 0) !== $assignedTeamId) {
+            return $this->candidateError('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda batalkan.', $returnTeamId);
+        }
+
+        $applications = $database->table('applications')
+            ->select('id, application_status')
+            ->where('applicant_id', $applicantId)
+            ->where('deleted_at', null)
+            ->get()->getResultArray();
+        $applicationIds = array_map('intval', array_column($applications, 'id'));
+
+        $now = date('Y-m-d H:i:s');
+        $database->transStart();
+        $database->table('applicants')
+            ->where('id', $applicantId)
+            ->where('assigned_hrd_team_id', $assignedTeamId)
+            ->update([
+                'assigned_hrd_team_id' => null,
+                'assigned_by_user_id' => null,
+                'assigned_at' => null,
+                'updated_at' => $now,
+            ]);
+        $cancelled = $database->affectedRows() === 1;
+        $talentPoolRemoved = false;
+        if ($cancelled) {
+            $database->table('talent_pool_candidates')
+                ->where('applicant_id', $applicantId)
+                ->delete();
+            $talentPoolRemoved = $database->affectedRows() > 0;
+
+            if ($applicationIds !== []) {
+                $database->table('application_rejections')
+                    ->whereIn('application_id', $applicationIds)
+                    ->delete();
+                $database->table('application_screening_answers')
+                    ->whereIn('application_id', $applicationIds)
+                    ->update([
+                        'is_eligible' => null,
+                        'score' => null,
+                        'updated_at' => $now,
+                    ]);
+                $database->table('applications')
+                    ->whereIn('id', $applicationIds)
+                    ->update([
+                        'application_status' => 'lamaran_baru',
+                        'screening_status' => 'pending',
+                        'screening_score' => null,
+                        'screening_notes' => null,
+                        'public_message' => 'Lamaran Anda telah diterima dan menunggu pemeriksaan oleh tim HRD.',
+                        'reviewed_at' => null,
+                        'reviewed_by' => null,
+                        'updated_at' => $now,
+                    ]);
+
+                $stageHistories = [];
+                foreach ($applications as $application) {
+                    if ((string) $application['application_status'] === 'lamaran_baru') {
+                        continue;
+                    }
+                    $stageHistories[] = [
+                        'application_id' => (int) $application['id'],
+                        'status_type' => 'application',
+                        'previous_status' => (string) $application['application_status'],
+                        'new_status' => 'lamaran_baru',
+                        'notes' => 'Alur rekrutmen direset ke Lamaran Baru karena pilihan divisi HRD dibatalkan.',
+                        'changed_by' => $userId,
+                        'created_at' => $now,
+                    ];
+                }
+                if ($stageHistories !== []) {
+                    $database->table('application_status_histories')->insertBatch($stageHistories);
+                }
+            }
+
+            $database->table('applicant_assignment_histories')->insert([
+                'applicant_id' => $applicantId,
+                'from_hrd_team_id' => $assignedTeamId,
+                'to_hrd_team_id' => null,
+                'action' => 'unassigned',
+                'notes' => 'Pilihan pelamar dibatalkan dari ' . $applicant['hrd_team_name'] . '.'
+                    . ($talentPoolRemoved ? ' Data Talent Pool turut dihapus.' : '')
+                    . ' Seluruh alur rekrutmen dikembalikan ke Lamaran Baru.',
+                'changed_by' => $userId,
+                'created_at' => $now,
+            ]);
+        }
+        $database->transComplete();
+
+        if (! $cancelled || ! $database->transStatus()) {
+            return $this->candidateError('Pilihan pelamar gagal dibatalkan. Silakan muat ulang halaman.', $returnTeamId);
+        }
+
+        return redirect()->to($this->candidateUrl($returnTeamId))
+            ->with(
+                'candidate_success',
+                $applicant['full_name'] . ' berhasil dikembalikan ke Belum dipilih.'
+                    . ($talentPoolRemoved ? ' Data Talent Pool juga telah dihapus.' : '')
+                    . ' Seluruh alur rekrutmen kembali ke Lamaran Baru.'
+            );
     }
 
     public function updateStage(int $applicationId): RedirectResponse

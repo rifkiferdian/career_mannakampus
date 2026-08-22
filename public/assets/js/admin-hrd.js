@@ -53,25 +53,56 @@
         const message = submitter?.dataset.confirm || form.dataset.confirm;
         if (!message) return;
 
+        const confirmSource = submitter || form;
+        const confirmTitle = confirmSource.dataset.confirmTitle || 'Apakah Anda yakin?';
+        const confirmButtonText = confirmSource.dataset.confirmButton || 'Ya, lanjutkan';
+        const cancelButtonText = confirmSource.dataset.cancelButton || 'Batal';
+        const confirmButtonColor = confirmSource.dataset.confirmColor || '#f87638';
+        const consequences = (confirmSource.dataset.confirmDetails || '')
+            .split('|')
+            .map((item) => item.trim())
+            .filter(Boolean);
+        const fallbackMessage = consequences.length === 0
+            ? message
+            : `${message}\n\nKonsekuensi:\n- ${consequences.join('\n- ')}`;
+
         event.preventDefault();
 
         const activeModal = form.closest('dialog[open]');
         if (activeModal instanceof HTMLDialogElement) activeModal.close();
 
         const isConfirmed = typeof window.Swal === 'undefined'
-            ? window.confirm(message)
+            ? window.confirm(fallbackMessage)
             : (await window.Swal.fire({
-                title: 'Apakah Anda yakin?',
+                title: confirmTitle,
                 text: message,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, lanjutkan',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#f87638',
+                confirmButtonText,
+                cancelButtonText,
+                confirmButtonColor,
                 cancelButtonColor: '#64748b',
                 reverseButtons: true,
                 focusCancel: true,
                 returnFocus: false,
+                customClass: consequences.length > 0 ? { popup: 'admin-confirm-popup' } : {},
+                didOpen: () => {
+                    if (consequences.length === 0) return;
+                    const container = window.Swal.getHtmlContainer();
+                    if (!container) return;
+                    const consequenceBox = document.createElement('div');
+                    consequenceBox.className = 'admin-confirm-consequences';
+                    const heading = document.createElement('strong');
+                    heading.textContent = 'Konsekuensi batal pilih:';
+                    const list = document.createElement('ul');
+                    consequences.forEach((item) => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+                    consequenceBox.append(heading, list);
+                    container.appendChild(consequenceBox);
+                },
             })).isConfirmed;
 
         if (!isConfirmed) {

@@ -777,10 +777,17 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-stage-age.overdue { color: #a34c43; }
 .candidate-sla { display: block; margin-top: 4px; color: #929ca4; font-size: 9px; }
 .candidate-table-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.candidate-table-actions form { margin: 0; }
 .candidate-table-actions a, .candidate-table-actions button { min-height: 32px; display: inline-flex; align-items: center; padding: 0 10px; color: white; background: var(--admin-navy); border: 1px solid var(--admin-navy); border-radius: 7px; font-family: inherit; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .candidate-table-actions .candidate-process-link { color: #a95027; background: #fff5ef; border-color: #f0d6c8; }
 .candidate-table-actions .candidate-talent-trigger { color: #247052; background: #eff9f4; border-color: #cbe7da; }
 .candidate-table-actions .candidate-talent-saved { color: #247052; background: #e8f5ef; border-color: #cbe7da; }
+.candidate-table-actions .candidate-cancel-assignment { color: #b42318; background: #fff1f0; border-color: #f3c7c3; }
+.admin-confirm-popup { border-top: 5px solid #dc2626; }
+.admin-confirm-consequences { margin-top: 18px; padding: 14px 16px; color: #7f1d1d; background: #fff1f0; border: 1px solid #fecaca; border-radius: 10px; text-align: left; }
+.admin-confirm-consequences strong { display: block; margin-bottom: 8px; font-size: 13px; }
+.admin-confirm-consequences ul { margin: 0; padding-left: 19px; }
+.admin-confirm-consequences li { margin: 5px 0; font-size: 12px; line-height: 1.5; }
 .candidate-heading-actions { display: flex; align-items: center; gap: 9px; }
 .talent-pool-page-link, .talent-pool-back-link { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; color: white; background: #267052; border-radius: 8px; font-size: 11px; font-weight: 800; text-decoration: none; }
 .talent-pool-page-link svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
