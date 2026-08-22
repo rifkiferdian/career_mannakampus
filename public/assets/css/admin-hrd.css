@@ -791,8 +791,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-rejected-stage strong { padding: 3px 6px; color: #a34437; background: #fdeae6; border-radius: 999px; font-size: 9px; }
 .candidate-rejected-stage b { color: #79372f; font-size: 11px; }
 .candidate-rejected-stage small { max-width: 150px; color: #9a7771; font-size: 9px; line-height: 1.35; }
-.candidate-rejected-stage time { margin-top: 4px; color: #5f6f7b; font-size: 9px; font-style: normal; font-weight: 750; }
-.candidate-rejected-stage em { color: #7d8a94; font-size: 9px; font-style: normal; }
+.candidate-rejection-timing { min-width: 185px; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.candidate-rejection-timing time { color: #5f6f7b; font-size: 9px; font-style: normal; font-weight: 750; }
+.candidate-rejection-age { padding: 5px 7px; color: #9a3412; background: #fff0e8; border: 1px solid #f5c9b4; border-radius: 6px; font-size: 9px; font-weight: 850; line-height: 1.35; }
+.candidate-rejection-timing > small { max-width: 180px; color: #73828d; font-size: 9px; line-height: 1.35; }
 .candidate-reapply-status { margin-top: 4px; padding: 5px 7px; border-radius: 6px; font-size: 9px; font-style: normal; font-weight: 850; line-height: 1.35; }
 .candidate-reapply-status.waiting, .candidate-reapply-status.blocked { color: #9a3412; background: #fff0e8; border: 1px solid #f5c9b4; }
 .candidate-reapply-status.blocked { color: #a1261d; background: #fff0ef; border-color: #efc5c1; }

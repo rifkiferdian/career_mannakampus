@@ -13,7 +13,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=52">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=53">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -61,9 +61,9 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                 <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg></span><div><h2>Pipeline <?= esc($selectedTeam['name'] ?? 'divisi') ?></h2><p>Hanya pelamar yang sudah dipilih untuk divisi ini.</p></div><span class="device-count"><?= count($applications) ?></span></div>
                 <div class="department-table-wrap">
                     <table class="department-table candidate-table">
-                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Keguguran &amp; masa tunggu</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Tahap gugur</th><th>Tanggal gugur &amp; masa tunggu</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
                         <tbody>
-                            <?php if ($applications === []): ?><tr><td colspan="9" class="department-empty">Belum ada pelamar pada divisi ini.</td></tr><?php endif ?>
+                            <?php if ($applications === []): ?><tr><td colspan="10" class="department-empty">Belum ada pelamar pada divisi ini.</td></tr><?php endif ?>
                             <?php foreach ($applications as $index => $application): $isBlacklisted = ! empty($application['active_blacklist_id']); ?>
                                 <tr>
                                     <td class="candidate-order"><?= $index + 1 ?></td>
@@ -78,12 +78,19 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                                                 <strong><?= $application['rejected_stage_order'] !== null ? 'Tahap ' . (int) $application['rejected_stage_order'] : 'Tahap' ?></strong>
                                                 <b><?= esc($application['rejected_stage_name']) ?></b>
                                                 <small><?= esc($application['rejection_reason_title']) ?></small>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="candidate-not-rejected">—</span>
+                                        <?php endif ?>
+                                    </td>
+                                    <td>
+                                        <?php if (! empty($application['rejected_stage_name'])): ?>
+                                            <span class="candidate-rejection-timing">
                                                 <time datetime="<?= esc(date('c', strtotime($application['rejected_at'])), 'attr') ?>">Gugur <?= esc(date('d/m/Y H:i', strtotime($application['rejected_at']))) ?></time>
-                                                <em><?= (int) $application['rejection_elapsed_days'] ?> hari sejak gugur</em>
+                                                <span class="candidate-rejection-age"><?= (int) $application['rejection_elapsed_days'] ?> hari sejak gugur</span>
                                                 <?php if ($application['reapply_status'] === 'blacklisted'): ?>
                                                     <span class="candidate-reapply-status blocked">Belum boleh melamar · blacklist aktif</span>
                                                 <?php elseif ($application['reapply_status'] === 'waiting'): ?>
-                                                    <span class="candidate-reapply-status waiting">Belum boleh melamar · <?= (int) $application['reapply_remaining_days'] ?> hari lagi</span>
                                                     <small>Boleh mulai <?= esc(date('d/m/Y H:i', strtotime($application['reapply_available_at']))) ?></small>
                                                 <?php elseif ($application['reapply_status'] === 'eligible'): ?>
                                                     <span class="candidate-reapply-status eligible">Sudah boleh melamar kembali</span>
