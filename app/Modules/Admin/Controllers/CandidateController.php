@@ -195,9 +195,6 @@ class CandidateController extends BaseController
             $talentPoolRemoved = $database->affectedRows() > 0;
 
             if ($applicationIds !== []) {
-                $database->table('application_rejections')
-                    ->whereIn('application_id', $applicationIds)
-                    ->delete();
                 $database->table('application_screening_answers')
                     ->whereIn('application_id', $applicationIds)
                     ->update([
@@ -399,7 +396,7 @@ class CandidateController extends BaseController
             ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id')
             ->join('users AS assigned_user', 'assigned_user.id = applicants.assigned_by_user_id', 'left')
             ->join('recruitment_stages AS stages', 'stages.code = applications.application_status', 'left')
-            ->join('application_rejections AS rejections', 'rejections.application_id = applications.id', 'left')
+            ->join('application_rejections AS rejections', "rejections.application_id = applications.id AND applications.application_status IN ('rejected', 'screening_failed')", 'left', false)
             ->join('talent_pool_candidates AS talent_pool', 'talent_pool.applicant_id = applications.applicant_id', 'left')
             ->join('applicant_blacklists AS active_blacklist', 'active_blacklist.applicant_id = applicants.id AND active_blacklist.revoked_at IS NULL AND active_blacklist.starts_at <= NOW() AND (active_blacklist.is_permanent = 1 OR active_blacklist.ends_at >= NOW())', 'left', false)
             ->where('applications.deleted_at', null)

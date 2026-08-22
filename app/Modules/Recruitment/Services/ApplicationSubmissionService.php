@@ -2,6 +2,7 @@
 
 namespace App\Modules\Recruitment\Services;
 
+use App\Modules\Recruitment\Exceptions\ApplicationRestrictedException;
 use App\Modules\Recruitment\Models\ApplicantModel;
 use App\Modules\Recruitment\Models\ApplicantDocumentModel;
 use App\Modules\Recruitment\Models\ApplicationBatchModel;
@@ -67,8 +68,11 @@ class ApplicationSubmissionService
                 throw new DomainException('Email sudah digunakan oleh pelamar lain.');
             }
 
-            if ($applicant !== null && Services::applicantBlacklist()->isActive((int) $applicant['id'], $now)) {
-                throw new DomainException('Lamaran belum dapat diproses. Silakan menghubungi tim rekrutmen untuk informasi lebih lanjut.');
+            if ($applicant !== null) {
+                $restriction = Services::applicationEligibility()->restrictionFor((int) $applicant['id']);
+                if ($restriction !== null) {
+                    throw new ApplicationRestrictedException($restriction);
+                }
             }
 
             $photoPath = $applicant['profile_photo_path'] ?? null;

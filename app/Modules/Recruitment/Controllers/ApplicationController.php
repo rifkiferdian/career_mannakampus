@@ -3,6 +3,7 @@
 namespace App\Modules\Recruitment\Controllers;
 
 use App\Controllers\BaseController;
+use App\Modules\Recruitment\Exceptions\ApplicationRestrictedException;
 use App\Modules\Recruitment\Services\ApplicationReceiptPdf;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -89,6 +90,15 @@ class ApplicationController extends BaseController
             session()->setFlashdata('submission_result', $result);
 
             return redirect()->to(site_url('lamaran/berhasil'));
+        } catch (ApplicationRestrictedException $exception) {
+            $token = bin2hex(random_bytes(24));
+            session()->setTempdata(
+                'application_restriction_' . $token,
+                $exception->restriction(),
+                900,
+            );
+
+            return redirect()->to(site_url('lamaran/tidak-dapat-diproses?token=' . $token));
         } catch (DomainException $exception) {
             return redirect()->back()->withInput()->with('form_error', $exception->getMessage());
         } catch (Throwable $exception) {
@@ -113,6 +123,26 @@ class ApplicationController extends BaseController
         return view('application_success', ['result' => $result]);
     }
 
+    public function restricted(): RedirectResponse|string
+    {
+        $token = trim((string) $this->request->getGet('token'));
+        if (preg_match('/\A[a-f0-9]{48}\z/D', $token) !== 1) {
+            return redirect()->to(site_url('lowongan'));
+        }
+
+        $restriction = session()->getTempdata('application_restriction_' . $token);
+        if (! is_array($restriction) || ! in_array($restriction['type'] ?? null, ['blacklist', 'cooldown'], true)) {
+            return redirect()->to(site_url('lowongan'));
+        }
+
+        if (($restriction['type'] ?? null) === 'cooldown') {
+            $restriction['rejected_date_label'] = $this->indonesianDate((string) ($restriction['rejected_at'] ?? ''));
+            $restriction['available_date_label'] = $this->indonesianDate((string) ($restriction['available_at'] ?? ''));
+        }
+
+        return view('application_restricted', ['restriction' => $restriction]);
+    }
+
     public function receipt(string $token): ResponseInterface
     {
         if (preg_match('/\A[a-f0-9]{48}\z/D', $token) !== 1) {
@@ -133,6 +163,22 @@ class ApplicationController extends BaseController
             ->setHeader('Content-Length', (string) strlen($pdf))
             ->setHeader('Cache-Control', 'private, no-store, max-age=0')
             ->setBody($pdf);
+    }
+
+    private function indonesianDate(string $date): string
+    {
+        $timestamp = strtotime($date);
+        if ($timestamp === false) {
+            return '-';
+        }
+
+        $months = [
+            1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        ];
+
+        return date('j', $timestamp) . ' ' . $months[(int) date('n', $timestamp)] . ' ' . date('Y', $timestamp)
+            . ' pukul ' . date('H.i', $timestamp) . ' WIB';
     }
 
     /**

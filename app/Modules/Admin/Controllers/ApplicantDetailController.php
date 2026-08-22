@@ -29,7 +29,7 @@ class ApplicantDetailController extends BaseController
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('application_batches AS batches', 'batches.id = applications.batch_id')
-            ->join('application_rejections AS rejections', 'rejections.application_id = applications.id', 'left')
+            ->join('application_rejections AS rejections', "rejections.application_id = applications.id AND applications.application_status IN ('rejected', 'screening_failed')", 'left', false)
             ->join('users AS rejected_user', 'rejected_user.id = rejections.rejected_by', 'left')
             ->where('applications.applicant_id', $applicantId)
             ->where('applications.deleted_at', null)

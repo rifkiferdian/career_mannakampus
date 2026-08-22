@@ -14,6 +14,7 @@ use App\Modules\Recruitment\Presenters\VacancyPresenter;
 use App\Modules\Recruitment\Presenters\ApplicationStatusPresenter;
 use App\Modules\Recruitment\Services\ApplicationStatusLookupService;
 use App\Modules\Recruitment\Services\ApplicationSubmissionService;
+use App\Modules\Recruitment\Services\ApplicationEligibilityService;
 use App\Modules\Recruitment\Services\ApplicantBlacklistService;
 use App\Modules\Recruitment\Services\VacancyCatalogService;
 use App\Modules\Admin\Services\HrdSessionService;
@@ -90,6 +91,18 @@ class Services extends BaseService
         }
 
         return new ApplicantBlacklistService(db_connect());
+    }
+
+    public static function applicationEligibility(bool $getShared = true): ApplicationEligibilityService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('applicationEligibility');
+        }
+
+        return new ApplicationEligibilityService(
+            db_connect(),
+            static::applicantBlacklist(),
+        );
     }
 
     public static function applicationStatusLookup(bool $getShared = true): ApplicationStatusLookupService
