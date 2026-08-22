@@ -30,23 +30,16 @@ class ApplicationStatusController extends BaseController
         }
 
         $input = [
-            'nik'          => trim((string) $this->request->getPost('nik')),
-            'batch_number' => mb_strtoupper(trim((string) $this->request->getPost('batch_number'))),
+            'nik' => trim((string) $this->request->getPost('nik')),
         ];
         $rules = [
-            'nik'          => 'required|numeric|exact_length[16]',
-            'batch_number' => 'required|max_length[30]|regex_match[/^[A-Z0-9-]+$/]',
+            'nik' => 'required|numeric|exact_length[16]',
         ];
         $messages = [
             'nik' => [
                 'required'     => 'NIK wajib diisi.',
                 'numeric'      => 'NIK hanya boleh berisi angka.',
                 'exact_length' => 'NIK harus terdiri dari 16 digit.',
-            ],
-            'batch_number' => [
-                'required'    => 'Nomor pengajuan wajib diisi.',
-                'max_length'  => 'Nomor pengajuan tidak valid.',
-                'regex_match' => 'Nomor pengajuan tidak valid.',
             ],
         ];
 
@@ -55,19 +48,17 @@ class ApplicationStatusController extends BaseController
                 null,
                 null,
                 $this->validator->getErrors(),
-                $input['batch_number'],
             ));
         }
 
         try {
-            $result = Services::applicationStatusLookup()->find($input['nik'], $input['batch_number']);
+            $result = Services::applicationStatusLookup()->find($input['nik']);
 
             if ($result === null) {
                 return view('application_status', $this->pageData(
-                    'Data lamaran tidak ditemukan. Pastikan NIK dan nomor pengajuan sudah benar.',
+                    'Data lamaran tidak ditemukan. Pastikan 16 digit NIK sudah benar.',
                     null,
                     [],
-                    $input['batch_number'],
                 ));
             }
 
@@ -75,7 +66,6 @@ class ApplicationStatusController extends BaseController
                 null,
                 $result,
                 [],
-                $input['batch_number'],
             ));
         } catch (Throwable $exception) {
             log_message('error', '[Recruitment] Pengecekan status lamaran gagal: {message}', [
@@ -89,7 +79,6 @@ class ApplicationStatusController extends BaseController
                 'Status lamaran sedang tidak dapat diperiksa. Silakan coba kembali nanti.',
                 null,
                 [],
-                $input['batch_number'],
             ));
         }
     }
@@ -104,13 +93,11 @@ class ApplicationStatusController extends BaseController
         ?string $error = null,
         ?array $result = null,
         array $errors = [],
-        string $batchNumber = '',
     ): array {
         return [
             'error'        => $error,
             'errors'       => $errors,
             'result'       => $result,
-            'batch_number' => $batchNumber,
         ];
     }
 

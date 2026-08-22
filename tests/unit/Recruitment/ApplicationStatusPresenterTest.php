@@ -15,7 +15,10 @@ class ApplicationStatusPresenterTest extends CIUnitTestCase
             'submitted_at'       => '2026-07-25 07:00:00',
             'applicant_snapshot' => json_encode([
                 'identity' => ['full_name' => 'Budi Santoso'],
-                'contact'  => ['email' => 'budi.santoso@example.test'],
+                'contact'  => [
+                    'email' => 'budi.santoso@example.test',
+                    'phone' => '628123456789',
+                ],
             ], JSON_THROW_ON_ERROR),
         ], [[
             'application_number' => 'SAMPLE-APP-001',
@@ -31,6 +34,8 @@ class ApplicationStatusPresenterTest extends CIUnitTestCase
 
         $this->assertSame('Budi S******', $result['applicant_name']);
         $this->assertSame('bu**********@example.test', $result['applicant_email']);
+        $this->assertSame('0812*****89', $result['applicant_phone']);
+        $this->assertStringNotContainsString('628123456789', json_encode($result, JSON_THROW_ON_ERROR));
         $this->assertSame('Lolos Screening', $result['applications'][0]['status_label']);
         $this->assertArrayNotHasKey('screening_score', $result['applications'][0]);
         $this->assertArrayNotHasKey('screening_notes', $result['applications'][0]);

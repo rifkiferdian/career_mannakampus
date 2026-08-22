@@ -9,7 +9,7 @@
     <title>Cek Status Lamaran | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=4">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=8">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -22,7 +22,7 @@
                 <div class="status-intro">
                     <span class="status-eyebrow"><span></span> Status Lamaran</span>
                     <h1 id="status-title">Pantau proses<br><em>lamaranmu.</em></h1>
-                    <p>Masukkan NIK dan nomor pengajuan yang diterima setelah mengirim lamaran. Data ini digunakan hanya untuk mencocokkan riwayat pengajuanmu.</p>
+                    <p>Masukkan 16 digit NIK untuk melihat seluruh perkembangan lamaran yang pernah Anda kirim.</p>
 
                     <div class="status-security-note">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -38,15 +38,15 @@
                 <div class="status-form-card">
                     <div class="status-form-heading">
                         <span>Periksa pengajuan</span>
-                        <h2>Masukkan data lamaran</h2>
-                        <p>Nomor pengajuan memiliki format seperti <strong>MKB-260725-XXXXXXXX</strong>.</p>
+                        <h2>Masukkan NIK pelamar</h2>
+                        <p>Sistem akan mencocokkan NIK dengan seluruh riwayat lamaran Anda.</p>
                     </div>
 
                     <?php if (! empty($error)): ?>
                         <div class="status-alert" role="alert"><?= esc($error) ?></div>
                     <?php endif ?>
 
-                    <form action="<?= site_url('lamaran/status') ?>" method="post" autocomplete="off">
+                    <form action="<?= site_url('lamaran/status') ?>" method="post" autocomplete="off" data-status-form>
                         <?= csrf_field() ?>
 
                         <label class="status-field" for="status-nik">
@@ -70,27 +70,8 @@
                             <?php endif ?>
                         </label>
 
-                        <label class="status-field" for="status-batch-number">
-                            <span>Nomor Pengajuan <b>*</b></span>
-                            <input
-                                id="status-batch-number"
-                                name="batch_number"
-                                type="text"
-                                value="<?= esc($batch_number ?? '', 'attr') ?>"
-                                maxlength="30"
-                                placeholder="Contoh: MKB-260725-XXXXXXXX"
-                                aria-describedby="status-batch-help<?= isset($errors['batch_number']) ? ' status-batch-error' : '' ?>"
-                                <?= isset($errors['batch_number']) ? 'aria-invalid="true"' : '' ?>
-                                required
-                            >
-                            <small id="status-batch-help">Tersedia pada halaman setelah lamaran dikirim.</small>
-                            <?php if (isset($errors['batch_number'])): ?>
-                                <em id="status-batch-error"><?= esc($errors['batch_number']) ?></em>
-                            <?php endif ?>
-                        </label>
-
-                        <button class="status-submit" type="submit">
-                            Cek Status Lamaran
+                        <button class="status-submit" type="submit" data-status-submit>
+                            <span data-status-submit-label>Cek Status Lamaran</span>
                             <span aria-hidden="true">&rarr;</span>
                         </button>
                     </form>
@@ -99,20 +80,26 @@
         </section>
 
         <?php if (is_array($result ?? null)): ?>
-            <section class="status-result-section" aria-labelledby="result-title">
-                <div class="container status-result">
+            <dialog class="status-result-modal" data-status-result-modal aria-labelledby="result-title">
+                <div class="status-result-modal-panel">
+                    <div class="status-result-modal-toolbar">
+                        <span>Hasil status lamaran</span>
+                        <button class="status-result-close" type="button" data-status-result-close aria-label="Tutup hasil pengecekan">&times;</button>
+                    </div>
+                    <section class="status-result-section">
+                        <div class="container status-result">
                     <div class="status-result-heading">
                         <div>
                             <span class="status-eyebrow"><span></span> Hasil Pencarian</span>
-                            <h2 id="result-title">Status pengajuan ditemukan</h2>
+                            <h2 id="result-title">Riwayat lamaran ditemukan</h2>
                         </div>
                         <span class="status-found-badge">Data terverifikasi</span>
                     </div>
 
                     <dl class="status-summary">
                         <div>
-                            <dt>Nomor Pengajuan</dt>
-                            <dd><?= esc($result['batch_number']) ?></dd>
+                            <dt>Total Pengajuan</dt>
+                            <dd><?= (int) $result['batch_count'] ?> pengajuan</dd>
                         </div>
                         <div>
                             <dt>Nama Pelamar</dt>
@@ -124,8 +111,14 @@
                                 <dd><?= esc($result['applicant_email']) ?></dd>
                             </div>
                         <?php endif ?>
+                        <?php if ($result['applicant_phone'] !== ''): ?>
+                            <div>
+                                <dt>Nomor WhatsApp</dt>
+                                <dd><?= esc($result['applicant_phone']) ?></dd>
+                            </div>
+                        <?php endif ?>
                         <div>
-                            <dt>Tanggal Melamar</dt>
+                            <dt>Terakhir Melamar</dt>
                             <dd><?= esc($result['submitted_at']) ?></dd>
                         </div>
                     </dl>
@@ -145,7 +138,6 @@
                                 <div class="status-application-main">
                                     <span class="status-department"><?= esc($application['department_name']) ?></span>
                                     <h3><?= esc($application['vacancy_title']) ?></h3>
-                                    <small><?= esc($application['application_number']) ?></small>
                                     <p><?= esc($application['status_description']) ?></p>
                                     <?php if ($application['public_message'] !== ''): ?>
                                         <div class="status-public-message"><?= esc($application['public_message']) ?></div>
@@ -162,8 +154,10 @@
                     </div>
 
                     <p class="status-result-note">Perkembangan berikutnya akan disampaikan melalui email atau WhatsApp yang dicantumkan saat melamar.</p>
+                        </div>
+                    </section>
                 </div>
-            </section>
+            </dialog>
         <?php endif ?>
     </main>
 
@@ -186,5 +180,6 @@
     </footer>
 
     <script src="<?= base_url('assets/js/career.js') ?>?v=11" defer></script>
+    <script src="<?= base_url('assets/js/application-status.js') ?>?v=3" defer></script>
 </body>
 </html>

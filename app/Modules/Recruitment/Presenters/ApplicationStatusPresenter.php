@@ -24,6 +24,7 @@ class ApplicationStatusPresenter
             'batch_number'     => (string) $batch['batch_number'],
             'applicant_name'   => $this->maskName((string) ($identity['full_name'] ?? 'Pelamar')),
             'applicant_email'  => $this->maskEmail((string) ($contact['email'] ?? '')),
+            'applicant_phone'  => $this->maskPhone((string) ($contact['phone'] ?? '')),
             'submitted_at'     => $this->date((string) $batch['submitted_at']),
             'position_count'   => count($applications),
             'applications'     => array_map(fn (array $application): array => $this->application($application), $applications),
@@ -144,6 +145,22 @@ class ApplicationStatusPresenter
         $visible = mb_substr($local, 0, min(2, mb_strlen($local)));
 
         return $visible . str_repeat('*', max(3, mb_strlen($local) - mb_strlen($visible))) . '@' . $domain;
+    }
+
+    private function maskPhone(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+        if (str_starts_with($digits, '62')) {
+            $digits = '0' . substr($digits, 2);
+        }
+
+        if (strlen($digits) < 7) {
+            return '';
+        }
+
+        return substr($digits, 0, 4)
+            . str_repeat('*', strlen($digits) - 6)
+            . substr($digits, -2);
     }
 
     private function date(string $date): string
