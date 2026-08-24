@@ -22,6 +22,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('', 'AuthController::login', ['as' => 'hrd.login']);
     $routes->post('', 'AuthController::authenticate', ['as' => 'hrd.authenticate']);
     $routes->get('dashboard', 'DashboardController::index', ['filter' => 'permission:dashboard.admin.view', 'as' => 'hrd.dashboard']);
+    $routes->get('kalender-rekrutmen', 'RecruitmentCalendarController::index', ['filter' => 'permission:schedules.view', 'as' => 'hrd.recruitment.calendar']);
     $routes->get('profil', 'ProfileController::index', ['filter' => 'hrd-auth', 'as' => 'hrd.profile']);
     $routes->post('profil', 'ProfileController::update', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.update']);
     $routes->post('profil/password', 'ProfileController::updatePassword', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.password']);

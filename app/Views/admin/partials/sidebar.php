@@ -14,6 +14,7 @@ $canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
 $canViewApplicantBlacklist = $authorization->can($userId, 'applicants.blacklist.view');
 $canViewCandidates = $authorization->can($userId, 'candidates.view');
 $canViewHrdTeams = $authorization->can($userId, 'hrd.teams.view');
+$canViewSchedules = $authorization->can($userId, 'schedules.view');
 $activeVacancyCount = 0;
 if ($canViewVacancies) {
     $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
@@ -100,6 +101,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-3H4v3Zm10-13h6V4h-6v3Z"/></svg>
             Dashboard
         </a>
+        <?php if ($canViewSchedules): ?>
+            <a<?= $activeClass('recruitment-calendar') ?> href="<?= site_url('adminhrdmannakampus/kalender-rekrutmen') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M13 14h3M8 17h3"/></svg>
+                Kalender Rekrutmen
+            </a>
+        <?php endif ?>
         <a<?= $activeClass('profile') ?> href="<?= site_url('adminhrdmannakampus/profil') ?>">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
             Profil &amp; Keamanan
