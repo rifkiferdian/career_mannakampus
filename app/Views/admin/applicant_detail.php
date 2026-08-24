@@ -49,7 +49,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
         <header class="admin-topbar">
             <button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button>
             <div><span>Candidate Profile</span><strong>Detail Pelamar</strong></div>
-            <a class="view-career-link" href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">Kembali ke list pelamar</a>
+            <a class="view-career-link" href="<?= esc($backUrl, 'attr') ?>"><?= esc($backLabel) ?></a>
         </header>
 
         <div class="admin-content candidate-detail-content">

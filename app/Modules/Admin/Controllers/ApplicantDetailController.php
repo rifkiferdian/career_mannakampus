@@ -21,6 +21,16 @@ class ApplicantDetailController extends BaseController
     public function show(int $applicantId): string
     {
         $this->disableClientCaching();
+        $source = trim((string) $this->request->getGet('source'));
+        $sourceTeamId = max(0, (int) $this->request->getGet('team_id'));
+        $backUrl = site_url('adminhrdmannakampus/list-pelamar');
+        $backLabel = 'Kembali ke list pelamar';
+        if ($source === 'division') {
+            $backUrl = site_url('adminhrdmannakampus/kandidat')
+                . ($sourceTeamId > 0 ? '?team_id=' . $sourceTeamId : '');
+            $backLabel = 'Kembali ke pelamar divisi';
+        }
+
         $database = db_connect();
         $applicant = $database->table('applicants AS applicants')
             ->select('applicants.id, applicants.full_name, applicants.email, applicants.phone, applicants.profile_photo_path, applicants.birth_place, applicants.birth_date, applicants.height_cm, applicants.gender, applicants.marital_status, applicants.religion, applicants.address, applicants.last_education, applicants.institution, applicants.major, applicants.gpa, applicants.training_experience, applicants.is_active, applicants.assigned_hrd_team_id, applicants.created_at, applicants.updated_at, teams.name AS assigned_hrd_team_name')
@@ -167,6 +177,8 @@ class ApplicantDetailController extends BaseController
 
         return view('admin/applicant_detail', [
             'auth' => $auth,
+            'backUrl' => $backUrl,
+            'backLabel' => $backLabel,
             'applicant' => $applicant,
             'applications' => $applications,
             'answersByApplication' => $answers,
