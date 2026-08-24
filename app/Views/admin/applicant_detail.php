@@ -28,6 +28,7 @@ if (str_starts_with($whatsAppNumber, '0')) {
     $whatsAppNumber = '62' . $whatsAppNumber;
 }
 $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekrutmen Manna Kampus ingin menghubungi Anda terkait proses lamaran kerja. Apakah Anda bersedia melanjutkan komunikasi melalui WhatsApp?\n\nTerima kasih.";
+$progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', 'next' => 'Selanjutnya', 'upcoming' => 'Akan datang'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -39,7 +40,7 @@ $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekru
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=54">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=60">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -56,6 +57,8 @@ $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekru
             <?php if ($blacklistError): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($blacklistError) ?></div><?php endif ?>
             <?php if ($candidateSuccess): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($candidateSuccess) ?></div><?php endif ?>
             <?php if ($candidateError): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($candidateError) ?></div><?php endif ?>
+            <?php $applicationsWithProcess = array_values(array_filter($applications, static fn (array $application): bool => $application['process_steps'] !== [])); ?>
+            <?php if ($applicationsWithProcess !== []): ?><section class="candidate-top-processes" aria-label="Alur rekrutmen pelamar"><?php foreach ($applicationsWithProcess as $processApplication): $processApplicationId = (int) $processApplication['id']; ?><article class="candidate-process-progress candidate-detail-process-progress candidate-top-process-card"><div class="candidate-process-progress-heading"><div><span class="candidate-top-process-eyebrow">Alur rekrutmen</span><strong><?= esc($processApplication['vacancy_title']) ?></strong><small><?= esc($processApplication['application_number']) ?> · <?= esc($statusLabels[$processApplication['application_status']] ?? ucwords(str_replace('_', ' ', $processApplication['application_status']))) ?></small></div><div class="candidate-detail-process-actions"><div class="candidate-process-legend" aria-label="Keterangan tahap"><span class="previous"><i></i>Sebelumnya</span><span class="current"><i></i>Saat ini</span><span class="next"><i></i>Selanjutnya</span></div><?php if ($processApplication['can_undo_stage']): ?><button class="candidate-detail-undo-button" type="button" data-admin-modal-open="applicant-undo-modal-<?= $processApplicationId ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v2"/></svg>Urungkan perubahan</button><?php endif ?></div></div><div class="candidate-process-progress-scroll"><ol class="candidate-process-stepper" style="--candidate-step-count: <?= count($processApplication['process_steps']) ?>" aria-label="Urutan tahapan rekrutmen <?= esc($processApplication['vacancy_title'], 'attr') ?>"><?php foreach ($processApplication['process_steps'] as $step): $progressState = (string) $step['progress_state']; ?><li class="is-<?= esc($progressState, 'attr') ?>" <?= $progressState === 'current' ? 'aria-current="step"' : '' ?>><span class="candidate-process-marker"><?= (int) $step['display_order'] ?></span><strong><?= esc($step['name']) ?></strong><small><?= esc($progressLabels[$progressState] ?? 'Akan datang') ?></small></li><?php endforeach ?></ol></div></article><?php endforeach ?></section><?php endif ?>
             <section class="candidate-profile-card <?= $isBlacklistActive ? 'is-blacklisted' : 'is-clear' ?>">
                 <div class="candidate-avatar" aria-hidden="true"><?= esc($initial) ?></div>
                 <div class="candidate-profile-copy">
@@ -173,6 +176,19 @@ $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekru
         </div>
     </main>
 </div>
+<?php foreach ($applications as $application): if (! $application['can_undo_stage']) { continue; } $undoChange = $application['last_stage_change']; ?>
+<dialog class="admin-modal candidate-undo-modal" id="applicant-undo-modal-<?= (int) $application['id'] ?>" aria-labelledby="applicant-undo-title-<?= (int) $application['id'] ?>">
+    <div class="admin-modal-panel">
+        <div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-red"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v2"/></svg></span><div><h2 id="applicant-undo-title-<?= (int) $application['id'] ?>">Urungkan perubahan tahap</h2><p><?= esc($applicant['full_name']) ?> · <?= esc($application['vacancy_title']) ?></p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
+        <div class="candidate-undo-summary"><span>Perubahan yang akan dikoreksi</span><div><strong><?= esc($statusLabels[$application['application_status']] ?? ucwords(str_replace('_', ' ', $application['application_status']))) ?></strong><i aria-hidden="true">→</i><strong><?= esc($statusLabels[$undoChange['previous_status']] ?? ucwords(str_replace('_', ' ', $undoChange['previous_status']))) ?></strong></div><p>Gunakan hanya jika Anda tidak sengaja mengubah tahap pelamar ini. Jadwal yang belum dikonfirmasi akan dibatalkan otomatis.</p></div>
+        <form class="candidate-undo-form" action="<?= site_url('adminhrdmannakampus/kandidat/lamaran/' . $application['id'] . '/urungkan-tahap') ?>" method="post">
+            <?= csrf_field() ?><input type="hidden" name="team_id" value="<?= (int) $applicant['assigned_hrd_team_id'] ?>"><input type="hidden" name="return_to" value="detail">
+            <label>Alasan koreksi<textarea name="reason" rows="4" minlength="5" maxlength="1000" placeholder="Contoh: Saya tidak sengaja mengubah tahap pelamar ini." required></textarea><small>Alasan dan nama pengguna akan tersimpan dalam histori kandidat.</small></label>
+            <div class="candidate-process-buttons"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><button class="candidate-undo-submit" type="submit" data-confirm-title="Urungkan perubahan tahap?" data-confirm="Tahap kandidat akan dikembalikan dan jadwal yang belum dikonfirmasi dibatalkan." data-confirm-button="Ya, urungkan" data-confirm-color="#b84d45">Urungkan perubahan</button></div>
+        </form>
+    </div>
+</dialog>
+<?php endforeach ?>
 <?php if ($canSaveTalentPool && ! $isBlacklistActive): ?>
     <?php foreach ($applications as $application): if (! empty($application['talent_pool_id'])) { continue; } ?>
         <dialog class="admin-modal talent-pool-save-modal" id="applicant-talent-modal-<?= (int) $application['id'] ?>" aria-labelledby="applicant-talent-title-<?= (int) $application['id'] ?>">

@@ -10,6 +10,14 @@ use Config\Services;
 
 class ApplicantDetailController extends BaseController
 {
+    /** @var array<string, list<string>> */
+    private const STATUS_ALIASES = [
+        'under_review' => ['under_review', 'reviewed'],
+        'hrd_interview' => ['hrd_interview', 'interview_hr', 'interview_scheduled'],
+        'user_interview' => ['user_interview', 'interview_user'],
+        'accepted' => ['accepted', 'hired'],
+    ];
+
     public function show(int $applicantId): string
     {
         $this->disableClientCaching();
@@ -26,7 +34,7 @@ class ApplicantDetailController extends BaseController
         }
 
         $applications = $database->table('applications AS applications')
-            ->select('applications.*, vacancies.title AS vacancy_title, vacancies.department_id, departments.name AS department_name, batches.batch_number, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.reason_text_snapshot AS rejection_reason_text, rejections.internal_notes AS rejection_internal_notes, rejections.rejected_at, rejected_user.full_name AS rejected_by_name, talent_pool.id AS talent_pool_id')
+            ->select('applications.*, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, departments.name AS department_name, batches.batch_number, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.reason_text_snapshot AS rejection_reason_text, rejections.internal_notes AS rejection_internal_notes, rejections.rejected_at, rejected_user.full_name AS rejected_by_name, talent_pool.id AS talent_pool_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('application_batches AS batches', 'batches.id = applications.batch_id')
@@ -54,10 +62,10 @@ class ApplicantDetailController extends BaseController
                 ->get()
                 ->getResultArray());
             $histories = $this->groupByApplication($database->table('application_status_histories AS histories')
-                ->select('histories.application_id, histories.status_type, histories.previous_status, histories.new_status, histories.notes, histories.created_at, users.full_name AS changed_by_name')
+                ->select('histories.id, histories.application_id, histories.status_type, histories.previous_status, histories.new_status, histories.notes, histories.changed_by, histories.created_at, users.full_name AS changed_by_name')
                 ->join('users', 'users.id = histories.changed_by', 'left')
                 ->whereIn('histories.application_id', $applicationIds)
-                ->orderBy('histories.created_at', 'DESC')
+                ->orderBy('histories.created_at', 'DESC')->orderBy('histories.id', 'DESC')
                 ->get()
                 ->getResultArray());
             $schedules = $this->groupByApplication($database->table('recruitment_schedules AS schedules')
@@ -95,6 +103,45 @@ class ApplicantDetailController extends BaseController
         $assignedTeamId = (int) ($applicant['assigned_hrd_team_id'] ?? 0);
         $canManageAssignedTeam = $assignedTeamId > 0
             && (Services::authorization()->can($userId, 'hrd.teams.manage') || (int) ($currentTeam['id'] ?? 0) === $assignedTeamId);
+        $canManageAllTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
+        $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update') && $canManageAssignedTeam;
+        $stageRows = $database->table('recruitment_process_template_stages AS links')
+            ->select('links.template_id, links.display_order, stages.id, stages.code, stages.name, stages.color_hex')
+            ->join('recruitment_stages AS stages', 'stages.id = links.stage_id')
+            ->where('stages.is_active', 1)->orderBy('links.template_id')->orderBy('links.display_order')->get()->getResultArray();
+        $templateStages = [];
+        foreach ($stageRows as $stageRow) {
+            $templateStages[(int) $stageRow['template_id']][] = $stageRow;
+        }
+        $stageIdsByCode = array_column($database->table('recruitment_stages')->select('id, code')->get()->getResultArray(), 'id', 'code');
+        foreach ($applications as &$application) {
+            $applicationId = (int) $application['id'];
+            $application['process_steps'] = $this->processSteps(
+                (int) $application['recruitment_process_template_id'],
+                (string) $application['application_status'],
+                $templateStages
+            );
+            $lastChange = $histories[$applicationId][0] ?? null;
+            $blockedBySchedule = false;
+            $currentStageId = (int) ($stageIdsByCode[(string) $application['application_status']] ?? 0);
+            foreach ($schedules[$applicationId] ?? [] as $schedule) {
+                if ((int) $schedule['stage_id'] === $currentStageId
+                    && in_array((string) $schedule['status'], ['confirmed', 'reschedule_requested', 'present', 'absent'], true)) {
+                    $blockedBySchedule = true;
+                    break;
+                }
+            }
+            $application['last_stage_change'] = $lastChange;
+            $application['can_undo_stage'] = $canUpdateStatus
+                && is_array($lastChange)
+                && (string) $lastChange['status_type'] === 'application'
+                && (string) $lastChange['new_status'] === (string) $application['application_status']
+                && trim((string) $lastChange['previous_status']) !== ''
+                && (string) $lastChange['previous_status'] !== (string) $lastChange['new_status']
+                && ($canManageAllTeams || (int) $lastChange['changed_by'] === $userId)
+                && ! $blockedBySchedule;
+        }
+        unset($application);
         $canViewBlacklist = Services::authorization()->can($userId, 'applicants.blacklist.view');
         $blacklist = null;
         $blacklistHistories = [];
@@ -184,6 +231,45 @@ class ApplicantDetailController extends BaseController
         }
 
         return $grouped;
+    }
+
+    /**
+     * @param array<int, list<array<string, mixed>>> $templateStages
+     * @return list<array<string, mixed>>
+     */
+    private function processSteps(int $templateId, string $currentStatus, array $templateStages): array
+    {
+        $sequence = $templateStages[$templateId] ?? [];
+        if ($sequence === []) {
+            return [];
+        }
+        $normalizedStatus = in_array($currentStatus, ['screening_passed', 'screening_failed'], true)
+            ? 'document_screening'
+            : $currentStatus;
+        $currentIndex = null;
+        foreach ($sequence as $index => $stage) {
+            if ((string) $stage['code'] === $normalizedStatus
+                || in_array($currentStatus, self::STATUS_ALIASES[(string) $stage['code']] ?? [], true)) {
+                $currentIndex = $index;
+                break;
+            }
+        }
+        foreach ($sequence as $index => &$stage) {
+            if ($currentIndex === null) {
+                $stage['progress_state'] = $index === 0 ? 'next' : 'upcoming';
+            } elseif ($index < $currentIndex) {
+                $stage['progress_state'] = 'previous';
+            } elseif ($index === $currentIndex) {
+                $stage['progress_state'] = 'current';
+            } elseif ($index === $currentIndex + 1) {
+                $stage['progress_state'] = 'next';
+            } else {
+                $stage['progress_state'] = 'upcoming';
+            }
+        }
+        unset($stage);
+
+        return $sequence;
     }
 
     private function disableClientCaching(): void

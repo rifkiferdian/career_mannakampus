@@ -452,6 +452,115 @@ class CandidateController extends BaseController
         return redirect()->to($this->candidateUrl($returnTeamId))->with('candidate_success', 'Tahapan kandidat berhasil diubah menjadi ' . $stage['name'] . '.');
     }
 
+    public function undoStage(int $applicationId): RedirectResponse
+    {
+        $database = db_connect();
+        $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
+        $returnTeamId = max(0, (int) $this->request->getPost('team_id'));
+        $returnToDetail = (string) $this->request->getPost('return_to') === 'detail';
+        $reason = mb_substr(trim((string) $this->request->getPost('reason')), 0, 1000);
+
+        $application = $database->table('applications AS applications')
+            ->select('applications.id, applications.applicant_id, applications.application_status, applications.screening_status, applications.screening_notes, applicants.full_name, applicants.assigned_hrd_team_id')
+            ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->where('applications.id', $applicationId)->where('applications.deleted_at', null)->where('applicants.deleted_at', null)
+            ->get()->getRowArray();
+        if ($application === null || empty($application['assigned_hrd_team_id'])) {
+            return $this->candidateError('Lamaran tidak ditemukan atau belum dimiliki divisi HRD.', $returnTeamId);
+        }
+        $returnApplicantId = $returnToDetail ? (int) $application['applicant_id'] : null;
+        if (mb_strlen($reason) < 5) {
+            return $this->candidateError('Alasan koreksi wajib diisi minimal 5 karakter.', $returnTeamId, $returnApplicantId);
+        }
+        $currentTeam = $this->currentTeam($userId);
+        $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
+        if (! $canManageTeams && (int) ($currentTeam['id'] ?? 0) !== (int) $application['assigned_hrd_team_id']) {
+            return $this->candidateError('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda koreksi.', $returnTeamId, $returnApplicantId);
+        }
+
+        $lastChange = $database->table('application_status_histories')
+            ->where('application_id', $applicationId)->orderBy('created_at', 'DESC')->orderBy('id', 'DESC')->get()->getRowArray();
+        if ($lastChange === null
+            || (string) $lastChange['status_type'] !== 'application'
+            || (string) $lastChange['new_status'] !== (string) $application['application_status']
+            || trim((string) $lastChange['previous_status']) === ''
+            || (string) $lastChange['previous_status'] === (string) $lastChange['new_status']) {
+            return $this->candidateError('Perubahan terakhir tidak dapat diurungkan karena tahapan sudah memiliki aktivitas lanjutan.', $returnTeamId, $returnApplicantId);
+        }
+        if (! $canManageTeams && (int) $lastChange['changed_by'] !== $userId) {
+            return $this->candidateError('Recruiter hanya dapat mengurungkan perubahan tahap yang dilakukannya sendiri.', $returnTeamId, $returnApplicantId);
+        }
+
+        $currentStage = $database->table('recruitment_stages')->select('id, name')->where('code', $application['application_status'])->get()->getRowArray();
+        $previousStatus = (string) $lastChange['previous_status'];
+        $previousStage = $database->table('recruitment_stages')->select('name')->where('code', $previousStatus)->get()->getRowArray();
+        $currentSchedule = $currentStage === null ? null : $database->table('recruitment_schedules AS schedules')
+            ->select('schedules.*')
+            ->where('application_id', $applicationId)->where('stage_id', (int) $currentStage['id'])
+            ->orderBy('created_at', 'DESC')->orderBy('id', 'DESC')->get()->getRowArray();
+        if ($currentSchedule !== null && in_array((string) $currentSchedule['status'], ['confirmed', 'reschedule_requested', 'present', 'absent'], true)) {
+            return $this->candidateError('Tahap tidak dapat diurungkan karena kandidat sudah merespons atau kehadirannya sudah dicatat.', $returnTeamId, $returnApplicantId);
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $screeningStatus = match ($previousStatus) {
+            'screening_passed' => 'passed',
+            'screening_failed' => 'failed',
+            'lamaran_baru', 'document_screening' => 'pending',
+            default => (string) $application['screening_status'],
+        };
+        $previousLabel = $previousStage['name'] ?? $this->statusLabel($previousStatus, $database->table('recruitment_stages')->get()->getResultArray());
+        $currentLabel = $currentStage['name'] ?? $this->statusLabel((string) $application['application_status'], []);
+
+        $database->transStart();
+        if ($currentSchedule !== null && (string) $currentSchedule['status'] === 'scheduled') {
+            Services::recruitmentSchedule()->setStatus(
+                (int) $currentSchedule['id'],
+                'cancelled',
+                $userId,
+                'Jadwal dibatalkan karena perubahan tahap diurungkan akibat salah memilih pelamar.'
+            );
+        }
+        $database->table('applications')
+            ->where('id', $applicationId)
+            ->where('application_status', (string) $application['application_status'])
+            ->update([
+                'application_status' => $previousStatus,
+                'screening_status' => $screeningStatus,
+                'screening_notes' => in_array($previousStatus, ['lamaran_baru', 'document_screening'], true) ? null : $application['screening_notes'],
+                'public_message' => mb_substr('Lamaran Anda saat ini kembali berada pada tahap ' . $previousLabel . '.', 0, 500),
+                'reviewed_at' => $now,
+                'reviewed_by' => $userId,
+                'updated_at' => $now,
+            ]);
+        $updated = $database->affectedRows() === 1;
+        if (! $updated) {
+            $database->transRollback();
+            return $this->candidateError('Tahap gagal diurungkan karena data telah berubah. Silakan muat ulang halaman.', $returnTeamId, $returnApplicantId);
+        }
+        $database->table('application_status_histories')->insert([
+            'application_id' => $applicationId,
+            'status_type' => 'correction',
+            'previous_status' => (string) $application['application_status'],
+            'new_status' => $previousStatus,
+            'notes' => 'Tahap dikoreksi dari ' . $currentLabel . ' ke ' . $previousLabel . ' karena salah memilih pelamar. Alasan: ' . $reason,
+            'changed_by' => $userId,
+            'created_at' => $now,
+        ]);
+        $database->transComplete();
+        if (! $database->transStatus()) {
+            return $this->candidateError('Tahap gagal diurungkan karena data telah berubah. Silakan muat ulang halaman.', $returnTeamId, $returnApplicantId);
+        }
+
+        $returnUrl = $returnToDetail
+            ? site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id'])
+            : $this->candidateUrl($returnTeamId);
+        return redirect()->to($returnUrl)->with(
+            'candidate_success',
+            'Perubahan tahap ' . $application['full_name'] . ' berhasil diurungkan ke ' . $previousLabel . '.'
+        );
+    }
+
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
