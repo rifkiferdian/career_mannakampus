@@ -74,6 +74,12 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('blacklist-pelamar/pelamar/(:num)', 'ApplicantBlacklistController::create/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.applicant.blacklist.create']);
     $routes->post('blacklist-pelamar/(:num)', 'ApplicantBlacklistController::update/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.applicant.blacklist.update']);
     $routes->post('blacklist-pelamar/(:num)/cabut', 'ApplicantBlacklistController::revoke/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.applicant.blacklist.revoke']);
+    $routes->get('blacklist-historis', 'HistoricalBlacklistController::index', ['filter' => 'permission:applicants.blacklist.view', 'as' => 'hrd.historical.blacklist']);
+    $routes->get('blacklist-historis/template', 'HistoricalBlacklistController::template', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.historical.blacklist.template']);
+    $routes->post('blacklist-historis/import', 'HistoricalBlacklistController::import', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.historical.blacklist.import']);
+    $routes->post('blacklist-historis', 'HistoricalBlacklistController::create', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.historical.blacklist.create']);
+    $routes->post('blacklist-historis/(:num)', 'HistoricalBlacklistController::update/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.historical.blacklist.update']);
+    $routes->post('blacklist-historis/(:num)/cabut', 'HistoricalBlacklistController::revoke/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.historical.blacklist.revoke']);
     $routes->get('kandidat', 'CandidateController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates']);
     $routes->post('kandidat/pelamar/(:num)/batal-pilih', 'CandidateController::cancelAssignment/$1', ['filter' => 'permission:applicants.assign', 'as' => 'hrd.candidates.assignment.cancel']);
     $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);

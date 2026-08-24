@@ -16,6 +16,7 @@ use App\Modules\Recruitment\Services\ApplicationStatusLookupService;
 use App\Modules\Recruitment\Services\ApplicationSubmissionService;
 use App\Modules\Recruitment\Services\ApplicationEligibilityService;
 use App\Modules\Recruitment\Services\ApplicantBlacklistService;
+use App\Modules\Recruitment\Services\HistoricalBlacklistService;
 use App\Modules\Recruitment\Services\VacancyCatalogService;
 use App\Modules\Admin\Services\HrdSessionService;
 use App\Modules\Admin\Services\AuthorizationService;
@@ -81,6 +82,7 @@ class Services extends BaseService
             new ScreeningAnswerModel(),
             new ApplicationBatchModel(),
             new ApplicantDocumentModel(),
+            static::historicalBlacklist(),
         );
     }
 
@@ -91,6 +93,15 @@ class Services extends BaseService
         }
 
         return new ApplicantBlacklistService(db_connect());
+    }
+
+    public static function historicalBlacklist(bool $getShared = true): HistoricalBlacklistService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('historicalBlacklist');
+        }
+
+        return new HistoricalBlacklistService(db_connect());
     }
 
     public static function applicationEligibility(bool $getShared = true): ApplicationEligibilityService

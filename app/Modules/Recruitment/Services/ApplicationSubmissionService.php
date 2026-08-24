@@ -24,6 +24,7 @@ class ApplicationSubmissionService
         private readonly ScreeningAnswerModel $answerModel,
         private readonly ApplicationBatchModel $batchModel,
         private readonly ApplicantDocumentModel $documentModel,
+        private readonly HistoricalBlacklistService $historicalBlacklistService,
     ) {
     }
 
@@ -57,6 +58,16 @@ class ApplicationSubmissionService
         $storedFiles = [];
         $workExperiences = $this->workExperiences($input['work_experiences'] ?? []);
         $legacyWorkExperience = $this->legacyWorkExperienceText($workExperiences);
+
+        $historicalMatch = $this->historicalBlacklistService->matchActive(
+            $nikHash,
+            (string) ($input['email'] ?? ''),
+            (string) ($input['phone'] ?? ''),
+            $now,
+        );
+        if ($historicalMatch !== null) {
+            throw new ApplicationRestrictedException(['type' => 'blacklist', 'source' => 'historical']);
+        }
 
         $this->database->transBegin();
 

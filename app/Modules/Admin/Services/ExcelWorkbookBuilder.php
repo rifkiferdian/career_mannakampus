@@ -10,8 +10,9 @@ class ExcelWorkbookBuilder
     /**
      * @param list<string> $headers
      * @param list<list<string>> $rows
+     * @param list<int> $textColumns One-based column numbers that must remain text in Excel.
      */
-    public function build(string $title, array $headers, array $rows): string
+    public function build(string $title, array $headers, array $rows, ?string $subtitle = null, array $textColumns = []): string
     {
         $temporaryPath = tempnam(WRITEPATH . 'cache', 'applicant-report-');
         if ($temporaryPath === false) {
@@ -30,10 +31,10 @@ class ExcelWorkbookBuilder
             $archive->addFromString('_rels/.rels', $this->rootRelationships());
             $archive->addFromString('docProps/app.xml', $this->appProperties());
             $archive->addFromString('docProps/core.xml', $this->coreProperties($title));
-            $archive->addFromString('xl/workbook.xml', $this->workbook());
+            $archive->addFromString('xl/workbook.xml', $this->workbook($title));
             $archive->addFromString('xl/_rels/workbook.xml.rels', $this->workbookRelationships());
             $archive->addFromString('xl/styles.xml', $this->styles());
-            $archive->addFromString('xl/worksheets/sheet1.xml', $this->worksheet($title, $headers, $rows));
+            $archive->addFromString('xl/worksheets/sheet1.xml', $this->worksheet($title, $headers, $rows, $subtitle, $textColumns));
             if (! $archive->close()) {
                 throw new RuntimeException('Workbook Excel tidak dapat diselesaikan.');
             }
@@ -55,12 +56,13 @@ class ExcelWorkbookBuilder
         }
     }
 
-    private function worksheet(string $title, array $headers, array $rows): string
+    /** @param list<int> $textColumns */
+    private function worksheet(string $title, array $headers, array $rows, ?string $subtitle, array $textColumns): string
     {
         $lastColumn = $this->columnName(count($headers));
         $lastRow = count($rows) + 4;
         $sheetRows = $this->rowXml(1, [$title], 1)
-            . $this->rowXml(2, ['Diekspor pada ' . date('d/m/Y H:i')], 0)
+            . $this->rowXml(2, [$subtitle ?? 'Diekspor pada ' . date('d/m/Y H:i')], 0)
             . $this->rowXml(4, $headers, 2);
 
         foreach ($rows as $index => $row) {
@@ -71,11 +73,26 @@ class ExcelWorkbookBuilder
             . '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
             . '<dimension ref="A1:' . $lastColumn . $lastRow . '"/>'
             . '<sheetViews><sheetView workbookViewId="0"><pane ySplit="4" topLeftCell="A5" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
-            . '<cols><col min="1" max="1" width="20" customWidth="1"/><col min="2" max="2" width="27" customWidth="1"/><col min="3" max="3" width="31" customWidth="1"/><col min="4" max="4" width="18" customWidth="1"/><col min="5" max="6" width="25" customWidth="1"/><col min="7" max="7" width="20" customWidth="1"/><col min="8" max="10" width="21" customWidth="1"/></cols>'
+            . $this->columnsXml(count($headers), $textColumns)
             . '<sheetData>' . $sheetRows . '</sheetData>'
             . '<autoFilter ref="A4:' . $lastColumn . $lastRow . '"/>'
             . '<mergeCells count="2"><mergeCell ref="A1:' . $lastColumn . '1"/><mergeCell ref="A2:' . $lastColumn . '2"/></mergeCells>'
             . '</worksheet>';
+    }
+
+    /** @param list<int> $textColumns */
+    private function columnsXml(int $count, array $textColumns): string
+    {
+        $xml = '<cols>';
+        for ($column = 1; $column <= $count; $column++) {
+            $width = match ($column) {
+                1 => 24, 2 => 22, 3 => 31, 4 => 20, 5, 6 => 28, default => 22,
+            };
+            $style = in_array($column, $textColumns, true) ? ' style="3"' : '';
+            $xml .= '<col min="' . $column . '" max="' . $column . '" width="' . $width . '" customWidth="1"' . $style . '/>';
+        }
+
+        return $xml . '</cols>';
     }
 
     /** @param list<string> $cells */
@@ -119,9 +136,11 @@ class ExcelWorkbookBuilder
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>';
     }
 
-    private function workbook(): string
+    private function workbook(string $title): string
     {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Laporan Pelamar" sheetId="1" r:id="rId1"/></sheets></workbook>';
+        $sheetName = mb_substr(preg_replace('~[\\/?*\[\]:]+~u', ' ', $title) ?: 'Data', 0, 31);
+
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' . $this->escape($sheetName) . '" sheetId="1" r:id="rId1"/></sheets></workbook>';
     }
 
     private function workbookRelationships(): string
@@ -131,7 +150,7 @@ class ExcelWorkbookBuilder
 
     private function styles(): string
     {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="10"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF102A43"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF87638"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFDDE4EA"/></left><right style="thin"><color rgb="FFDDE4EA"/></right><top style="thin"><color rgb="FFDDE4EA"/></top><bottom style="thin"><color rgb="FFDDE4EA"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="10"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF102A43"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF87638"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFDDE4EA"/></left><right style="thin"><color rgb="FFDDE4EA"/></right><top style="thin"><color rgb="FFDDE4EA"/></top><bottom style="thin"><color rgb="FFDDE4EA"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="49" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
     }
 
     private function appProperties(): string

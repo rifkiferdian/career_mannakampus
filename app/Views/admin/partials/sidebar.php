@@ -43,9 +43,15 @@ if ($canViewApplicantPool) {
         ->get()->getRowArray()['total'] ?? 0);
 }
 $activeBlacklistCount = 0;
+$activeHistoricalBlacklistCount = 0;
 if ($canViewApplicantBlacklist) {
     $blacklistNow = date('Y-m-d H:i:s');
     $activeBlacklistCount = (int) db_connect()->table('applicant_blacklists')
+        ->where('revoked_at', null)
+        ->where('starts_at <=', $blacklistNow)
+        ->groupStart()->where('is_permanent', 1)->orWhere('ends_at >=', $blacklistNow)->groupEnd()
+        ->countAllResults();
+    $activeHistoricalBlacklistCount = (int) db_connect()->table('historical_blacklists')
         ->where('revoked_at', null)
         ->where('starts_at <=', $blacklistNow)
         ->groupStart()->where('is_permanent', 1)->orWhere('ends_at >=', $blacklistNow)->groupEnd()
@@ -159,6 +165,11 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg>
                 Blacklist Pelamar
                 <?php if ($activeBlacklistCount > 0): ?><span class="sidebar-notification-badge" title="<?= $activeBlacklistCount ?> blacklist aktif" aria-label="<?= $activeBlacklistCount ?> blacklist aktif"><?= $activeBlacklistCount > 99 ? '99+' : $activeBlacklistCount ?></span><?php endif ?>
+            </a>
+            <a<?= $activeClass('historical-blacklist') ?> href="<?= site_url('adminhrdmannakampus/blacklist-historis') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
+                Blacklist Historis
+                <?php if ($activeHistoricalBlacklistCount > 0): ?><span class="sidebar-notification-badge" title="<?= $activeHistoricalBlacklistCount ?> blacklist historis aktif" aria-label="<?= $activeHistoricalBlacklistCount ?> blacklist historis aktif"><?= $activeHistoricalBlacklistCount > 99 ? '99+' : $activeHistoricalBlacklistCount ?></span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewCandidates && $candidateTeams !== []): ?>
