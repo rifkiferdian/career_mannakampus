@@ -62,6 +62,17 @@ class ApplicationStatusController extends BaseController
                 ));
             }
 
+            $scheduleIds = [];
+            foreach ($result['applications'] as $application) {
+                if (isset($application['schedule']['id'])) {
+                    $scheduleIds[] = (int) $application['schedule']['id'];
+                }
+            }
+            session()->set('application_status_schedule_access', [
+                'ids' => $scheduleIds,
+                'expires_at' => time() + 900,
+            ]);
+
             return view('application_status', $this->pageData(
                 null,
                 $result,
@@ -83,6 +94,31 @@ class ApplicationStatusController extends BaseController
         }
     }
 
+    public function respond(int $scheduleId)
+    {
+        $this->disableClientCaching();
+        $access = session()->get('application_status_schedule_access');
+        $allowedIds = is_array($access) ? array_map('intval', (array) ($access['ids'] ?? [])) : [];
+        if (! is_array($access) || (int) ($access['expires_at'] ?? 0) < time() || ! in_array($scheduleId, $allowedIds, true)) {
+            return redirect()->to(site_url('lamaran/status'))->with('status_message', 'Sesi konfirmasi telah berakhir. Silakan cek kembali status lamaran Anda.');
+        }
+        $schedule = Services::recruitmentSchedule()->find($scheduleId);
+        $response = trim((string) $this->request->getPost('response'));
+        $note = mb_substr(trim((string) $this->request->getPost('candidate_note')), 0, 2000);
+        if ($schedule === null || (string) $schedule['status'] !== 'scheduled' || strtotime((string) $schedule['confirmation_deadline_at']) < time()) {
+            return redirect()->to(site_url('lamaran/status'))->with('status_message', 'Jadwal tidak tersedia atau batas konfirmasinya sudah berakhir.');
+        }
+        if ($response === 'reschedule_requested' && mb_strlen($note) < 5) {
+            return redirect()->to(site_url('lamaran/status'))->with('status_message', 'Tuliskan alasan permintaan jadwal ulang minimal 5 karakter.');
+        }
+        if (! in_array($response, ['confirmed', 'reschedule_requested'], true)) {
+            return redirect()->to(site_url('lamaran/status'))->with('status_message', 'Pilihan konfirmasi tidak valid.');
+        }
+        Services::recruitmentSchedule()->setStatus($scheduleId, $response, null, $note);
+
+        return redirect()->to(site_url('lamaran/status'))->with('status_success', $response === 'confirmed' ? 'Konfirmasi kehadiran berhasil disimpan.' : 'Permintaan jadwal ulang berhasil dikirim kepada recruiter.');
+    }
+
     /**
      * @param array<string, mixed>|null $result
      * @param array<string, string> $errors
@@ -98,6 +134,8 @@ class ApplicationStatusController extends BaseController
             'error'        => $error,
             'errors'       => $errors,
             'result'       => $result,
+            'statusMessage' => session()->getFlashdata('status_message'),
+            'statusSuccess' => session()->getFlashdata('status_success'),
         ];
     }
 

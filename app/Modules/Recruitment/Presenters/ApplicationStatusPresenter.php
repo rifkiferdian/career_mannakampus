@@ -20,7 +20,7 @@ class ApplicationStatusPresenter
         $identity = is_array($snapshot['identity'] ?? null) ? $snapshot['identity'] : [];
         $contact = is_array($snapshot['contact'] ?? null) ? $snapshot['contact'] : [];
 
-        return [
+        $result = [
             'batch_number'     => (string) $batch['batch_number'],
             'applicant_name'   => $this->maskName((string) ($identity['full_name'] ?? 'Pelamar')),
             'applicant_email'  => $this->maskEmail((string) ($contact['email'] ?? '')),
@@ -29,6 +29,8 @@ class ApplicationStatusPresenter
             'position_count'   => count($applications),
             'applications'     => array_map(fn (array $application): array => $this->application($application), $applications),
         ];
+
+        return $result;
     }
 
     /**
@@ -41,7 +43,7 @@ class ApplicationStatusPresenter
         $status = (string) ($application['application_status'] ?? 'submitted');
         [$label, $description, $tone] = $this->status($status);
 
-        return [
+        $result = [
             'application_number' => (string) $application['application_number'],
             'preference_order'   => (int) $application['preference_order'],
             'vacancy_title'      => (string) $application['vacancy_title'],
@@ -52,6 +54,24 @@ class ApplicationStatusPresenter
             'public_message'     => trim((string) ($application['public_message'] ?? '')),
             'updated_at'         => $this->date((string) $application['updated_at']),
         ];
+        $schedule = $application['schedule'] ?? null;
+        if (is_array($schedule)) {
+            $result['schedule'] = [
+                'id' => (int) $schedule['id'],
+                'stage_name' => (string) $schedule['stage_name'],
+                'scheduled_at' => $this->date((string) $schedule['scheduled_at']),
+                'scheduled_at_raw' => (string) $schedule['scheduled_at'],
+                'venue' => (string) $schedule['venue'],
+                'instructions' => trim((string) ($schedule['instructions'] ?? '')),
+                'confirmation_deadline' => $this->date((string) $schedule['confirmation_deadline_at']),
+                'confirmation_deadline_raw' => (string) $schedule['confirmation_deadline_at'],
+                'status' => (string) $schedule['status'],
+                'candidate_note' => trim((string) ($schedule['candidate_note'] ?? '')),
+                'pic_name' => (string) $schedule['pic_name'],
+            ];
+        }
+
+        return $result;
     }
 
     /**

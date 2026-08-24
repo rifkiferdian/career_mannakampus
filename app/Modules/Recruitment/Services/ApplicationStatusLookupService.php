@@ -43,7 +43,7 @@ class ApplicationStatusLookupService
 
         $applications = $this->database->table('applications AS applications')
             ->select(
-                'applications.batch_id, applications.application_number, applications.preference_order, '
+                'applications.id, applications.batch_id, applications.application_number, applications.preference_order, '
                 . 'applications.application_status, applications.public_message, '
                 . 'applications.updated_at, vacancies.title AS vacancy_title, '
                 . 'departments.name AS department_name',
@@ -60,6 +60,24 @@ class ApplicationStatusLookupService
         if ($applications === []) {
             return null;
         }
+
+        $applicationIds = array_map('intval', array_column($applications, 'id'));
+        $schedulesByApplication = [];
+        $scheduleRows = $this->database->table('recruitment_schedules AS schedules')
+            ->select('schedules.id, schedules.application_id, schedules.scheduled_at, schedules.venue, schedules.instructions, schedules.confirmation_deadline_at, schedules.status, schedules.candidate_note, stages.name AS stage_name, pic.full_name AS pic_name')
+            ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
+            ->join('users AS pic', 'pic.id = schedules.pic_user_id')
+            ->whereIn('schedules.application_id', $applicationIds)
+            ->whereIn('schedules.status', ['scheduled', 'confirmed', 'reschedule_requested'])
+            ->orderBy('schedules.created_at', 'DESC')->get()->getResultArray();
+        foreach ($scheduleRows as $schedule) {
+            $applicationId = (int) $schedule['application_id'];
+            $schedulesByApplication[$applicationId] ??= $schedule;
+        }
+        foreach ($applications as &$application) {
+            $application['schedule'] = $schedulesByApplication[(int) $application['id']] ?? null;
+        }
+        unset($application);
 
         $applicationsByBatch = [];
         foreach ($applications as $application) {

@@ -37,7 +37,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
     <title>Dashboard HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=25">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=54">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -76,6 +76,11 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
                 <article><span class="analytics-metric-icon icon-cyan"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><div><small>Dalam proses</small><strong><?= (int) $metrics['active'] ?></strong><p>Belum terminal</p></div></article>
                 <article><span class="analytics-metric-icon icon-green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg></span><div><small>Diterima</small><strong><?= (int) $metrics['accepted'] ?></strong><p>Kandidat berhasil</p></div></article>
                 <article class="<?= (int) $metrics['overdue'] > 0 ? 'metric-attention' : '' ?>"><span class="analytics-metric-icon icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></span><div><small>Melewati SLA</small><strong><?= (int) $metrics['overdue'] ?></strong><p>Perlu perhatian</p></div></article>
+            </section>
+
+            <section class="analytics-card schedule-agenda-card">
+                <header><div><span>Agenda Rekrutmen</span><h2>Jadwal seleksi dan wawancara</h2><p>Jadwal mendatang yang menjadi tanggung jawab recruiter.</p></div><div class="schedule-agenda-summary"><strong><?= (int) $scheduleSummary['today'] ?><small>hari ini</small></strong><strong><?= (int) $scheduleSummary['pending'] ?><small>menunggu</small></strong><strong class="<?= (int) $scheduleSummary['reschedule'] > 0 ? 'attention' : '' ?>"><?= (int) $scheduleSummary['reschedule'] ?><small>jadwal ulang</small></strong></div></header>
+                <div class="department-table-wrap"><table class="department-table dashboard-schedule-table"><thead><tr><th>Waktu</th><th>Kandidat</th><th>Tahap dan posisi</th><th>PIC</th><th>Status</th><th>Aksi</th></tr></thead><tbody><?php if ($scheduleAgenda === []): ?><tr><td colspan="6" class="department-empty">Belum ada agenda seleksi mendatang.</td></tr><?php endif ?><?php $agendaLabels = ['scheduled' => 'Menunggu konfirmasi', 'confirmed' => 'Bersedia hadir', 'reschedule_requested' => 'Minta jadwal ulang']; foreach ($scheduleAgenda as $agenda): ?><tr><td class="schedule-agenda-time"><strong><?= esc(date('d M Y', strtotime($agenda['scheduled_at']))) ?></strong><small><?= esc(date('H:i', strtotime($agenda['scheduled_at']))) ?> WIB</small></td><td><div class="report-applicant"><strong><?= esc($agenda['full_name']) ?></strong><small><?= esc($agenda['team_name'] ?: '-') ?></small></div></td><td><div class="department-name-cell"><strong><?= esc($agenda['stage_name']) ?></strong><code><?= esc($agenda['vacancy_title']) ?></code></div></td><td><?= esc($agenda['pic_name']) ?></td><td><span class="schedule-status schedule-status-<?= esc($agenda['status'], 'attr') ?>"><?= esc($agendaLabels[$agenda['status']] ?? $agenda['status']) ?></span><?php if ($agenda['candidate_note']): ?><small class="schedule-request-note"><?= esc($agenda['candidate_note']) ?></small><?php endif ?></td><td><a class="dashboard-table-link" href="<?= site_url('adminhrdmannakampus/pelamar/' . $agenda['applicant_id']) ?>">Detail</a></td></tr><?php endforeach ?></tbody></table></div>
             </section>
 
             <section class="analytics-chart-grid analytics-chart-grid-primary">

@@ -646,6 +646,34 @@ body.status-modal-open { overflow: hidden; }
 .status-application-note { font-size: 12px; }
 .status-summary dd, .status-badge, .status-application-meta span { font-size: 11px; }
 
+.status-alert-success { color: #1d6348; background: #eaf7f0; border-color: #b9dec9; }
+.public-schedule-card { margin-top: 15px; padding: 15px; background: #f7faf8; border: 1px solid #d8e6de; border-radius: 12px; }
+.public-schedule-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.public-schedule-heading span { color: #718079; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.public-schedule-heading strong { color: #174b38; font-size: 13px; }
+.public-schedule-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 0; }
+.public-schedule-card dl div { padding: 9px 10px; background: white; border: 1px solid #e4ebe7; border-radius: 7px; }
+.public-schedule-card dt { color: #8a9690; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.public-schedule-card dd { margin: 4px 0 0; color: #334b40; font-size: 11px; font-weight: 700; }
+.public-schedule-card dd a { color: #b65b31; }
+.public-schedule-card > p { margin: 10px 0; color: #53655d; font-size: 11px; line-height: 1.6; }
+.public-schedule-card > p strong { display: block; color: #284d3d; }
+.public-schedule-status { display: inline-flex; margin-top: 10px; padding: 6px 9px; color: #596e64; background: #e8efeb; border-radius: 999px; font-size: 9px; font-weight: 850; text-transform: uppercase; }
+.public-schedule-status.status-confirmed { color: #176044; background: #ddf2e7; }
+.public-schedule-status.status-reschedule_requested { color: #8b571c; background: #fff0d4; }
+.public-schedule-actions { display: grid; grid-template-columns: 1fr 1.5fr; align-items: start; gap: 9px; margin-top: 12px; }
+.public-schedule-actions form { margin: 0; }
+.public-schedule-actions button { width: 100%; min-height: 39px; padding: 8px 10px; color: white; background: #174b38; border: 0; border-radius: 7px; cursor: pointer; font-size: 10px; font-weight: 800; }
+.public-reschedule-form { display: grid; gap: 7px; }
+.public-reschedule-form label { color: #687970; font-size: 10px; font-weight: 700; }
+.public-reschedule-form textarea { width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #d4dfd9; border-radius: 7px; resize: vertical; }
+.public-reschedule-form button { color: #77501f; background: #fff0d4; }
+.public-schedule-expired { display: block; margin-top: 10px; color: #9b473e; font-size: 10px; }
+
+@media (max-width: 660px) {
+    .public-schedule-card dl, .public-schedule-actions { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 660px) {
     .status-intro h1 { font-size: clamp(36px, 12vw, 50px); }
 }

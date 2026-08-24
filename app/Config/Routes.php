@@ -15,6 +15,7 @@ $routes->get('lamaran/tidak-dapat-diproses', '\App\Modules\Recruitment\Controlle
 $routes->get('lamaran/bukti/(:segment)', '\App\Modules\Recruitment\Controllers\ApplicationController::receipt/$1');
 $routes->get('lamaran/status', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::index');
 $routes->post('lamaran/status', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::lookup');
+$routes->post('lamaran/status/jadwal/(:num)', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::respond/$1');
 $routes->get('tahapan-seleksi', 'Home::selectionProcess');
 
 $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Controllers'], static function ($routes): void {
@@ -83,6 +84,9 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('kandidat', 'CandidateController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates']);
     $routes->post('kandidat/pelamar/(:num)/batal-pilih', 'CandidateController::cancelAssignment/$1', ['filter' => 'permission:applicants.assign', 'as' => 'hrd.candidates.assignment.cancel']);
     $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);
+    $routes->post('jadwal/(:num)', 'ScheduleController::update/$1', ['filter' => 'permission:schedules.manage', 'as' => 'hrd.schedules.update']);
+    $routes->post('jadwal/(:num)/batal', 'ScheduleController::cancel/$1', ['filter' => 'permission:schedules.manage', 'as' => 'hrd.schedules.cancel']);
+    $routes->post('jadwal/(:num)/kehadiran', 'ScheduleController::attendance/$1', ['filter' => 'permission:schedules.attendance', 'as' => 'hrd.schedules.attendance']);
     $routes->get('talent-pool', 'TalentPoolController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.talent.pool']);
     $routes->post('talent-pool/simpan/(:num)', 'TalentPoolController::save/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.talent.pool.save']);
     $routes->post('talent-pool/(:num)', 'TalentPoolController::update/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.talent.pool.update']);

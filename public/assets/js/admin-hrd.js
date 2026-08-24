@@ -181,10 +181,17 @@
         const context = form?.querySelector('[data-candidate-rejection-context]');
         const reasonField = form?.querySelector('[data-candidate-rejection-reason]');
         const reasonSelect = reasonField?.querySelector('select');
+        const scheduleFields = form?.querySelector('[data-candidate-schedule-fields]');
+        const scheduleRequiredFields = scheduleFields?.querySelectorAll('[data-schedule-required]') || [];
         const updateRejectionFields = () => {
             const isRejection = ['rejected', 'screening_failed'].includes(stageSelect.value);
+            const isSchedulable = stageSelect.selectedOptions[0]?.dataset.schedulable === '1';
             if (context instanceof HTMLElement) context.hidden = !isRejection;
             if (reasonField instanceof HTMLElement) reasonField.hidden = !isRejection;
+            if (scheduleFields instanceof HTMLElement) scheduleFields.hidden = !isSchedulable;
+            scheduleRequiredFields.forEach((field) => {
+                if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement) field.required = isSchedulable;
+            });
             if (reasonSelect instanceof HTMLSelectElement) {
                 reasonSelect.required = isRejection;
                 if (!isRejection) reasonSelect.value = '';

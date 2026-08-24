@@ -18,6 +18,7 @@ use App\Modules\Recruitment\Services\ApplicationEligibilityService;
 use App\Modules\Recruitment\Services\ApplicantBlacklistService;
 use App\Modules\Recruitment\Services\HistoricalBlacklistService;
 use App\Modules\Recruitment\Services\VacancyCatalogService;
+use App\Modules\Recruitment\Services\RecruitmentScheduleService;
 use App\Modules\Admin\Services\HrdSessionService;
 use App\Modules\Admin\Services\AuthorizationService;
 use CodeIgniter\Config\BaseService;
@@ -126,6 +127,15 @@ class Services extends BaseService
             db_connect(),
             new ApplicationStatusPresenter(),
         );
+    }
+
+    public static function recruitmentSchedule(bool $getShared = true): RecruitmentScheduleService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('recruitmentSchedule');
+        }
+
+        return new RecruitmentScheduleService(db_connect());
     }
 
     /*

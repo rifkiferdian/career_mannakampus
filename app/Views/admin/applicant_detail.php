@@ -39,7 +39,7 @@ $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekru
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=51">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=54">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -124,6 +124,7 @@ $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekru
                 $screening = (string) ($application['screening_status'] ?: 'pending');
                 $applicationAnswers = $answersByApplication[$applicationId] ?? [];
                 $applicationHistories = $historiesByApplication[$applicationId] ?? [];
+                $applicationSchedules = $schedulesByApplication[$applicationId] ?? [];
                 $applicationWorkExperiences = $workExperiencesByBatch[(int) $application['batch_id']] ?? [];
             ?>
                 <section class="settings-card candidate-application-card">
@@ -157,6 +158,7 @@ $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekru
                             </dl>
                         </div>
                     <?php endif ?>
+                    <?php if ($applicationSchedules !== []): ?><section class="candidate-detail-schedules"><div class="candidate-subsection-title"><h4>Jadwal seleksi</h4><span><?= count($applicationSchedules) ?> jadwal</span></div><?php $detailScheduleLabels = ['scheduled' => 'Menunggu konfirmasi', 'confirmed' => 'Bersedia hadir', 'reschedule_requested' => 'Minta jadwal ulang', 'present' => 'Hadir', 'absent' => 'Tidak hadir', 'cancelled' => 'Dibatalkan']; foreach ($applicationSchedules as $schedule): ?><article><div><strong><?= esc($schedule['stage_name']) ?></strong><span><?= esc($date($schedule['scheduled_at'])) ?> WIB · <?= esc($schedule['venue']) ?></span><small>PIC <?= esc($schedule['pic_name']) ?> · batas konfirmasi <?= esc($date($schedule['confirmation_deadline_at'])) ?></small><?php if ($schedule['candidate_note']): ?><p>Catatan kandidat: <?= esc($schedule['candidate_note']) ?></p><?php endif ?></div><span class="schedule-status schedule-status-<?= esc($schedule['status'], 'attr') ?>"><?= esc($detailScheduleLabels[$schedule['status']] ?? $schedule['status']) ?></span></article><?php endforeach ?></section><?php endif ?>
                     <div class="candidate-narrative-grid">
                         <div class="candidate-work-experience"><span>Pengalaman kerja</span><?php if ($applicationWorkExperiences === []): ?><p><?= nl2br(esc($value($application['work_experience']))) ?></p><?php else: ?><?php foreach ($applicationWorkExperiences as $experience): ?><article><strong><?= esc($experience['company_name']) ?></strong><b><?= esc($value($experience['position_title'])) ?></b><small><?= (int) $experience['start_year'] ?>–<?= $experience['end_year'] === null ? 'Sekarang' : (int) $experience['end_year'] ?></small><p><?= nl2br(esc($experience['responsibilities'])) ?></p></article><?php endforeach ?><?php endif ?></div>
                         <div><span>Motivasi bekerja dan alasan ingin bergabung dengan Manna Kampus</span><p><?= nl2br(esc($value($application['work_motivation']))) ?></p></div>

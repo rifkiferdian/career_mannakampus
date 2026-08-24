@@ -43,6 +43,7 @@ class ApplicantDetailController extends BaseController
         $batchIds = array_values(array_unique(array_map('intval', array_column($applications, 'batch_id'))));
         $answers = [];
         $histories = [];
+        $schedules = [];
         $workExperiencesByBatch = [];
         if ($applicationIds !== []) {
             $answers = $this->groupByApplication($database->table('application_screening_answers AS answers')
@@ -59,6 +60,13 @@ class ApplicantDetailController extends BaseController
                 ->orderBy('histories.created_at', 'DESC')
                 ->get()
                 ->getResultArray());
+            $schedules = $this->groupByApplication($database->table('recruitment_schedules AS schedules')
+                ->select('schedules.*, stages.name AS stage_name, pic.full_name AS pic_name')
+                ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
+                ->join('users AS pic', 'pic.id = schedules.pic_user_id')
+                ->whereIn('schedules.application_id', $applicationIds)
+                ->orderBy('schedules.created_at', 'DESC')
+                ->get()->getResultArray());
         }
         if ($batchIds !== []) {
             foreach ($database->table('application_work_experiences')
@@ -116,6 +124,7 @@ class ApplicantDetailController extends BaseController
             'applications' => $applications,
             'answersByApplication' => $answers,
             'historiesByApplication' => $histories,
+            'schedulesByApplication' => $schedules,
             'workExperiencesByBatch' => $workExperiencesByBatch,
             'documents' => $documents,
             'canDownloadDocuments' => Services::authorization()->can($userId, 'candidates.cv.download'),

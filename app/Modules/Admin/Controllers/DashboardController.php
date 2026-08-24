@@ -49,6 +49,10 @@ class DashboardController extends BaseController
         $openVacancies = $this->openVacancies($filters, $applications);
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
+        $canViewAllSchedules = Services::authorization()->can($userId, 'schedules.view_all');
+        $scheduleAgenda = Services::authorization()->can($userId, 'schedules.view')
+            ? $this->scheduleAgenda($userId, $canViewAllSchedules)
+            : [];
 
         return view('admin/dashboard', [
             'auth' => $auth,
@@ -70,12 +74,43 @@ class DashboardController extends BaseController
             'followUps' => array_slice($followUps, 0, 6),
             'activities' => $this->recentActivities($applicationIds, $stages),
             'openVacancyRows' => array_slice($openVacancies, 0, 6),
+            'scheduleAgenda' => $scheduleAgenda,
+            'scheduleSummary' => [
+                'today' => count(array_filter($scheduleAgenda, static fn (array $row): bool => substr((string) $row['scheduled_at'], 0, 10) === date('Y-m-d'))),
+                'pending' => count(array_filter($scheduleAgenda, static fn (array $row): bool => $row['status'] === 'scheduled')),
+                'reschedule' => count(array_filter($scheduleAgenda, static fn (array $row): bool => $row['status'] === 'reschedule_requested')),
+            ],
             'canViewCandidates' => Services::authorization()->can($userId, 'candidates.view'),
             'canViewReports' => Services::authorization()->can($userId, 'reports.view'),
             'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
             'success' => session()->getFlashdata('auth_success'),
             'error' => session()->getFlashdata('access_error'),
         ]);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function scheduleAgenda(int $userId, bool $viewAll): array
+    {
+        $builder = db_connect()->table('recruitment_schedules AS schedules')
+            ->select('schedules.id, schedules.application_id, schedules.scheduled_at, schedules.venue, schedules.status, schedules.candidate_note, applicants.id AS applicant_id, applicants.full_name, vacancies.title AS vacancy_title, stages.name AS stage_name, pic.full_name AS pic_name, teams.name AS team_name')
+            ->join('applications', 'applications.id = schedules.application_id')
+            ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+            ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
+            ->join('users AS pic', 'pic.id = schedules.pic_user_id')
+            ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id', 'left')
+            ->whereIn('schedules.status', ['scheduled', 'confirmed', 'reschedule_requested'])
+            ->groupStart()
+                ->where('schedules.scheduled_at >=', date('Y-m-d 00:00:00'))
+                ->orWhere('schedules.status', 'reschedule_requested')
+            ->groupEnd();
+        if (! $viewAll) {
+            $builder->where('schedules.pic_user_id', $userId);
+        }
+
+        return $builder
+            ->orderBy("CASE WHEN schedules.status = 'reschedule_requested' THEN 0 ELSE 1 END", 'ASC', false)
+            ->orderBy('schedules.scheduled_at', 'ASC')->limit(8)->get()->getResultArray();
     }
 
     /** @return array{period: string, date_from: string, date_to: string, department_id: int, vacancy_id: int, period_label: string} */

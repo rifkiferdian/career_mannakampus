@@ -82,4 +82,40 @@ class ApplicationStatusPresenterTest extends CIUnitTestCase
         $this->assertSame('Lamaran Baru', $result['applications'][0]['status_label']);
         $this->assertSame('neutral', $result['applications'][0]['status_tone']);
     }
+
+    public function testItPresentsOnlyPublicScheduleInformation(): void
+    {
+        $presenter = new ApplicationStatusPresenter();
+        $result = $presenter->present([
+            'batch_number' => 'MKB-003',
+            'submitted_at' => '2026-08-24 10:00:00',
+            'applicant_snapshot' => '{}',
+        ], [[
+            'application_number' => 'MK-003',
+            'preference_order' => 1,
+            'vacancy_title' => 'Kasir',
+            'department_name' => 'Store',
+            'application_status' => 'hrd_interview',
+            'public_message' => '',
+            'updated_at' => '2026-08-24 10:00:00',
+            'schedule' => [
+                'id' => 7,
+                'stage_name' => 'Wawancara HRD',
+                'scheduled_at' => '2026-08-26 10:00:00',
+                'venue' => 'Ruang HRD',
+                'instructions' => 'Hadir 15 menit lebih awal.',
+                'confirmation_deadline_at' => '2026-08-25 17:00:00',
+                'status' => 'scheduled',
+                'candidate_note' => '',
+                'pic_name' => 'Recruiter Satu',
+                'internal_notes' => 'Tidak boleh tampil.',
+            ],
+        ]]);
+
+        $schedule = $result['applications'][0]['schedule'];
+        $this->assertSame(7, $schedule['id']);
+        $this->assertSame('Wawancara HRD', $schedule['stage_name']);
+        $this->assertSame('Recruiter Satu', $schedule['pic_name']);
+        $this->assertArrayNotHasKey('internal_notes', $schedule);
+    }
 }

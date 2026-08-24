@@ -112,6 +112,30 @@ class CandidateController extends BaseController
             $this->addRejectionTiming($application, $templateStages, $nowDateTime);
         }
         unset($application);
+        $applicationIds = array_map('intval', array_column($applications, 'id'));
+        $schedulesByApplication = [];
+        if ($applicationIds !== []) {
+            $scheduleRows = $database->table('recruitment_schedules AS schedules')
+                ->select('schedules.*, stages.name AS stage_name, pic.full_name AS pic_name')
+                ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
+                ->join('users AS pic', 'pic.id = schedules.pic_user_id')
+                ->whereIn('schedules.application_id', $applicationIds)
+                ->orderBy('schedules.created_at', 'DESC')->get()->getResultArray();
+            foreach ($scheduleRows as $schedule) {
+                $schedulesByApplication[(int) $schedule['application_id']][] = $schedule;
+            }
+        }
+        foreach ($applications as &$application) {
+            $application['schedules'] = $schedulesByApplication[(int) $application['id']] ?? [];
+            $application['active_schedule'] = null;
+            foreach ($application['schedules'] as $schedule) {
+                if (in_array((string) $schedule['status'], ['scheduled', 'confirmed', 'reschedule_requested'], true)) {
+                    $application['active_schedule'] = $schedule;
+                    break;
+                }
+            }
+        }
+        unset($application);
         $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update')
             && $selectedTeamId > 0
             && ($canManageTeams || (int) ($currentTeam['id'] ?? 0) === $selectedTeamId);
@@ -130,12 +154,15 @@ class CandidateController extends BaseController
             'periods' => $database->table('vacancy_recruitment_periods AS periods')->select('periods.id, periods.period_name, vacancies.title AS vacancy_title')->join('vacancies', 'vacancies.id = periods.vacancy_id')->where('periods.deleted_at', null)->orderBy('periods.opened_at', 'DESC')->get()->getResultArray(),
             'departments' => $database->table('departments')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray(),
             'rejectionTemplates' => $database->table('rejection_reason_templates')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray(),
+            'picUsers' => $database->table('users')->select('id, full_name')->where('is_active', 1)->orderBy('full_name')->get()->getResultArray(),
             'teams' => $teams,
             'currentTeam' => $currentTeam,
             'selectedTeam' => $selectedTeam,
             'selectedTeamId' => $selectedTeamId,
             'canManageTeams' => $canManageTeams,
             'canUpdateStatus' => $canUpdateStatus,
+            'canManageSchedules' => Services::authorization()->can($userId, 'schedules.manage'),
+            'canRecordAttendance' => Services::authorization()->can($userId, 'schedules.attendance'),
             'canCancelAssignment' => $canCancelAssignment,
             'summary' => [
                 'total' => count($applications),
@@ -193,6 +220,13 @@ class CandidateController extends BaseController
         $cancelled = $database->affectedRows() === 1;
         $talentPoolRemoved = false;
         if ($cancelled) {
+            foreach ($applicationIds as $applicationId) {
+                Services::recruitmentSchedule()->cancelActiveForApplication(
+                    $applicationId,
+                    $userId,
+                    'Jadwal dibatalkan karena pilihan divisi HRD dibatalkan.'
+                );
+            }
             $database->table('talent_pool_candidates')
                 ->where('applicant_id', $applicantId)
                 ->delete();
@@ -315,6 +349,24 @@ class CandidateController extends BaseController
             return $this->candidateError('Kandidat sudah berada pada tahapan tersebut.', $returnTeamId);
         }
 
+        $scheduleData = null;
+        if ((int) ($stage['is_schedulable'] ?? 0) === 1) {
+            if (! Services::authorization()->can($userId, 'schedules.manage')) {
+                return $this->candidateError('Anda tidak memiliki akses untuk membuat jadwal seleksi.', $returnTeamId);
+            }
+            try {
+                $scheduleData = Services::recruitmentSchedule()->validateInput([
+                    'scheduled_at' => $this->request->getPost('scheduled_at'),
+                    'venue' => $this->request->getPost('venue'),
+                    'pic_user_id' => $this->request->getPost('pic_user_id'),
+                    'instructions' => $this->request->getPost('instructions'),
+                    'confirmation_deadline_at' => $this->request->getPost('confirmation_deadline_at'),
+                ]);
+            } catch (\InvalidArgumentException $exception) {
+                return $this->candidateError($exception->getMessage(), $returnTeamId);
+            }
+        }
+
         $internalNotes = mb_substr(trim((string) $this->request->getPost('notes')), 0, 2000);
         $historyNotes = $internalNotes;
         $rejectionTemplate = null;
@@ -346,6 +398,11 @@ class CandidateController extends BaseController
 
         $now = date('Y-m-d H:i:s');
         $database->transStart();
+        Services::recruitmentSchedule()->cancelActiveForApplication(
+            $applicationId,
+            $userId,
+            'Jadwal ditutup karena kandidat berpindah tahap.'
+        );
         $database->table('applications')->where('id', $applicationId)->update([
             'application_status' => $newStage,
             'screening_status' => $newStage === 'screening_passed' ? 'passed' : ($newStage === 'screening_failed' ? 'failed' : (string) $application['screening_status']),
@@ -384,6 +441,9 @@ class CandidateController extends BaseController
             'changed_by' => $userId,
             'created_at' => $now,
         ]);
+        if ($scheduleData !== null) {
+            Services::recruitmentSchedule()->create($applicationId, (int) $stage['id'], $scheduleData, $userId);
+        }
         $database->transComplete();
         if (! $database->transStatus()) {
             return $this->candidateError('Tahapan kandidat gagal diperbarui.', $returnTeamId);
@@ -395,10 +455,9 @@ class CandidateController extends BaseController
     private function candidateQuery(): BaseBuilder
     {
         return db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, process_templates.name AS process_template_name, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.rejected_at, talent_pool.id AS talent_pool_id, active_blacklist.id AS active_blacklist_id, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.application_number, applications.screening_status, applications.screening_score, applications.application_status, applicants.assigned_hrd_team_id, applicants.assigned_at, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, periods.period_name, departments.name AS department_name, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, stages.sla_days, stages.color_hex, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.rejected_at, talent_pool.id AS talent_pool_id, active_blacklist.id AS active_blacklist_id, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
-            ->join('recruitment_process_templates AS process_templates', 'process_templates.id = vacancies.recruitment_process_template_id', 'left')
             ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id')
@@ -415,7 +474,7 @@ class CandidateController extends BaseController
     private function templateStages(): array
     {
         $rows = db_connect()->table('recruitment_process_template_stages AS links')
-            ->select('links.template_id, links.display_order, stages.id, stages.code, stages.name, stages.color_hex, stages.sla_days, stages.is_terminal')
+            ->select('links.template_id, links.display_order, stages.id, stages.code, stages.name, stages.color_hex, stages.sla_days, stages.is_schedulable, stages.is_terminal')
             ->join('recruitment_stages AS stages', 'stages.id = links.stage_id')
             ->where('stages.is_active', 1)
             ->orderBy('links.template_id')->orderBy('links.display_order')->get()->getResultArray();

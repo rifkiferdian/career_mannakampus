@@ -9,7 +9,7 @@
     <title>Cek Status Lamaran | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=8">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=9">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -45,6 +45,8 @@
                     <?php if (! empty($error)): ?>
                         <div class="status-alert" role="alert"><?= esc($error) ?></div>
                     <?php endif ?>
+                    <?php if (! empty($statusMessage)): ?><div class="status-alert" role="alert"><?= esc($statusMessage) ?></div><?php endif ?>
+                    <?php if (! empty($statusSuccess)): ?><div class="status-alert status-alert-success" role="status"><?= esc($statusSuccess) ?></div><?php endif ?>
 
                     <form action="<?= site_url('lamaran/status') ?>" method="post" autocomplete="off" data-status-form>
                         <?= csrf_field() ?>
@@ -141,6 +143,16 @@
                                     <p><?= esc($application['status_description']) ?></p>
                                     <?php if ($application['public_message'] !== ''): ?>
                                         <div class="status-public-message"><?= esc($application['public_message']) ?></div>
+                                    <?php endif ?>
+                                    <?php if (is_array($application['schedule'] ?? null)): $schedule = $application['schedule']; $canRespond = $schedule['status'] === 'scheduled' && strtotime($schedule['confirmation_deadline_raw']) >= time(); ?>
+                                        <section class="public-schedule-card">
+                                            <div class="public-schedule-heading"><span>Jadwal seleksi</span><strong><?= esc($schedule['stage_name']) ?></strong></div>
+                                            <dl><div><dt>Pelaksanaan</dt><dd><?= esc($schedule['scheduled_at']) ?> WIB</dd></div><div><dt>Lokasi / meeting</dt><dd><?php if (preg_match('#^https?://#i', $schedule['venue']) === 1): ?><a href="<?= esc($schedule['venue'], 'attr') ?>" target="_blank" rel="noopener noreferrer">Buka link meeting</a><?php else: ?><?= esc($schedule['venue']) ?><?php endif ?></dd></div><div><dt>PIC</dt><dd><?= esc($schedule['pic_name']) ?></dd></div><div><dt>Batas konfirmasi</dt><dd><?= esc($schedule['confirmation_deadline']) ?> WIB</dd></div></dl>
+                                            <?php if ($schedule['instructions'] !== ''): ?><p><strong>Instruksi</strong><?= nl2br(esc($schedule['instructions'])) ?></p><?php endif ?>
+                                            <?php $publicScheduleLabels = ['scheduled' => 'Menunggu konfirmasi', 'confirmed' => 'Anda sudah mengonfirmasi hadir', 'reschedule_requested' => 'Permintaan jadwal ulang sedang ditinjau']; ?>
+                                            <span class="public-schedule-status status-<?= esc($schedule['status'], 'attr') ?>"><?= esc($publicScheduleLabels[$schedule['status']] ?? $schedule['status']) ?></span>
+                                            <?php if ($canRespond): ?><div class="public-schedule-actions"><form action="<?= site_url('lamaran/status/jadwal/' . $schedule['id']) ?>" method="post"><?= csrf_field() ?><input type="hidden" name="response" value="confirmed"><button type="submit">Saya bersedia hadir</button></form><form class="public-reschedule-form" action="<?= site_url('lamaran/status/jadwal/' . $schedule['id']) ?>" method="post"><?= csrf_field() ?><input type="hidden" name="response" value="reschedule_requested"><label>Alasan meminta jadwal ulang<textarea name="candidate_note" minlength="5" maxlength="2000" rows="2" required></textarea></label><button type="submit">Ajukan jadwal ulang</button></form></div><?php elseif ($schedule['status'] === 'scheduled'): ?><small class="public-schedule-expired">Batas konfirmasi sudah berakhir. Silakan hubungi tim HRD.</small><?php endif ?>
+                                        </section>
                                     <?php endif ?>
                                 </div>
                                 <div class="status-application-meta">

@@ -216,6 +216,7 @@ class RecruitmentProcessTemplateController extends BaseController
             'name' => $name,
             'color_hex' => $color,
             'sla_days' => $slaDays,
+            'is_schedulable' => $this->request->getPost('is_schedulable') !== null ? 1 : 0,
             'is_active' => $this->request->getPost('is_active') !== null ? 1 : 0,
         ];
     }
