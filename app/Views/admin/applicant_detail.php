@@ -29,6 +29,18 @@ if (str_starts_with($whatsAppNumber, '0')) {
 }
 $whatsAppMessage = 'Halo ' . $applicant['full_name'] . ",\n\nKami dari Tim Rekrutmen Manna Kampus ingin menghubungi Anda terkait proses lamaran kerja. Apakah Anda bersedia melanjutkan komunikasi melalui WhatsApp?\n\nTerima kasih.";
 $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', 'next' => 'Selanjutnya', 'upcoming' => 'Akan datang'];
+$recommendationLabels = ['continue' => 'Lanjut', 'hold' => 'Tahan', 'reject' => 'Tolak'];
+$recommendationDescriptions = ['continue' => 'Direkomendasikan melanjutkan proses', 'hold' => 'Perlu dipertimbangkan kembali', 'reject' => 'Tidak direkomendasikan melanjutkan'];
+$recommendationScores = [];
+foreach ($recommendationAspects as $recommendationAspect) {
+    $aspectAnswer = $recommendationAnswers[(int) $recommendationAspect['id']] ?? '';
+    if ($recommendationAspect['input_type'] === 'scale_1_5' && $aspectAnswer !== '') {
+        $recommendationScores[] = (int) $aspectAnswer;
+    }
+}
+$recommendationAverage = $recommendationScores !== [] ? array_sum($recommendationScores) / count($recommendationScores) : null;
+$oldRecommendationAnswers = old('answers');
+$oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommendationAnswers : [];
 ?>
 <!doctype html>
 <html lang="id">
@@ -40,7 +52,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=76">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -58,7 +70,31 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
             <?php if ($candidateSuccess): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($candidateSuccess) ?></div><?php endif ?>
             <?php if ($candidateError): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($candidateError) ?></div><?php endif ?>
             <?php $applicationsWithProcess = array_values(array_filter($applications, static fn (array $application): bool => $application['process_steps'] !== [])); ?>
+            <div class="candidate-overview-grid <?= $canViewRecommendation && $applicationsWithProcess !== [] ? 'is-split' : '' ?>">
             <?php if ($applicationsWithProcess !== []): ?><section class="candidate-top-processes" aria-label="Alur rekrutmen pelamar"><?php foreach ($applicationsWithProcess as $processApplication): $processApplicationId = (int) $processApplication['id']; ?><article class="candidate-process-progress candidate-detail-process-progress candidate-top-process-card"><div class="candidate-process-progress-heading"><div><span class="candidate-top-process-eyebrow">Alur rekrutmen</span><strong><?= esc($processApplication['vacancy_title']) ?></strong><small><?= esc($processApplication['application_number']) ?> · <?= esc($statusLabels[$processApplication['application_status']] ?? ucwords(str_replace('_', ' ', $processApplication['application_status']))) ?></small></div><div class="candidate-detail-process-actions"><div class="candidate-process-legend" aria-label="Keterangan tahap"><span class="previous"><i></i>Sebelumnya</span><span class="current"><i></i>Saat ini</span><span class="next"><i></i>Selanjutnya</span></div><?php if ($processApplication['can_undo_stage']): ?><button class="candidate-detail-undo-button" type="button" data-admin-modal-open="applicant-undo-modal-<?= $processApplicationId ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v2"/></svg>Urungkan perubahan</button><?php endif ?></div></div><div class="candidate-process-progress-scroll"><ol class="candidate-process-stepper" style="--candidate-step-count: <?= count($processApplication['process_steps']) ?>" aria-label="Urutan tahapan rekrutmen <?= esc($processApplication['vacancy_title'], 'attr') ?>"><?php foreach ($processApplication['process_steps'] as $step): $progressState = (string) $step['progress_state']; ?><li class="is-<?= esc($progressState, 'attr') ?>" <?= $progressState === 'current' ? 'aria-current="step"' : '' ?>><span class="candidate-process-marker"><?= (int) $step['display_order'] ?></span><strong><?= esc($step['name']) ?></strong><small><?= esc($progressLabels[$progressState] ?? 'Akan datang') ?></small></li><?php endforeach ?></ol></div></article><?php endforeach ?></section><?php endif ?>
+            <?php if ($canViewRecommendation): ?>
+                <section class="candidate-recommendation-card <?= $applicantRecommendation === null ? 'is-empty' : 'has-value' ?>">
+                    <div class="candidate-recommendation-heading">
+                        <div class="candidate-recommendation-title">
+                            <span class="candidate-recommendation-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 14.6 8l5.1 1.1-3.5 3.9.5 5.2-4.7-2.1-4.7 2.1.5-5.2-3.5-3.9L9.4 8 12 3.5Z"/></svg></span>
+                            <div><span class="login-eyebrow">Scorecard kandidat</span><h2>Penilaian &amp; rekomendasi</h2><p>Catatan penilaian yang menempel pada biodata pelamar.</p></div>
+                        </div>
+                        <?php if ($canManageRecommendation): ?><button class="candidate-recommendation-button" type="button" data-admin-modal-open="applicant-recommendation-modal"><?= $applicantRecommendation === null ? 'Isi penilaian' : 'Ubah penilaian' ?></button><?php endif ?>
+                    </div>
+                    <?php if ($applicantRecommendation === null): ?>
+                        <div class="candidate-recommendation-empty"><strong>Belum ada penilaian</strong><span>Isi aspek penilaian dan rekomendasi agar tim HRD memiliki satu ringkasan kandidat yang sama.</span><?php if (! $canManageRecommendation): ?><small>Penilaian hanya dapat diisi oleh tim HRD yang menangani pelamar ini.</small><?php endif ?></div>
+                    <?php else: ?>
+                        <div class="candidate-recommendation-summary">
+                            <div><span>Rekomendasi akhir</span><strong class="recommendation-status is-<?= esc($applicantRecommendation['recommendation'], 'attr') ?>"><?= esc($recommendationLabels[$applicantRecommendation['recommendation']] ?? ucfirst($applicantRecommendation['recommendation'])) ?></strong><small><?= esc($recommendationDescriptions[$applicantRecommendation['recommendation']] ?? '') ?></small></div>
+                            <div><span>Rata-rata nilai</span><strong><?= $recommendationAverage === null ? '-' : esc(number_format($recommendationAverage, 1, ',', '.')) . ' / 5' ?></strong><small><?= count($recommendationScores) ?> aspek berskala dinilai</small></div>
+                            <div><span>Terakhir diperbarui</span><strong><?= esc($applicantRecommendation['updated_by_name'] ?: 'Sistem') ?></strong><small><?= esc($date($applicantRecommendation['updated_at'])) ?> WIB</small></div>
+                        </div>
+                        <?php if ($recommendationAspects !== []): ?><div class="candidate-recommendation-aspects"><?php foreach ($recommendationAspects as $aspect): $aspectId = (int) $aspect['id']; $aspectAnswer = trim((string) ($recommendationAnswers[$aspectId] ?? '')); ?><article><div><strong><?= esc($aspect['name']) ?></strong><?php if (trim((string) ($aspect['description'] ?? '')) !== ''): ?><small><?= esc($aspect['description']) ?></small><?php endif ?></div><?php if ($aspect['input_type'] === 'scale_1_5' && $aspectAnswer !== ''): ?><span class="candidate-score-stars" aria-label="Nilai <?= (int) $aspectAnswer ?> dari 5"><?php for ($scoreStar = 1; $scoreStar <= 5; $scoreStar++): ?><i class="<?= $scoreStar <= (int) $aspectAnswer ? 'is-filled' : '' ?>">&#9733;</i><?php endfor ?><b><?= (int) $aspectAnswer ?>/5</b></span><?php else: ?><span class="candidate-aspect-answer <?= $aspectAnswer === '' ? 'is-empty' : '' ?>"><?= esc($aspectAnswer !== '' ? $aspectAnswer : 'Belum diisi') ?></span><?php endif ?></article><?php endforeach ?></div><?php endif ?>
+                        <?php if (trim((string) ($applicantRecommendation['notes'] ?? '')) !== ''): ?><div class="candidate-recommendation-notes"><span>Catatan HRD</span><p><?= nl2br(esc($applicantRecommendation['notes'])) ?></p></div><?php endif ?>
+                    <?php endif ?>
+                </section>
+            <?php endif ?>
+            </div>
             <section class="candidate-profile-card <?= $isBlacklistActive ? 'is-blacklisted' : 'is-clear' ?>">
                 <div class="candidate-avatar" aria-hidden="true"><?= esc($initial) ?></div>
                 <div class="candidate-profile-copy">
@@ -177,6 +213,61 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <?= view('admin/partials/footer') ?>
     </main>
 </div>
+<?php if ($canManageRecommendation): ?>
+<dialog class="admin-modal applicant-recommendation-modal" id="applicant-recommendation-modal" aria-labelledby="applicant-recommendation-title" <?= $recommendationFormOpen ? 'data-auto-open' : '' ?>>
+    <div class="admin-modal-panel">
+        <div class="settings-card-heading admin-modal-heading">
+            <span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 14.6 8l5.1 1.1-3.5 3.9.5 5.2-4.7-2.1-4.7 2.1.5-5.2-3.5-3.9L9.4 8 12 3.5Z"/></svg></span>
+            <div><h2 id="applicant-recommendation-title"><?= $applicantRecommendation === null ? 'Isi penilaian pelamar' : 'Ubah penilaian pelamar' ?></h2><p><?= esc($applicant['full_name']) ?> · scorecard berlaku untuk seluruh biodata pelamar.</p></div>
+            <button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button>
+        </div>
+        <form class="applicant-recommendation-form" action="<?= site_url('adminhrdmannakampus/pelamar/' . $applicant['id'] . '/penilaian') ?><?= $detailSource === 'division' ? '?source=division&amp;team_id=' . (int) $detailSourceTeamId : '' ?>" method="post">
+            <?= csrf_field() ?>
+            <div class="recommendation-form-scroll">
+            <div class="recommendation-form-intro"><strong>Aspek penilaian</strong><span>Isi berdasarkan hasil seleksi kandidat. Kolom bertanda wajib harus dilengkapi.</span></div>
+            <?php if ($recommendationAspects === []): ?>
+                <div class="candidate-recommendation-empty"><strong>Belum ada aspek penilaian aktif</strong><span>Aspek dapat ditambahkan melalui menu Aspek Nilai. Anda tetap dapat menyimpan rekomendasi akhir dan catatan.</span></div>
+            <?php endif ?>
+            <div class="recommendation-form-aspects">
+                <?php foreach ($recommendationAspects as $aspect):
+                    $aspectId = (int) $aspect['id'];
+                    $formAnswer = $recommendationFormOpen ? (string) ($oldRecommendationAnswers[$aspectId] ?? '') : (string) ($recommendationAnswers[$aspectId] ?? '');
+                    $required = (int) $aspect['is_required'] === 1;
+                    $options = $aspect['input_type'] === 'choice' ? json_decode((string) ($aspect['options_json'] ?? ''), true) : [];
+                    $options = is_array($options) ? $options : [];
+                ?>
+                    <fieldset class="recommendation-aspect-field">
+                        <legend><?= esc($aspect['name']) ?><?= $required ? '<em>Wajib</em>' : '<small>Opsional</small>' ?></legend>
+                        <?php if (trim((string) ($aspect['description'] ?? '')) !== ''): ?><p><?= esc($aspect['description']) ?></p><?php endif ?>
+                        <?php if ($aspect['input_type'] === 'scale_1_5'): ?>
+                            <div class="recommendation-rating-options" aria-label="Nilai <?= esc($aspect['name'], 'attr') ?>"><?php for ($rating = 1; $rating <= 5; $rating++): ?><label title="Nilai <?= $rating ?> dari 5"><input type="radio" name="answers[<?= $aspectId ?>]" value="<?= $rating ?>" aria-label="Nilai <?= $rating ?> dari 5" <?= (string) $rating === $formAnswer ? 'checked' : '' ?> <?= $required && $rating === 1 ? 'required' : '' ?>><span aria-hidden="true">&#9733;</span></label><?php endfor ?></div>
+                            <small class="recommendation-field-help">1 = sangat kurang · 5 = sangat baik</small>
+                        <?php elseif ($aspect['input_type'] === 'yes_no'): ?>
+                            <div class="recommendation-choice-options"><?php foreach (['Ya', 'Tidak'] as $option): ?><label><input type="radio" name="answers[<?= $aspectId ?>]" value="<?= esc($option, 'attr') ?>" <?= $option === $formAnswer ? 'checked' : '' ?> <?= $required && $option === 'Ya' ? 'required' : '' ?>><span><?= esc($option) ?></span></label><?php endforeach ?></div>
+                        <?php elseif ($aspect['input_type'] === 'choice'): ?>
+                            <div class="recommendation-choice-options"><?php foreach ($options as $optionIndex => $option): $option = (string) $option; ?><label><input type="radio" name="answers[<?= $aspectId ?>]" value="<?= esc($option, 'attr') ?>" <?= $option === $formAnswer ? 'checked' : '' ?> <?= $required && $optionIndex === 0 ? 'required' : '' ?>><span><?= esc($option) ?></span></label><?php endforeach ?></div>
+                        <?php else: ?>
+                            <textarea name="answers[<?= $aspectId ?>]" rows="3" maxlength="1000" placeholder="Tuliskan hasil penilaian" <?= $required ? 'required' : '' ?>><?= esc($formAnswer) ?></textarea>
+                        <?php endif ?>
+                    </fieldset>
+                <?php endforeach ?>
+            </div>
+            <?php $formRecommendation = $recommendationFormOpen ? (string) old('recommendation') : (string) ($applicantRecommendation['recommendation'] ?? ''); ?>
+            <fieldset class="recommendation-decision-field">
+                <legend>Rekomendasi akhir <em>Wajib</em></legend>
+                <div class="recommendation-decision-options">
+                    <?php foreach ($recommendationLabels as $recommendationCode => $recommendationLabel): ?><label class="is-<?= esc($recommendationCode, 'attr') ?>"><input type="radio" name="recommendation" value="<?= esc($recommendationCode, 'attr') ?>" <?= $formRecommendation === $recommendationCode ? 'checked' : '' ?> required><span><b><?= esc($recommendationLabel) ?></b><small><?= esc($recommendationDescriptions[$recommendationCode]) ?></small></span></label><?php endforeach ?>
+                </div>
+            </fieldset>
+            <?php $formNotes = $recommendationFormOpen ? (string) old('notes') : (string) ($applicantRecommendation['notes'] ?? ''); ?>
+            <label class="recommendation-notes-field">Catatan HRD <small>Opsional</small><textarea name="notes" rows="4" maxlength="5000" placeholder="Ringkasan pertimbangan, kelebihan, kekurangan, atau tindak lanjut kandidat"><?= esc($formNotes) ?></textarea></label>
+            <div class="recommendation-form-notice"><strong>Catatan penting</strong><span>Menyimpan scorecard tidak otomatis mengubah tahap rekrutmen kandidat.</span></div>
+            </div>
+            <div class="candidate-process-buttons"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit"><?= $applicantRecommendation === null ? 'Simpan penilaian' : 'Simpan perubahan' ?></button></div>
+        </form>
+    </div>
+</dialog>
+<?php endif ?>
 <?php foreach ($applications as $application): if (! $application['can_undo_stage']) { continue; } $undoChange = $application['last_stage_change']; ?>
 <dialog class="admin-modal candidate-undo-modal" id="applicant-undo-modal-<?= (int) $application['id'] ?>" aria-labelledby="applicant-undo-title-<?= (int) $application['id'] ?>">
     <div class="admin-modal-panel">

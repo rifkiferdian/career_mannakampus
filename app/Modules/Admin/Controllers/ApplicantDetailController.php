@@ -115,6 +115,32 @@ class ApplicantDetailController extends BaseController
             && (Services::authorization()->can($userId, 'hrd.teams.manage') || (int) ($currentTeam['id'] ?? 0) === $assignedTeamId);
         $canManageAllTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
         $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update') && $canManageAssignedTeam;
+        $canViewRecommendation = Services::authorization()->can($userId, 'recommendations.view');
+        $canManageRecommendation = Services::authorization()->can($userId, 'recommendations.manage') && $canManageAssignedTeam;
+        $recommendationAspects = [];
+        $applicantRecommendation = null;
+        $recommendationAnswers = [];
+        if ($canViewRecommendation) {
+            $recommendationAspects = $database->table('recommendation_aspects')
+                ->where('deleted_at', null)
+                ->where('is_active', 1)
+                ->orderBy('display_order', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->get()->getResultArray();
+            $applicantRecommendation = $database->table('applicant_recommendations AS recommendations')
+                ->select('recommendations.*, users.full_name AS updated_by_name')
+                ->join('users', 'users.id = recommendations.updated_by', 'left')
+                ->where('recommendations.applicant_id', $applicantId)
+                ->get()->getRowArray() ?: null;
+            if ($applicantRecommendation !== null) {
+                foreach ($database->table('applicant_recommendation_answers')
+                    ->select('aspect_id, answer_value')
+                    ->where('recommendation_id', (int) $applicantRecommendation['id'])
+                    ->get()->getResultArray() as $recommendationAnswer) {
+                    $recommendationAnswers[(int) $recommendationAnswer['aspect_id']] = (string) $recommendationAnswer['answer_value'];
+                }
+            }
+        }
         $stageRows = $database->table('recruitment_process_template_stages AS links')
             ->select('links.template_id, links.display_order, stages.id, stages.code, stages.name, stages.color_hex')
             ->join('recruitment_stages AS stages', 'stages.id = links.stage_id')
@@ -179,6 +205,8 @@ class ApplicantDetailController extends BaseController
             'auth' => $auth,
             'backUrl' => $backUrl,
             'backLabel' => $backLabel,
+            'detailSource' => $source,
+            'detailSourceTeamId' => $sourceTeamId,
             'applicant' => $applicant,
             'applications' => $applications,
             'answersByApplication' => $answers,
@@ -191,6 +219,12 @@ class ApplicantDetailController extends BaseController
             'canManageBlacklist' => Services::authorization()->can($userId, 'applicants.blacklist.manage'),
             'canSaveTalentPool' => Services::authorization()->can($userId, 'candidates.status.update') && $canManageAssignedTeam,
             'canCancelAssignment' => Services::authorization()->can($userId, 'applicants.assign') && $canManageAssignedTeam,
+            'canViewRecommendation' => $canViewRecommendation,
+            'canManageRecommendation' => $canManageRecommendation,
+            'recommendationAspects' => $recommendationAspects,
+            'applicantRecommendation' => $applicantRecommendation,
+            'recommendationAnswers' => $recommendationAnswers,
+            'recommendationFormOpen' => session()->getFlashdata('recommendation_form') === 'open',
             'departments' => $database->table('departments')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray(),
             'blacklist' => $blacklist,
             'blacklistHistories' => $blacklistHistories,
