@@ -117,6 +117,10 @@ class ApplicantDetailController extends BaseController
         $canUpdateStatus = Services::authorization()->can($userId, 'candidates.status.update') && $canManageAssignedTeam;
         $canViewRecommendation = Services::authorization()->can($userId, 'recommendations.view');
         $canManageRecommendation = Services::authorization()->can($userId, 'recommendations.manage') && $canManageAssignedTeam;
+        $canUseWhatsappTemplates = Services::authorization()->can($userId, 'whatsapp.templates.view');
+        $whatsappTemplates = $canUseWhatsappTemplates
+            ? $database->table('whatsapp_message_templates')->where('deleted_at', null)->where('is_active', 1)->orderBy('display_order')->orderBy('id')->get()->getResultArray()
+            : [];
         $recommendationAspects = [];
         $applicantRecommendation = null;
         $recommendationAnswers = [];
@@ -225,6 +229,8 @@ class ApplicantDetailController extends BaseController
             'applicantRecommendation' => $applicantRecommendation,
             'recommendationAnswers' => $recommendationAnswers,
             'recommendationFormOpen' => session()->getFlashdata('recommendation_form') === 'open',
+            'canUseWhatsappTemplates' => $canUseWhatsappTemplates,
+            'whatsappTemplates' => $whatsappTemplates,
             'departments' => $database->table('departments')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray(),
             'blacklist' => $blacklist,
             'blacklistHistories' => $blacklistHistories,

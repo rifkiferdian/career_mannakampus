@@ -242,4 +242,73 @@
         message.addEventListener('input', updateWhatsappPreview);
         updateWhatsappPreview();
     });
+
+    document.querySelectorAll('[data-applicant-whatsapp-composer]').forEach((composer) => {
+        const templateSelect = composer.querySelector('[data-applicant-whatsapp-template]');
+        const applicationSelect = composer.querySelector('[data-applicant-whatsapp-application]');
+        const scheduleSelect = composer.querySelector('[data-applicant-whatsapp-schedule]');
+        const message = composer.querySelector('[data-applicant-whatsapp-message]');
+        const counter = composer.querySelector('[data-applicant-whatsapp-count]');
+        const openButton = composer.querySelector('[data-applicant-whatsapp-open]');
+        if (!(templateSelect instanceof HTMLSelectElement)
+            || !(applicationSelect instanceof HTMLSelectElement)
+            || !(scheduleSelect instanceof HTMLSelectElement)
+            || !(message instanceof HTMLTextAreaElement)
+            || !(openButton instanceof HTMLAnchorElement)) return;
+
+        const updateLink = () => {
+            const text = message.value.trim();
+            if (counter instanceof HTMLElement) counter.textContent = String(message.value.length);
+            openButton.href = text === '' ? '#' : `https://wa.me/${composer.dataset.phone || ''}?text=${encodeURIComponent(text)}`;
+            openButton.classList.toggle('is-disabled', text === '' || message.value.length > 2000);
+            openButton.setAttribute('aria-disabled', text === '' || message.value.length > 2000 ? 'true' : 'false');
+        };
+        const selectRelevantSchedule = () => {
+            const applicationId = applicationSelect.value;
+            const visibleSchedules = [...scheduleSelect.options].filter((option) => {
+                const visible = option.dataset.applicationId === '0' || option.dataset.applicationId === applicationId;
+                option.hidden = !visible;
+                option.disabled = !visible;
+                return visible && option.dataset.applicationId !== '0';
+            });
+            const selectedSchedule = scheduleSelect.selectedOptions[0];
+            if (!selectedSchedule || selectedSchedule.disabled) scheduleSelect.value = '';
+            const category = templateSelect.selectedOptions[0]?.dataset.category || '';
+            if (['schedule', 'reminder', 'confirmation'].includes(category) && scheduleSelect.value === '' && visibleSchedules[0]) {
+                scheduleSelect.value = visibleSchedules[0].value;
+            }
+        };
+        const generateMessage = () => {
+            const template = templateSelect.selectedOptions[0]?.dataset.message || '';
+            const application = applicationSelect.selectedOptions[0];
+            const schedule = scheduleSelect.selectedOptions[0];
+            const hasSchedule = schedule && schedule.value !== '';
+            const values = {
+                nama_pelamar: composer.dataset.applicant || '-',
+                nama_recruiter: composer.dataset.recruiter || '-',
+                nama_lowongan: application?.dataset.vacancy || '-',
+                nama_tahap: hasSchedule ? (schedule.dataset.stage || '-') : (application?.dataset.stage || '-'),
+                tanggal: hasSchedule ? (schedule.dataset.date || '-') : '-',
+                jam: hasSchedule ? (schedule.dataset.time || '-') : '-',
+                lokasi: hasSchedule ? (schedule.dataset.location || '-') : '-',
+                nama_pic: hasSchedule ? (schedule.dataset.pic || composer.dataset.recruiter || '-') : (composer.dataset.recruiter || '-'),
+                instruksi: hasSchedule ? (schedule.dataset.instructions || '-') : '-',
+                batas_konfirmasi: hasSchedule ? (schedule.dataset.deadline || '-') : '-',
+                tahap_sebelumnya: application?.dataset.previousStage || '-',
+                tahap_berikutnya: application?.dataset.nextStage || '-',
+            };
+            message.value = template.replace(/\{\{\s*([a-z0-9_]+)\s*\}\}/giu, (token, variable) => values[variable] ?? token);
+            updateLink();
+        };
+
+        templateSelect.addEventListener('change', () => { selectRelevantSchedule(); generateMessage(); });
+        applicationSelect.addEventListener('change', () => { scheduleSelect.value = ''; selectRelevantSchedule(); generateMessage(); });
+        scheduleSelect.addEventListener('change', generateMessage);
+        message.addEventListener('input', updateLink);
+        openButton.addEventListener('click', (event) => {
+            if (openButton.classList.contains('is-disabled')) event.preventDefault();
+        });
+        selectRelevantSchedule();
+        generateMessage();
+    });
 })();
