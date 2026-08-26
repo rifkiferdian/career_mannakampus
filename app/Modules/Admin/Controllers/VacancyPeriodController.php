@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
+use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\Services;
@@ -10,6 +11,7 @@ use DateTimeImmutable;
 
 class VacancyPeriodController extends BaseController
 {
+    private const PER_PAGE = 50;
     private const STATUSES = ['draft', 'scheduled', 'open', 'closed', 'archived'];
 
     public function index(): string
@@ -24,6 +26,19 @@ class VacancyPeriodController extends BaseController
             $status = '';
         }
 
+        $summaryBuilder = $database->table('vacancy_recruitment_periods AS periods')
+            ->select("COUNT(DISTINCT periods.id) AS total, COUNT(DISTINCT CASE WHEN periods.status = 'open' THEN periods.id END) AS open_total, COUNT(DISTINCT CASE WHEN periods.status = 'scheduled' THEN periods.id END) AS scheduled_total, COUNT(DISTINCT applications.id) AS application_total", false)
+            ->join('vacancies', 'vacancies.id = periods.vacancy_id')
+            ->join('applications', 'applications.vacancy_period_id = periods.id AND applications.deleted_at IS NULL', 'left')
+            ->where('periods.deleted_at', null)
+            ->where('vacancies.deleted_at', null);
+        $this->applyIndexFilters($summaryBuilder, $vacancyId, $status);
+        $summary = $summaryBuilder->get()->getRowArray() ?? [];
+        $total = (int) ($summary['total'] ?? 0);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        $page = min(max(1, (int) $this->request->getGet('page')), $totalPages);
+        $offset = ($page - 1) * self::PER_PAGE;
+
         $builder = $database->table('vacancy_recruitment_periods AS periods')
             ->select('periods.*, vacancies.title AS vacancy_title, vacancies.code AS vacancy_code, departments.name AS department_name, COUNT(applications.id) AS application_count')
             ->join('vacancies', 'vacancies.id = periods.vacancy_id')
@@ -34,16 +49,18 @@ class VacancyPeriodController extends BaseController
             ->groupBy('periods.id')
             ->orderBy('periods.opened_at', 'DESC')
             ->orderBy('periods.id', 'DESC');
-        if ($vacancyId > 0) {
-            $builder->where('periods.vacancy_id', $vacancyId);
-        }
-        if ($status !== '') {
-            $builder->where('periods.status', $status);
-        }
+        $this->applyIndexFilters($builder, $vacancyId, $status);
 
         return view('admin/vacancy_periods', [
             'auth' => $auth,
-            'periods' => $builder->get()->getResultArray(),
+            'periods' => $builder->limit(self::PER_PAGE, $offset)->get()->getResultArray(),
+            'summary' => [
+                'total' => $total,
+                'open' => (int) ($summary['open_total'] ?? 0),
+                'scheduled' => (int) ($summary['scheduled_total'] ?? 0),
+                'applications' => (int) ($summary['application_total'] ?? 0),
+            ],
+            'pagination' => ['page' => $page, 'per_page' => self::PER_PAGE, 'total' => $total, 'total_pages' => $totalPages, 'offset' => $offset],
             'vacancies' => $database->table('vacancies')->select('id, title, code')->where('deleted_at', null)->orderBy('title')->get()->getResultArray(),
             'selectedVacancyId' => $vacancyId,
             'selectedStatus' => $status,
@@ -54,6 +71,16 @@ class VacancyPeriodController extends BaseController
             'error' => session()->getFlashdata('period_error'),
             'openModal' => (string) (session()->getFlashdata('period_form') ?? ''),
         ]);
+    }
+
+    private function applyIndexFilters(BaseBuilder $builder, int $vacancyId, string $status): void
+    {
+        if ($vacancyId > 0) {
+            $builder->where('periods.vacancy_id', $vacancyId);
+        }
+        if ($status !== '') {
+            $builder->where('periods.status', $status);
+        }
     }
 
     public function create(): RedirectResponse

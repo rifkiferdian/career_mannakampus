@@ -196,15 +196,18 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
         <?php endif ?>
     </nav>
 
-    <div class="sidebar-user">
+</aside>
+
+<div class="admin-header-account" aria-label="Akun pengguna aktif">
+    <div class="admin-header-identity">
         <span class="user-avatar"><?= esc(mb_strtoupper(mb_substr((string) ($auth['name'] ?? 'H'), 0, 1))) ?></span>
         <span><strong><?= esc($auth['name'] ?? 'Admin HRD') ?></strong><small><?= esc($auth['email'] ?? '') ?></small></span>
     </div>
-    <form action="<?= site_url('adminhrdmannakampus/logout') ?>" method="post">
+    <form class="admin-header-logout-form" action="<?= site_url('adminhrdmannakampus/logout') ?>" method="post">
         <?= csrf_field() ?>
-        <button class="logout-button" type="submit">
+        <button class="admin-header-logout-button" type="submit">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10"/></svg>
-            Keluar
+            <span>Keluar</span>
         </button>
     </form>
-</aside>
+</div>

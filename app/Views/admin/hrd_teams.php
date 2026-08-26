@@ -12,7 +12,7 @@ $oldFor = static fn (string $modal, string $field, mixed $fallback = ''): mixed 
     <title>Tim HRD | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=28">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=64">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">

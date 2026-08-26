@@ -11,6 +11,8 @@ use DateTimeImmutable;
 
 class ApplicantReportController extends BaseController
 {
+    private const PER_PAGE = 50;
+
     /** Status sistem ini hanya untuk label data, bukan pilihan filter tahapan. */
     private const SYSTEM_STATUS_LABELS = [
         'lamaran_baru' => 'Lamaran Baru',
@@ -35,8 +37,11 @@ class ApplicantReportController extends BaseController
         $stages = $database->table('recruitment_stages')->orderBy('display_order')->get()->getResultArray();
         $statusLabels = $this->statusLabels($stages);
         $filters = $this->filters(array_keys($statusLabels));
-        $applications = $this->reportRows($filters, self::SYSTEM_STATUS_LABELS + $statusLabels);
-        $applicationCount = array_sum(array_map('intval', array_column($applications, 'application_count')));
+        $summary = $this->reportSummary($filters);
+        $totalPages = max(1, (int) ceil($summary['applicants'] / self::PER_PAGE));
+        $page = min(max(1, (int) $this->request->getGet('page')), $totalPages);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $applications = $this->reportRows($filters, self::SYSTEM_STATUS_LABELS + $statusLabels, self::PER_PAGE, $offset);
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
         $currentTeam = $this->currentTeam($userId);
@@ -44,6 +49,7 @@ class ApplicantReportController extends BaseController
         return view('admin/applicant_report', [
             'auth' => $auth,
             'applications' => $applications,
+            'pagination' => ['page' => $page, 'per_page' => self::PER_PAGE, 'total' => $summary['applicants'], 'total_pages' => $totalPages, 'offset' => $offset],
             'filters' => $filters,
             'vacancies' => $database->table('vacancies')->select('id, title')->where('deleted_at', null)->orderBy('title')->get()->getResultArray(),
             'periods' => $database->table('vacancy_recruitment_periods AS periods')->select('periods.id, periods.period_name, vacancies.title AS vacancy_title')->join('vacancies', 'vacancies.id = periods.vacancy_id')->where('periods.deleted_at', null)->orderBy('periods.opened_at', 'DESC')->get()->getResultArray(),
@@ -55,12 +61,7 @@ class ApplicantReportController extends BaseController
             'currentTeam' => $currentTeam,
             'success' => session()->getFlashdata('applicant_pool_success'),
             'error' => session()->getFlashdata('applicant_pool_error'),
-            'summary' => [
-                'applicants' => count($applications),
-                'applications' => $applicationCount,
-                'unassigned' => count(array_filter($applications, static fn (array $row): bool => empty($row['assigned_hrd_team_id']) && empty($row['active_blacklist_id']))),
-                'assigned' => count(array_filter($applications, static fn (array $row): bool => ! empty($row['assigned_hrd_team_id']))),
-            ],
+            'summary' => $summary,
         ]);
     }
 
@@ -165,7 +166,7 @@ class ApplicantReportController extends BaseController
      * @param array<string, string> $statusLabels
      * @return list<array<string, mixed>>
      */
-    private function reportRows(array $filters, array $statusLabels): array
+    private function reportRows(array $filters, array $statusLabels, ?int $limit = null, int $offset = 0): array
     {
         $builder = db_connect()->table('applications AS applications')
             ->select("applicants.id AS applicant_id, applicants.assigned_hrd_team_id, applicants.assigned_at, applicants.full_name, applicants.email, applicants.phone, applicants.birth_date, applicants.address, teams.name AS hrd_team_name, assigned_user.full_name AS assigned_by_name, active_blacklist.id AS active_blacklist_id, COUNT(DISTINCT applications.id) AS application_count, MAX(applications.submitted_at) AS submitted_at, GROUP_CONCAT(DISTINCT vacancies.title ORDER BY applications.preference_order SEPARATOR '||') AS position_names, GROUP_CONCAT(DISTINCT periods.period_name ORDER BY applications.preference_order SEPARATOR '||') AS period_names, GROUP_CONCAT(DISTINCT departments.name ORDER BY departments.name SEPARATOR '||') AS department_names, GROUP_CONCAT(CONCAT(vacancies.title, '::', applications.application_status) ORDER BY applications.preference_order, applications.id SEPARATOR '||') AS position_statuses", false)
@@ -180,11 +181,14 @@ class ApplicantReportController extends BaseController
             ->where('applicants.deleted_at', null);
         $this->applyFilters($builder, $filters);
 
-        $rows = $builder
+        $builder
             ->groupBy(['applicants.id', 'applicants.assigned_hrd_team_id', 'applicants.assigned_at', 'applicants.full_name', 'applicants.email', 'applicants.phone', 'applicants.birth_date', 'applicants.address', 'teams.name', 'assigned_user.full_name', 'active_blacklist.id'])
             ->orderBy('submitted_at', 'DESC')
-            ->orderBy('applicants.id', 'DESC')
-            ->get()->getResultArray();
+            ->orderBy('applicants.id', 'DESC');
+        if ($limit !== null) {
+            $builder->limit($limit, max(0, $offset));
+        }
+        $rows = $builder->get()->getResultArray();
 
         return array_map(function (array $row) use ($statusLabels): array {
             $positionStatuses = [];
@@ -207,6 +211,32 @@ class ApplicantReportController extends BaseController
 
             return $row;
         }, $rows);
+    }
+
+    /**
+     * @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters
+     * @return array{applicants: int, applications: int, unassigned: int, assigned: int}
+     */
+    private function reportSummary(array $filters): array
+    {
+        $builder = db_connect()->table('applications AS applications')
+            ->select("COUNT(DISTINCT applicants.id) AS applicants, COUNT(DISTINCT applications.id) AS applications, COUNT(DISTINCT CASE WHEN applicants.assigned_hrd_team_id IS NULL AND active_blacklist.id IS NULL THEN applicants.id END) AS unassigned, COUNT(DISTINCT CASE WHEN applicants.assigned_hrd_team_id IS NOT NULL THEN applicants.id END) AS assigned", false)
+            ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+            ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
+            ->join('departments', 'departments.id = vacancies.department_id')
+            ->join('applicant_blacklists AS active_blacklist', 'active_blacklist.applicant_id = applicants.id AND active_blacklist.revoked_at IS NULL AND active_blacklist.starts_at <= NOW() AND (active_blacklist.is_permanent = 1 OR active_blacklist.ends_at >= NOW())', 'left', false)
+            ->where('applications.deleted_at', null)
+            ->where('applicants.deleted_at', null);
+        $this->applyFilters($builder, $filters);
+        $row = $builder->get()->getRowArray() ?? [];
+
+        return [
+            'applicants' => (int) ($row['applicants'] ?? 0),
+            'applications' => (int) ($row['applications'] ?? 0),
+            'unassigned' => (int) ($row['unassigned'] ?? 0),
+            'assigned' => (int) ($row['assigned'] ?? 0),
+        ];
     }
 
     /** @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters */

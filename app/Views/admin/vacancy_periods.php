@@ -18,8 +18,19 @@ $dateLabel = static function (mixed $value): string {
 $oldFor = static function (string $modal, string $field, mixed $fallback = '') use ($openModal): mixed {
     return $openModal === $modal ? old($field, $fallback) : $fallback;
 };
-$periodStatusCounts = array_count_values(array_column($periods, 'status'));
-$periodApplicationCount = array_sum(array_map('intval', array_column($periods, 'application_count')));
+$pageUrl = static function (int $page) use ($selectedVacancyId, $selectedStatus): string {
+    $query = ['page' => max(1, $page)];
+    if ($selectedVacancyId > 0) {
+        $query['vacancy_id'] = $selectedVacancyId;
+    }
+    if ($selectedStatus !== '') {
+        $query['status'] = $selectedStatus;
+    }
+
+    return site_url('adminhrdmannakampus/sesi-lowongan') . '?' . http_build_query($query);
+};
+$pageStart = max(1, (int) $pagination['page'] - 2);
+$pageEnd = min((int) $pagination['total_pages'], (int) $pagination['page'] + 2);
 ?>
 <!doctype html>
 <html lang="id">
@@ -31,7 +42,7 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
     <title>Sesi Lowongan | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=27">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=64">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -48,10 +59,10 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
             </section>
 
             <section class="access-summary vacancy-summary" aria-label="Ringkasan sesi lowongan">
-                <article><i class="summary-card-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4M8 11h8M8 15h5"/></svg></i><strong><?= count($periods) ?></strong><span>Hasil ditampilkan</span></article>
-                <article><i class="summary-card-icon icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4"/><path d="m8 13 2.5 2.5L16 10"/></svg></i><strong><?= (int) ($periodStatusCounts['open'] ?? 0) ?></strong><span>Sedang dibuka</span></article>
-                <article><i class="summary-card-icon icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i><strong><?= (int) ($periodStatusCounts['scheduled'] ?? 0) ?></strong><span>Terjadwal</span></article>
-                <article><i class="summary-card-icon icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg></i><strong><?= $periodApplicationCount ?></strong><span>Total pelamar</span></article>
+                <article><i class="summary-card-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4M8 11h8M8 15h5"/></svg></i><strong><?= (int) $summary['total'] ?></strong><span>Hasil ditemukan</span></article>
+                <article><i class="summary-card-icon icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4"/><path d="m8 13 2.5 2.5L16 10"/></svg></i><strong><?= (int) $summary['open'] ?></strong><span>Sedang dibuka</span></article>
+                <article><i class="summary-card-icon icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i><strong><?= (int) $summary['scheduled'] ?></strong><span>Terjadwal</span></article>
+                <article><i class="summary-card-icon icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg></i><strong><?= (int) $summary['applications'] ?></strong><span>Total pelamar</span></article>
             </section>
 
             <section class="settings-card department-toolbar-card">
@@ -63,12 +74,12 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
             </section>
 
             <section class="settings-card vacancy-period-table-card">
-                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4M8 11h8M8 15h5"/></svg></span><div><h2>Daftar sesi rekrutmen</h2><p>Kandidat hanya dapat melamar satu kali pada setiap sesi.</p></div><span class="device-count"><?= count($periods) ?></span></div>
+                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 3v4M16 3v4M8 11h8M8 15h5"/></svg></span><div><h2>Daftar sesi rekrutmen</h2><p>Kandidat hanya dapat melamar satu kali pada setiap sesi.</p></div><span class="device-count"><?= count($periods) ?> / <?= (int) $pagination['total'] ?></span></div>
                 <div class="department-table-wrap"><table class="department-table vacancy-period-table"><thead><tr><th class="period-order">No.</th><th>Lowongan</th><th>Sesi</th><th>Periode</th><th>Kebutuhan</th><th>Pelamar</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
                     <?php if ($periods === []): ?><tr><td colspan="8" class="department-empty">Belum ada sesi lowongan yang sesuai dengan filter.</td></tr><?php endif ?>
                     <?php foreach ($periods as $index => $period): ?>
                         <tr>
-                            <td class="period-order"><?= $index + 1 ?></td>
+                            <td class="period-order"><?= (int) $pagination['offset'] + $index + 1 ?></td>
                             <td><div class="department-name-cell"><strong><?= esc($period['vacancy_title']) ?></strong><code><?= esc($period['department_name'] ?: '-') ?></code></div></td>
                             <td><div class="period-name-cell"><strong><?= esc($period['period_name']) ?></strong></div></td>
                             <td><div class="period-date-cell"><span><?= esc($dateLabel($period['opened_at'])) ?></span><small>sampai <?= esc($dateLabel($period['closed_at'])) ?></small></div></td>
@@ -82,6 +93,18 @@ $periodApplicationCount = array_sum(array_map('intval', array_column($periods, '
                         </tr>
                     <?php endforeach ?>
                 </tbody></table></div>
+                <?php if ((int) $pagination['total_pages'] > 1): ?>
+                    <nav class="vacancy-period-pagination" aria-label="Pagination sesi lowongan">
+                        <span>Menampilkan <?= (int) $pagination['offset'] + 1 ?>–<?= min((int) $pagination['offset'] + (int) $pagination['per_page'], (int) $pagination['total']) ?> dari <?= (int) $pagination['total'] ?> data</span>
+                        <div>
+                            <a class="pagination-direction <?= (int) $pagination['page'] === 1 ? 'is-disabled' : '' ?>" href="<?= (int) $pagination['page'] === 1 ? '#' : esc($pageUrl((int) $pagination['page'] - 1), 'attr') ?>" <?= (int) $pagination['page'] === 1 ? 'aria-disabled="true" tabindex="-1"' : '' ?>>&larr; Sebelumnya</a>
+                            <?php if ($pageStart > 1): ?><a href="<?= esc($pageUrl(1), 'attr') ?>">1</a><?php if ($pageStart > 2): ?><i>…</i><?php endif ?><?php endif ?>
+                            <?php for ($pageNumber = $pageStart; $pageNumber <= $pageEnd; $pageNumber++): ?><a class="<?= $pageNumber === (int) $pagination['page'] ? 'is-active' : '' ?>" href="<?= esc($pageUrl($pageNumber), 'attr') ?>" <?= $pageNumber === (int) $pagination['page'] ? 'aria-current="page"' : '' ?>><?= $pageNumber ?></a><?php endfor ?>
+                            <?php if ($pageEnd < (int) $pagination['total_pages']): ?><?php if ($pageEnd < (int) $pagination['total_pages'] - 1): ?><i>…</i><?php endif ?><a href="<?= esc($pageUrl((int) $pagination['total_pages']), 'attr') ?>"><?= (int) $pagination['total_pages'] ?></a><?php endif ?>
+                            <a class="pagination-direction <?= (int) $pagination['page'] === (int) $pagination['total_pages'] ? 'is-disabled' : '' ?>" href="<?= (int) $pagination['page'] === (int) $pagination['total_pages'] ? '#' : esc($pageUrl((int) $pagination['page'] + 1), 'attr') ?>" <?= (int) $pagination['page'] === (int) $pagination['total_pages'] ? 'aria-disabled="true" tabindex="-1"' : '' ?>>Berikutnya &rarr;</a>
+                        </div>
+                    </nav>
+                <?php endif ?>
             </section>
         </div>
     </main>
