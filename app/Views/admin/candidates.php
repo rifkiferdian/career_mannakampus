@@ -14,7 +14,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=80">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -126,7 +126,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
                     <div><h2 id="candidate-stage-title-<?= (int) $application['id'] ?>">Ubah tahap <?= esc($application['full_name']) ?></h2><p><?= esc($application['vacancy_title']) ?> · <?= esc($application['application_number']) ?></p></div>
                     <button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button>
                 </div>
-                <form class="candidate-process-form candidate-modal-form" action="<?= site_url('adminhrdmannakampus/kandidat/lamaran/' . $application['id'] . '/tahap') ?>" method="post">
+                <form class="candidate-process-form candidate-modal-form candidate-stage-change-form" action="<?= site_url('adminhrdmannakampus/kandidat/lamaran/' . $application['id'] . '/tahap') ?>" method="post">
                     <?= csrf_field() ?>
                     <input type="hidden" name="team_id" value="<?= $selectedTeamId ?>">
                     <div class="candidate-current-stage"><span>Tahap saat ini</span><strong><?= esc($application['status_label']) ?></strong></div>
