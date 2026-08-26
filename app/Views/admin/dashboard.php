@@ -37,7 +37,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
     <title>Dashboard HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=64">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -121,6 +121,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
                 <article class="analytics-card active-vacancy-card"><header><div><span>Vacancy Monitor</span><h2>Lowongan aktif</h2><p>Kebutuhan dan jumlah lamaran pada periode terpilih.</p></div></header><div class="dashboard-vacancy-list"><?php if ($openVacancyRows === []): ?><p class="analytics-empty">Belum ada lowongan aktif.</p><?php endif ?><?php foreach ($openVacancyRows as $vacancy): ?><div><p><strong><?= esc($vacancy['title']) ?></strong><span><?= esc($vacancy['period_name']) ?> · <?= esc($vacancy['department_name']) ?> · kebutuhan <?= (int) $vacancy['headcount'] ?> orang</span></p><strong><?= (int) $vacancy['application_count'] ?><small>lamaran</small></strong></div><?php endforeach ?></div></article>
             </section>
         </div>
+    <?= view('admin/partials/footer') ?>
     </main>
 </div>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>

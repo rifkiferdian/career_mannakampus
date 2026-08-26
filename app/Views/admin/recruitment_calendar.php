@@ -11,7 +11,7 @@ $dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
     <meta name="theme-color" content="#102a43">
     <title>Kalender Rekrutmen | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=64">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -78,6 +78,7 @@ $dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
                 </aside>
             </div>
         </div>
+    <?= view('admin/partials/footer') ?>
     </main>
 </div>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=7" defer></script>

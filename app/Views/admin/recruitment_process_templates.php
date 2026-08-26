@@ -6,7 +6,7 @@ $usedVacancyCount = array_sum(array_map(static fn (array $template): int => (int
 <html lang="id">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive">
-    <title>Template Tahapan | HRD Manna Kampus</title><link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>"><link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25"><link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=64">
+    <title>Template Tahapan | HRD Manna Kampus</title><link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>"><link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25"><link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -58,6 +58,7 @@ $usedVacancyCount = array_sum(array_map(static fn (array $template): int => (int
                 </table></div>
             </section>
         </div>
+    <?= view('admin/partials/footer') ?>
     </main>
 </div>
 <?php if ($canManage): ?>

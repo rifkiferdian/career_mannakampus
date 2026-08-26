@@ -40,7 +40,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=64">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -174,6 +174,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                 </section>
             <?php endforeach ?>
         </div>
+    <?= view('admin/partials/footer') ?>
     </main>
 </div>
 <?php foreach ($applications as $application): if (! $application['can_undo_stage']) { continue; } $undoChange = $application['last_stage_change']; ?>

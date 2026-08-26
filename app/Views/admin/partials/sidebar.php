@@ -196,6 +196,10 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
         <?php endif ?>
     </nav>
 
+    <footer class="admin-sidebar-footer">
+        <strong>HRD Manna Kampus</strong>
+        <small>&copy; <?= date('Y') ?> Recruitment System</small>
+    </footer>
 </aside>
 
 <div class="admin-header-account" aria-label="Akun pengguna aktif">
