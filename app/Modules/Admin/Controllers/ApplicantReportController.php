@@ -45,6 +45,42 @@ class ApplicantReportController extends BaseController
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
         $currentTeam = $this->currentTeam($userId);
+        $canUseWhatsappTemplates = Services::authorization()->can($userId, 'whatsapp.templates.view');
+        $whatsappTemplates = $canUseWhatsappTemplates
+            ? $database->table('whatsapp_message_templates')->where('deleted_at', null)->where('is_active', 1)->orderBy('display_order')->orderBy('id')->get()->getResultArray()
+            : [];
+        $whatsappContextsByApplicant = [];
+        $applicantIds = array_map('intval', array_column($applications, 'applicant_id'));
+        if ($applicantIds !== []) {
+            $contextRows = $database->table('applications AS applications')
+                ->select('applications.id, applications.applicant_id, applications.application_status, vacancies.title AS vacancy_title')
+                ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+                ->whereIn('applications.applicant_id', $applicantIds)
+                ->where('applications.deleted_at', null)
+                ->orderBy('applications.preference_order')
+                ->orderBy('applications.id')
+                ->get()->getResultArray();
+            $contextApplicationIds = array_map('intval', array_column($contextRows, 'id'));
+            $schedulesByApplication = [];
+            if ($contextApplicationIds !== []) {
+                $scheduleRows = $database->table('recruitment_schedules AS schedules')
+                    ->select('schedules.*, stages.name AS stage_name, pic.full_name AS pic_name')
+                    ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
+                    ->join('users AS pic', 'pic.id = schedules.pic_user_id')
+                    ->whereIn('schedules.application_id', $contextApplicationIds)
+                    ->orderBy('schedules.created_at', 'DESC')->get()->getResultArray();
+                foreach ($scheduleRows as $schedule) {
+                    $schedulesByApplication[(int) $schedule['application_id']][] = $schedule;
+                }
+            }
+            foreach ($contextRows as $context) {
+                $context['stage_label'] = $this->statusLabel((string) $context['application_status'], self::SYSTEM_STATUS_LABELS + $statusLabels);
+                $context['previous_stage'] = '-';
+                $context['next_stage'] = '-';
+                $context['schedules'] = $schedulesByApplication[(int) $context['id']] ?? [];
+                $whatsappContextsByApplicant[(int) $context['applicant_id']][] = $context;
+            }
+        }
 
         return view('admin/applicant_report', [
             'auth' => $auth,
@@ -58,6 +94,9 @@ class ApplicantReportController extends BaseController
             'canViewCandidate' => Services::authorization()->can($userId, 'candidates.view'),
             'canAssignPermission' => Services::authorization()->can($userId, 'applicants.assign'),
             'canAssign' => Services::authorization()->can($userId, 'applicants.assign') && $currentTeam !== null,
+            'canUseWhatsappTemplates' => $canUseWhatsappTemplates,
+            'whatsappTemplates' => $whatsappTemplates,
+            'whatsappContextsByApplicant' => $whatsappContextsByApplicant,
             'currentTeam' => $currentTeam,
             'success' => session()->getFlashdata('applicant_pool_success'),
             'error' => session()->getFlashdata('applicant_pool_error'),

@@ -14,7 +14,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=80">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=82">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -70,7 +70,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
                                     <td class="candidate-order"><?= (int) $pagination['offset'] + $index + 1 ?></td>
                                     <td><div class="report-applicant"><strong><?= esc($application['full_name']) ?></strong><a href="mailto:<?= esc($application['email'], 'attr') ?>"><?= esc($application['email']) ?></a></div></td>
                                     <td><?= $application['age'] === null ? '-' : (int) $application['age'] . ' tahun' ?></td>
-                                    <td><?php if ($application['whatsapp_number'] !== ''): ?><a class="candidate-whatsapp-link" href="https://wa.me/<?= esc($application['whatsapp_number'], 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="Hubungi <?= esc($application['full_name'], 'attr') ?> melalui WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Zm-8.4 18.2c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.4 4.7Zm5.4-7.3c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.6l-.9-2.1c-.2-.5-.5-.5-.7-.5H8c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2 2.2.9 3.1 1 4.2.8.7-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3l-1.4-.7Z"/></svg><span><?= esc($application['phone']) ?></span></a><?php else: ?>-<?php endif ?></td>
+                                    <td><?php if ($application['whatsapp_number'] !== ''): ?><?php if ($canUseWhatsappTemplates && $whatsappTemplates !== []): ?><button class="candidate-whatsapp-link" type="button" data-admin-modal-open="candidate-whatsapp-modal-<?= (int) $application['id'] ?>" aria-label="Siapkan WhatsApp untuk <?= esc($application['full_name'], 'attr') ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Z"/></svg><span><?= esc($application['phone']) ?></span></button><?php else: ?><a class="candidate-whatsapp-link" href="https://wa.me/<?= esc($application['whatsapp_number'], 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="Hubungi <?= esc($application['full_name'], 'attr') ?> melalui WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Z"/></svg><span><?= esc($application['phone']) ?></span></a><?php endif ?><?php else: ?>-<?php endif ?></td>
                                     <td><div class="department-name-cell"><strong><?= esc($application['vacancy_title']) ?></strong><code><?= esc($application['period_name'] . ' · ' . $application['department_name']) ?></code></div></td>
                                     <td><span class="candidate-stage-pill" style="--candidate-color: <?= esc($application['stage_color'], 'attr') ?>"><i></i><?= esc($application['status_label']) ?></span><?php if ($isBlacklisted): ?><span class="candidate-blacklist-inline">Blacklist aktif</span><?php endif ?></td>
                                     <td>
@@ -117,6 +117,11 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
     <?= view('admin/partials/footer') ?>
     </main>
 </div>
+<?php if ($canUseWhatsappTemplates && $whatsappTemplates !== []): ?>
+    <?php foreach ($applications as $application): if ($application['whatsapp_number'] === '') { continue; } $previousStageName = '-'; $nextStageName = '-'; foreach ($application['process_steps'] as $processStep) { if ($processStep['progress_state'] === 'previous') { $previousStageName = (string) $processStep['name']; } elseif (in_array($processStep['progress_state'], ['next', 'upcoming'], true) && $nextStageName === '-') { $nextStageName = (string) $processStep['name']; } } $whatsappContext = [['id' => $application['id'], 'vacancy_title' => $application['vacancy_title'], 'stage_label' => $application['status_label'], 'previous_stage' => $previousStageName, 'next_stage' => $nextStageName, 'schedules' => $application['schedules']]]; ?>
+        <?= view('admin/partials/applicant_whatsapp_modal', ['modalId' => 'candidate-whatsapp-modal-' . (int) $application['id'], 'phone' => $application['whatsapp_number'], 'applicantName' => $application['full_name'], 'recruiterName' => (string) ($auth['name'] ?? 'Admin HRD'), 'templates' => $whatsappTemplates, 'contexts' => $whatsappContext]) ?>
+    <?php endforeach ?>
+<?php endif ?>
 <?php if ($canUpdateStatus): ?>
     <?php foreach ($applications as $application): if ($application['available_stages'] === []) { continue; } ?>
         <dialog class="admin-modal candidate-stage-modal" id="candidate-stage-modal-<?= (int) $application['id'] ?>" aria-labelledby="candidate-stage-title-<?= (int) $application['id'] ?>">
@@ -213,6 +218,6 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
 </dialog>
 <?php endforeach ?>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=11" defer></script>
+<script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=14" defer></script>
 </body>
 </html>

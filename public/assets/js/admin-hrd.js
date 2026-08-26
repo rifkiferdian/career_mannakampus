@@ -121,6 +121,18 @@
         }
     });
 
+    document.querySelectorAll('.report-table .candidate-whatsapp-link[href^="https://wa.me/"]').forEach((link) => {
+        const phone = link.getAttribute('href').replace('https://wa.me/', '').split('?')[0];
+        const modalId = `report-whatsapp-modal-${phone}`;
+        if (!document.getElementById(modalId)) return;
+        link.setAttribute('href', '#');
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
+        link.setAttribute('role', 'button');
+        link.setAttribute('data-admin-modal-open', modalId);
+        link.setAttribute('aria-label', `Siapkan WhatsApp untuk ${link.closest('tr')?.querySelector('.report-applicant strong')?.textContent || 'pelamar'}`);
+    });
+
     document.querySelectorAll('[data-admin-modal-open]').forEach((button) => {
         button.addEventListener('click', () => {
             const modal = document.getElementById(button.dataset.adminModalOpen || '');

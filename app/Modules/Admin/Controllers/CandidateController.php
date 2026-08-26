@@ -154,6 +154,10 @@ class CandidateController extends BaseController
         $canCancelAssignment = Services::authorization()->can($userId, 'applicants.assign')
             && $selectedTeamId > 0
             && ($canManageTeams || (int) ($currentTeam['id'] ?? 0) === $selectedTeamId);
+        $canUseWhatsappTemplates = Services::authorization()->can($userId, 'whatsapp.templates.view');
+        $whatsappTemplates = $canUseWhatsappTemplates
+            ? $database->table('whatsapp_message_templates')->where('deleted_at', null)->where('is_active', 1)->orderBy('display_order')->orderBy('id')->get()->getResultArray()
+            : [];
 
         return view('admin/candidates', [
             'auth' => $auth,
@@ -177,6 +181,8 @@ class CandidateController extends BaseController
             'canManageSchedules' => Services::authorization()->can($userId, 'schedules.manage'),
             'canRecordAttendance' => Services::authorization()->can($userId, 'schedules.attendance'),
             'canCancelAssignment' => $canCancelAssignment,
+            'canUseWhatsappTemplates' => $canUseWhatsappTemplates,
+            'whatsappTemplates' => $whatsappTemplates,
             'summary' => $summary,
             'success' => session()->getFlashdata('candidate_success'),
             'error' => session()->getFlashdata('candidate_error'),

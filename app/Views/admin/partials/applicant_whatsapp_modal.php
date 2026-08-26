@@ -1,0 +1,22 @@
+<?php
+$titleId = $modalId . '-title';
+?>
+<dialog class="admin-modal applicant-whatsapp-modal" id="<?= esc($modalId, 'attr') ?>" aria-labelledby="<?= esc($titleId, 'attr') ?>">
+    <div class="admin-modal-panel" data-applicant-whatsapp-composer data-phone="<?= esc($phone, 'attr') ?>" data-applicant="<?= esc($applicantName, 'attr') ?>" data-recruiter="<?= esc($recruiterName, 'attr') ?>">
+        <div class="settings-card-heading admin-modal-heading">
+            <span class="settings-icon whatsapp-modal-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Z"/><path d="M8.1 6.8c-.3 0-.7.1-1 .5-.4.4-1.3 1.3-1.3 3s1.3 3.5 1.5 3.7c.2.2 2.5 3.9 6.1 5.3 3 .9 3.7.7 4.4.6.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.4.2-1.6-.1-.2-.4-.3-.8-.5l-2.3-1.1c-.3-.1-.6-.2-.8.2l-1 1.2c-.2.3-.4.3-.8.1-2.1-1-3.5-2.6-4-3.5-.2-.4 0-.6.2-.8l.7-.8c.2-.2.2-.5.3-.7.1-.2 0-.5-.1-.7l-1-2.4c-.2-.6-.5-.8-.7-.8Z"/></svg></span>
+            <div><h2 id="<?= esc($titleId, 'attr') ?>">Kirim WhatsApp ke <?= esc($applicantName) ?></h2><p>Pesan dapat diedit sebelum WhatsApp Desktop atau Web dibuka.</p></div>
+            <button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button>
+        </div>
+        <div class="applicant-whatsapp-composer">
+            <div class="applicant-whatsapp-selectors">
+                <label>Template pesan<select data-applicant-whatsapp-template><?php foreach ($templates as $template): ?><option value="<?= (int) $template['id'] ?>" data-category="<?= esc($template['category'], 'attr') ?>" data-message="<?= esc($template['message_text'], 'attr') ?>" <?= $template['code'] === 'kontak_awal' ? 'selected' : '' ?>><?= esc($template['name']) ?></option><?php endforeach ?></select></label>
+                <label>Posisi yang dibahas<select data-applicant-whatsapp-application><?php foreach ($contexts as $context): ?><option value="<?= (int) $context['id'] ?>" data-vacancy="<?= esc($context['vacancy_title'], 'attr') ?>" data-stage="<?= esc($context['stage_label'], 'attr') ?>" data-previous-stage="<?= esc($context['previous_stage'] ?? '-', 'attr') ?>" data-next-stage="<?= esc($context['next_stage'] ?? '-', 'attr') ?>"><?= esc($context['vacancy_title']) ?></option><?php endforeach ?></select></label>
+                <label>Jadwal terkait (Opsional)<select data-applicant-whatsapp-schedule><option value="" data-application-id="0">Tanpa jadwal</option><?php foreach ($contexts as $context): foreach ($context['schedules'] ?? [] as $schedule): if ($schedule['status'] === 'cancelled') { continue; } ?><option value="<?= (int) $schedule['id'] ?>" data-application-id="<?= (int) $context['id'] ?>" data-stage="<?= esc($schedule['stage_name'], 'attr') ?>" data-date="<?= esc(date('d M Y', strtotime($schedule['scheduled_at'])), 'attr') ?>" data-time="<?= esc(date('H:i', strtotime($schedule['scheduled_at'])), 'attr') ?>" data-location="<?= esc($schedule['venue'], 'attr') ?>" data-pic="<?= esc($schedule['pic_name'], 'attr') ?>" data-instructions="<?= esc((string) ($schedule['instructions'] ?? ''), 'attr') ?>" data-deadline="<?= esc(date('d M Y, H:i', strtotime($schedule['confirmation_deadline_at'])) . ' WIB', 'attr') ?>"><?= esc($schedule['stage_name']) ?> · <?= esc(date('d M Y, H:i', strtotime($schedule['scheduled_at']))) ?> WIB</option><?php endforeach; endforeach ?></select></label>
+            </div>
+            <label class="applicant-whatsapp-message-field">Isi pesan<textarea rows="14" maxlength="2000" data-applicant-whatsapp-message></textarea><span><b data-applicant-whatsapp-count>0</b>/2.000 karakter</span></label>
+            <div class="applicant-whatsapp-hint"><strong>Nomor tujuan</strong><span>+<?= esc($phone) ?> · Pesan belum dikirim otomatis. Periksa kembali lalu tekan Kirim di WhatsApp.</span></div>
+            <div class="applicant-whatsapp-actions"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><a href="#" target="_blank" rel="noopener noreferrer" data-applicant-whatsapp-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Z"/></svg>Buka WhatsApp</a></div>
+        </div>
+    </div>
+</dialog>
