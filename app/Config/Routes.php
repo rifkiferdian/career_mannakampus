@@ -108,5 +108,10 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('aspek-penilaian/(:num)', 'RecommendationAspectController::update/$1', ['filter' => 'permission:recommendation.aspects.manage', 'as' => 'hrd.recommendation.aspects.update']);
     $routes->post('aspek-penilaian/(:num)/status', 'RecommendationAspectController::toggle/$1', ['filter' => 'permission:recommendation.aspects.manage', 'as' => 'hrd.recommendation.aspects.status']);
     $routes->post('aspek-penilaian/(:num)/hapus', 'RecommendationAspectController::delete/$1', ['filter' => 'permission:recommendation.aspects.manage', 'as' => 'hrd.recommendation.aspects.delete']);
+    $routes->get('template-whatsapp', 'WhatsappTemplateController::index', ['filter' => 'permission:whatsapp.templates.view', 'as' => 'hrd.whatsapp.templates']);
+    $routes->post('template-whatsapp', 'WhatsappTemplateController::create', ['filter' => 'permission:whatsapp.templates.manage', 'as' => 'hrd.whatsapp.templates.create']);
+    $routes->post('template-whatsapp/(:num)', 'WhatsappTemplateController::update/$1', ['filter' => 'permission:whatsapp.templates.manage', 'as' => 'hrd.whatsapp.templates.update']);
+    $routes->post('template-whatsapp/(:num)/status', 'WhatsappTemplateController::toggle/$1', ['filter' => 'permission:whatsapp.templates.manage', 'as' => 'hrd.whatsapp.templates.status']);
+    $routes->post('template-whatsapp/(:num)/hapus', 'WhatsappTemplateController::delete/$1', ['filter' => 'permission:whatsapp.templates.manage', 'as' => 'hrd.whatsapp.templates.delete']);
     $routes->post('logout', 'AuthController::logout', ['filter' => 'hrd-auth', 'as' => 'hrd.logout']);
 });

@@ -10,6 +10,7 @@ $canViewVacancyPeriods = $authorization->can($userId, 'vacancy.periods.view');
 $canViewProcessTemplates = $authorization->can($userId, 'recruitment.templates.view');
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
 $canViewRecommendationAspects = $authorization->can($userId, 'recommendation.aspects.view');
+$canViewWhatsappTemplates = $authorization->can($userId, 'whatsapp.templates.view');
 $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.view');
 $canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
 $canViewApplicantBlacklist = $authorization->can($userId, 'applicants.blacklist.view');
@@ -153,6 +154,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('recommendation-aspects') ?> href="<?= site_url('adminhrdmannakampus/aspek-penilaian') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h5M8 12h8M8 16h4"/><path d="m15 7 1 1 2-2"/></svg>
                 Aspek Nilai
+            </a>
+        <?php endif ?>
+        <?php if ($canViewWhatsappTemplates): ?>
+            <a<?= $activeClass('whatsapp-templates') ?> href="<?= site_url('adminhrdmannakampus/template-whatsapp') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path style="fill:#25d366;stroke:none" d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Z"/><path style="fill:#fff;stroke:none" d="M8.1 6.8c-.3 0-.7.1-1 .5-.4.4-1.3 1.3-1.3 3s1.3 3.5 1.5 3.7c.2.2 2.5 3.9 6.1 5.3 3 .9 3.7.7 4.4.6.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.4.2-1.6-.1-.2-.4-.3-.8-.5l-2.3-1.1c-.3-.1-.6-.2-.8.2l-1 1.2c-.2.3-.4.3-.8.1-2.1-1-3.5-2.6-4-3.5-.2-.4 0-.6.2-.8l.7-.8c.2-.2.2-.5.3-.7.1-.2 0-.5-.1-.7l-1-2.4c-.2-.6-.5-.8-.7-.8Z"/></svg>
+                Template WhatsApp
             </a>
         <?php endif ?>
         <?php if ($canViewScreeningQuestions): ?>

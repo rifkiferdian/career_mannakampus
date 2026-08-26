@@ -201,4 +201,45 @@
         stageSelect.addEventListener('change', updateRejectionFields);
         updateRejectionFields();
     });
+
+    document.querySelectorAll('[data-whatsapp-template-form]').forEach((form) => {
+        const message = form.querySelector('[data-whatsapp-message]');
+        const counter = form.querySelector('[data-whatsapp-character-count]');
+        const preview = form.querySelector('[data-whatsapp-preview]');
+        if (!(message instanceof HTMLTextAreaElement)) return;
+
+        const sampleValues = {
+            nama_pelamar: 'Ahmad Pratama',
+            nama_recruiter: 'Admin HRD',
+            nama_lowongan: 'Staff Administrasi',
+            nama_tahap: 'Wawancara HRD',
+            tanggal: '28 Agustus 2026',
+            jam: '09.00',
+            lokasi: 'Kantor Pusat Manna Kampus',
+            nama_pic: 'Admin HRD',
+            instruksi: 'Harap hadir 15 menit sebelum jadwal.',
+            batas_konfirmasi: '27 Agustus 2026, 16.00 WIB',
+            tahap_sebelumnya: 'Screening Dokumen',
+            tahap_berikutnya: 'Wawancara HRD',
+        };
+        const updateWhatsappPreview = () => {
+            if (counter instanceof HTMLElement) counter.textContent = String(message.value.length);
+            if (preview instanceof HTMLElement) {
+                preview.textContent = message.value.replace(/\{\{\s*([a-z0-9_]+)\s*\}\}/giu, (token, variable) => sampleValues[variable] || token);
+            }
+        };
+
+        form.querySelectorAll('[data-whatsapp-variable]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const variable = button.dataset.whatsappVariable || '';
+                const start = message.selectionStart ?? message.value.length;
+                const end = message.selectionEnd ?? start;
+                message.setRangeText(variable, start, end, 'end');
+                message.focus();
+                updateWhatsappPreview();
+            });
+        });
+        message.addEventListener('input', updateWhatsappPreview);
+        updateWhatsappPreview();
+    });
 })();

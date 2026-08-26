@@ -248,9 +248,9 @@ class AccessController extends BaseController
     private function assignablePermissions(): array
     {
         return db_connect()->table('permissions')
-            ->whereIn('module', ['dashboard', 'candidates', 'vacancies', 'departments', 'screening', 'reports', 'recruitment_settings'])
+            ->whereIn('module', ['dashboard', 'candidates', 'vacancies', 'departments', 'screening', 'reports', 'recruitment_settings', 'recommendations', 'communications'])
             ->where('is_active', 1)
-            ->orderBy("CASE module WHEN 'dashboard' THEN 1 WHEN 'candidates' THEN 2 WHEN 'vacancies' THEN 3 WHEN 'departments' THEN 4 WHEN 'screening' THEN 5 WHEN 'reports' THEN 6 ELSE 7 END", '', false)
+            ->orderBy("CASE module WHEN 'dashboard' THEN 1 WHEN 'candidates' THEN 2 WHEN 'vacancies' THEN 3 WHEN 'departments' THEN 4 WHEN 'screening' THEN 5 WHEN 'reports' THEN 6 WHEN 'recommendations' THEN 7 WHEN 'communications' THEN 8 ELSE 9 END", '', false)
             ->orderBy('name', 'ASC')
             ->get()
             ->getResultArray();
