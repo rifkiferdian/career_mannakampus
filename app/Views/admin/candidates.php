@@ -2,6 +2,7 @@
 $candidateBaseUrl = site_url('adminhrdmannakampus/kandidat');
 $candidateTeamUrl = $candidateBaseUrl . ($selectedTeamId > 0 ? '?team_id=' . $selectedTeamId : '');
 $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', 'next' => 'Selanjutnya', 'upcoming' => 'Akan datang'];
+$paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, static fn ($value): bool => $value !== '' && $value !== 0);
 ?>
 <!doctype html>
 <html lang="id">
@@ -58,7 +59,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
             </section>
 
             <section class="settings-card candidate-table-card">
-                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg></span><div><h2>Pipeline <?= esc($selectedTeam['name'] ?? 'divisi') ?></h2><p>Hanya pelamar yang sudah dipilih untuk divisi ini.</p></div><span class="device-count"><?= count($applications) ?></span></div>
+                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-green"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg></span><div><h2>Pipeline <?= esc($selectedTeam['name'] ?? 'divisi') ?></h2><p>Hanya pelamar yang sudah dipilih untuk divisi ini.</p></div><span class="device-count"><?= count($applications) ?> / <?= (int) $pagination['total'] ?></span></div>
                 <div class="department-table-wrap">
                     <table class="department-table candidate-table">
                         <thead><tr><th class="candidate-order">No.</th><th>Kandidat</th><th>Umur</th><th>No. Telepon / WA</th><th>Posisi</th><th>Tahap saat ini</th><th>Tahap gugur</th><th>Tanggal gugur &amp; masa tunggu</th><th>Tanggal daftar</th><th>Aksi</th></tr></thead>
@@ -66,7 +67,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                             <?php if ($applications === []): ?><tr><td colspan="10" class="department-empty">Belum ada pelamar pada divisi ini.</td></tr><?php endif ?>
                             <?php foreach ($applications as $index => $application): $isBlacklisted = ! empty($application['active_blacklist_id']); ?>
                                 <tr>
-                                    <td class="candidate-order"><?= $index + 1 ?></td>
+                                    <td class="candidate-order"><?= (int) $pagination['offset'] + $index + 1 ?></td>
                                     <td><div class="report-applicant"><strong><?= esc($application['full_name']) ?></strong><a href="mailto:<?= esc($application['email'], 'attr') ?>"><?= esc($application['email']) ?></a></div></td>
                                     <td><?= $application['age'] === null ? '-' : (int) $application['age'] . ' tahun' ?></td>
                                     <td><?php if ($application['whatsapp_number'] !== ''): ?><a class="candidate-whatsapp-link" href="https://wa.me/<?= esc($application['whatsapp_number'], 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="Hubungi <?= esc($application['full_name'], 'attr') ?> melalui WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L0 24l6.5-1.7c1.7.9 3.6 1.4 5.6 1.4 6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.4-8.4Zm-8.4 18.2c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.4 4.7Zm5.4-7.3c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.6l-.9-2.1c-.2-.5-.5-.5-.7-.5H8c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2 2.2.9 3.1 1 4.2.8.7-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3l-1.4-.7Z"/></svg><span><?= esc($application['phone']) ?></span></a><?php else: ?>-<?php endif ?></td>
@@ -110,6 +111,7 @@ $progressLabels = ['previous' => 'Sebelumnya', 'current' => 'Posisi saat ini', '
                         </tbody>
                     </table>
                 </div>
+                <?= view('admin/partials/pagination', ['pagination' => $pagination, 'baseUrl' => $candidateBaseUrl, 'query' => $paginationQuery, 'unit' => 'data pelamar']) ?>
             </section>
         </div>
     <?= view('admin/partials/footer') ?>

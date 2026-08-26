@@ -10,6 +10,8 @@ use Config\Services;
 
 class CandidateController extends BaseController
 {
+    private const PER_PAGE = 50;
+
     /** @var array<string, list<string>> */
     private const STATUS_ALIASES = [
         'under_review' => ['under_review', 'reviewed'],
@@ -112,6 +114,16 @@ class CandidateController extends BaseController
             $this->addRejectionTiming($application, $templateStages, $nowDateTime);
         }
         unset($application);
+        $summary = [
+            'total' => count($applications),
+            'overdue' => count(array_filter($applications, static fn (array $row): bool => (bool) $row['is_overdue'])),
+            'accepted' => count(array_filter($applications, static fn (array $row): bool => in_array($row['application_status'], ['accepted', 'hired'], true))),
+            'active' => count(array_filter($applications, static fn (array $row): bool => ! in_array($row['application_status'], ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'], true))),
+        ];
+        $totalPages = max(1, (int) ceil($summary['total'] / self::PER_PAGE));
+        $page = min(max(1, (int) $this->request->getGet('page')), $totalPages);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $applications = array_slice($applications, $offset, self::PER_PAGE);
         $applicationIds = array_map('intval', array_column($applications, 'id'));
         $schedulesByApplication = [];
         if ($applicationIds !== []) {
@@ -146,6 +158,7 @@ class CandidateController extends BaseController
         return view('admin/candidates', [
             'auth' => $auth,
             'applications' => $applications,
+            'pagination' => ['page' => $page, 'per_page' => self::PER_PAGE, 'total' => $summary['total'], 'total_pages' => $totalPages, 'offset' => $offset],
             'stages' => $stages,
             'statusOptions' => $statusOptions,
             'rejectionStageOptions' => $rejectionStageOptions,
@@ -164,12 +177,7 @@ class CandidateController extends BaseController
             'canManageSchedules' => Services::authorization()->can($userId, 'schedules.manage'),
             'canRecordAttendance' => Services::authorization()->can($userId, 'schedules.attendance'),
             'canCancelAssignment' => $canCancelAssignment,
-            'summary' => [
-                'total' => count($applications),
-                'overdue' => count(array_filter($applications, static fn (array $row): bool => (bool) $row['is_overdue'])),
-                'accepted' => count(array_filter($applications, static fn (array $row): bool => in_array($row['application_status'], ['accepted', 'hired'], true))),
-                'active' => count(array_filter($applications, static fn (array $row): bool => ! in_array($row['application_status'], ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'], true))),
-            ],
+            'summary' => $summary,
             'success' => session()->getFlashdata('candidate_success'),
             'error' => session()->getFlashdata('candidate_error'),
         ]);
