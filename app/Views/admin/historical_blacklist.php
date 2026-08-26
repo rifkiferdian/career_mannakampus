@@ -3,6 +3,7 @@ $date = static fn (?string $value, string $format = 'd/m/Y H:i'): string => $val
 $statusLabels = ['active' => 'Aktif', 'permanent' => 'Permanen', 'expired' => 'Berakhir', 'revoked' => 'Dicabut'];
 $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 'revoked' => 'Dicabut', 'reactivated' => 'Diaktifkan kembali'];
 $openModal = (string) old('form_origin');
+$paginationQuery = array_filter($filters, static fn ($value): bool => $value !== '');
 ?>
 <!doctype html>
 <html lang="id">
@@ -14,7 +15,7 @@ $openModal = (string) old('form_origin');
     <title>Blacklist Historis | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=67">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -47,21 +48,22 @@ $openModal = (string) old('form_origin');
             </section>
 
             <section class="settings-card blacklist-table-card">
-                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-red"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span><div><h2>Daftar identitas historis</h2><p>NIK tidak disimpan utuh dan hanya empat digit terakhir yang ditampilkan.</p></div><span class="device-count"><?= count($entries) ?></span></div>
-                <div class="department-table-wrap"><table class="department-table blacklist-table"><thead><tr><th>No.</th><th>Identitas</th><th>Alasan &amp; sumber</th><th>Masa berlaku</th><th>Pencocokan</th><th>Dicatat oleh</th><th>Aksi</th></tr></thead><tbody>
+                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-red"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span><div><h2>Daftar identitas historis</h2><p>NIK tidak disimpan utuh dan hanya empat digit terakhir yang ditampilkan.</p></div><span class="device-count"><?= count($entries) ?> / <?= (int) $pagination['total'] ?></span></div>
+                <div class="department-table-wrap"><table class="department-table blacklist-table"><thead><tr><th>No.</th><th>Identitas</th><th>Alasan &amp; sumber</th><th>Masa berlaku</th><th>Tanggal mulai blacklist</th><th>Dicatat oleh</th><th>Aksi</th></tr></thead><tbody>
                     <?php if ($entries === []): ?><tr><td colspan="7" class="department-empty">Data blacklist historis tidak ditemukan.</td></tr><?php endif ?>
                     <?php foreach ($entries as $index => $entry): $isActive = in_array($entry['computed_status'], ['active', 'permanent'], true); ?>
                         <tr>
-                            <td><?= $index + 1 ?></td>
+                            <td><?= (int) $pagination['offset'] + $index + 1 ?></td>
                             <td><div class="report-applicant"><strong><?= esc($entry['full_name']) ?></strong><?php if ($entry['nik_last_four']): ?><small>NIK •••• •••• •••• <?= esc($entry['nik_last_four']) ?></small><?php endif ?><?php if ($entry['email']): ?><a href="mailto:<?= esc($entry['email'], 'attr') ?>"><?= esc($entry['email']) ?></a><?php endif ?><small><?= esc($entry['phone'] ?: '-') ?></small></div></td>
                             <td class="blacklist-reason-cell"><strong><?= esc($entry['reason']) ?></strong><small><?= esc($entry['source'] ? 'Sumber: ' . $entry['source'] : 'Sumber tidak dicantumkan') ?></small></td>
-                            <td><div class="blacklist-period"><span class="blacklist-status status-<?= esc($entry['computed_status'], 'attr') ?>"><i></i><?= esc($statusLabels[$entry['computed_status']] ?? '-') ?></span><strong><?= (int) $entry['is_permanent'] === 1 ? 'Permanen' : esc($date($entry['ends_at'], 'd M Y')) ?></strong><small>Mulai <?= esc($date($entry['starts_at'], 'd M Y')) ?></small></div></td>
-                            <td><div class="blacklist-author"><strong><?= (int) $entry['match_count'] ?> kali cocok</strong><small>Terakhir <?= esc($date($entry['last_matched_at'])) ?></small></div></td>
+                            <td><div class="blacklist-period"><span class="blacklist-status status-<?= esc($entry['computed_status'], 'attr') ?>"><i></i><?= esc($statusLabels[$entry['computed_status']] ?? '-') ?></span><strong><?= (int) $entry['is_permanent'] === 1 ? 'Permanen' : esc($date($entry['ends_at'], 'd M Y')) ?></strong></div></td>
+                            <td><div class="blacklist-author"><strong><?= esc($date($entry['starts_at'], 'd M Y')) ?></strong><small><?= esc($date($entry['starts_at'], 'H:i')) ?> WIB</small></div></td>
                             <td><div class="blacklist-author"><strong><?= esc($entry['updated_by_name'] ?: $entry['created_by_name'] ?: 'Sistem') ?></strong><small><?= esc($date($entry['updated_at'])) ?></small></div></td>
                             <td><div class="candidate-table-actions blacklist-actions"><button class="blacklist-history-trigger" type="button" data-admin-modal-open="historical-history-<?= (int) $entry['id'] ?>">Riwayat</button><?php if ($canManage): ?><button class="candidate-process-link" type="button" data-admin-modal-open="historical-edit-<?= (int) $entry['id'] ?>"><?= $isActive ? 'Ubah' : 'Aktifkan kembali' ?></button><?php if ($isActive): ?><button class="candidate-cancel-assignment" type="button" data-admin-modal-open="historical-revoke-<?= (int) $entry['id'] ?>">Cabut</button><?php endif ?><?php endif ?></div></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody></table></div>
+                <?= view('admin/partials/pagination', ['pagination' => $pagination, 'baseUrl' => site_url('adminhrdmannakampus/blacklist-historis'), 'query' => $paginationQuery, 'unit' => 'data blacklist historis']) ?>
             </section>
         </div>
     <?= view('admin/partials/footer') ?>

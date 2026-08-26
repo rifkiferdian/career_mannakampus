@@ -2,6 +2,7 @@
 $date = static fn (?string $value, string $format = 'd/m/Y H:i'): string => $value && strtotime($value) !== false ? date($format, strtotime($value)) : '-';
 $statusLabels = ['active' => 'Aktif', 'permanent' => 'Permanen', 'expired' => 'Berakhir', 'revoked' => 'Dicabut'];
 $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 'revoked' => 'Dicabut', 'reactivated' => 'Diaktifkan kembali'];
+$paginationQuery = array_filter($filters, static fn ($value): bool => $value !== '');
 ?>
 <!doctype html>
 <html lang="id">
@@ -13,7 +14,7 @@ $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 're
     <title>Blacklist Pelamar | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=67">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -46,12 +47,12 @@ $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 're
             </section>
 
             <section class="settings-card blacklist-table-card">
-                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg></span><div><h2>Daftar blacklist</h2><p>Data tidak dihapus saat masa berlaku berakhir atau blacklist dicabut.</p></div><span class="device-count"><?= count($blacklists) ?></span></div>
+                <div class="settings-card-heading settings-heading-action"><span class="settings-icon settings-icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7m0-7-7 7"/></svg></span><div><h2>Daftar blacklist</h2><p>Data tidak dihapus saat masa berlaku berakhir atau blacklist dicabut.</p></div><span class="device-count"><?= count($blacklists) ?> / <?= (int) $pagination['total'] ?></span></div>
                 <div class="department-table-wrap"><table class="department-table blacklist-table"><thead><tr><th>No.</th><th>Pelamar</th><th>Alasan</th><th>Masa berlaku</th><th>Lowongan yang dilamar</th><th>Dicatat oleh</th><th>Aksi</th></tr></thead><tbody>
                     <?php if ($blacklists === []): ?><tr><td colspan="7" class="department-empty">Data blacklist tidak ditemukan.</td></tr><?php endif ?>
                     <?php foreach ($blacklists as $index => $blacklist): $isActive = in_array($blacklist['computed_status'], ['active', 'permanent'], true); ?>
                         <tr>
-                            <td><?= $index + 1 ?></td>
+                            <td><?= (int) $pagination['offset'] + $index + 1 ?></td>
                             <td><div class="report-applicant"><strong><?= esc($blacklist['full_name']) ?></strong><a href="mailto:<?= esc($blacklist['email'], 'attr') ?>"><?= esc($blacklist['email']) ?></a><small><?= esc($blacklist['phone'] ?: '-') ?></small></div></td>
                             <td class="blacklist-reason-cell"><strong><?= esc($blacklist['reason']) ?></strong><?php if (trim((string) $blacklist['internal_notes']) !== ''): ?><small><?= esc($blacklist['internal_notes']) ?></small><?php endif ?></td>
                             <td><div class="blacklist-period"><strong><?= (int) $blacklist['is_permanent'] === 1 ? 'Permanen' : esc($date($blacklist['ends_at'], 'd M Y')) ?></strong><small>Mulai <?= esc($date($blacklist['starts_at'], 'd M Y')) ?></small></div></td>
@@ -61,6 +62,7 @@ $historyLabels = ['blacklisted' => 'Ditambahkan', 'updated' => 'Diperbarui', 're
                         </tr>
                     <?php endforeach ?>
                 </tbody></table></div>
+                <?= view('admin/partials/pagination', ['pagination' => $pagination, 'baseUrl' => site_url('adminhrdmannakampus/blacklist-pelamar'), 'query' => $paginationQuery, 'unit' => 'data blacklist']) ?>
             </section>
         </div>
     <?= view('admin/partials/footer') ?>

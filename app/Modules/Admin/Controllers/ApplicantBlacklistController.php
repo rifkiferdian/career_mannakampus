@@ -10,6 +10,8 @@ use DateTimeImmutable;
 
 class ApplicantBlacklistController extends BaseController
 {
+    private const PER_PAGE = 50;
+
     private const DURATION_LABELS = [
         '1_month' => '1 bulan',
         '3_months' => '3 bulan',
@@ -79,6 +81,11 @@ class ApplicantBlacklistController extends BaseController
             $allRows,
             static fn (array $row): bool => $row['computed_status'] === $status
         ));
+        $total = count($rows);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        $page = min(max(1, (int) $this->request->getGet('page')), $totalPages);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $rows = array_slice($rows, $offset, self::PER_PAGE);
 
         $historiesByBlacklist = [];
         $blacklistIds = array_map('intval', array_column($rows, 'id'));
@@ -97,6 +104,7 @@ class ApplicantBlacklistController extends BaseController
         return view('admin/applicant_blacklist', [
             'auth' => $auth,
             'blacklists' => $rows,
+            'pagination' => ['page' => $page, 'per_page' => self::PER_PAGE, 'total' => $total, 'total_pages' => $totalPages, 'offset' => $offset],
             'historiesByBlacklist' => $historiesByBlacklist,
             'filters' => ['keyword' => $keyword, 'status' => $status],
             'durationLabels' => self::DURATION_LABELS,

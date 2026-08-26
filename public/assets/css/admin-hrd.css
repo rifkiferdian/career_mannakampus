@@ -837,6 +837,16 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .blacklist-filter-form button { color: #fff; background: var(--admin-navy); border: 0; cursor: pointer; }
 .blacklist-filter-form a { color: #667785; background: #fff; border: 1px solid #dce3e9; }
 .blacklist-table { min-width: 1180px; }
+.blacklist-table th { padding: 9px 12px; }
+.blacklist-table td { padding: 8px 12px; line-height: 1.3; }
+.blacklist-table .report-applicant a { margin-top: 2px; }
+.blacklist-table .report-applicant small { margin-top: 2px; }
+.blacklist-table .blacklist-reason-cell strong { line-height: 1.3; }
+.blacklist-table .blacklist-reason-cell small { margin-top: 2px; line-height: 1.3; }
+.blacklist-table .blacklist-period small, .blacklist-table .blacklist-author small { margin-top: 2px; }
+.blacklist-table .blacklist-status { gap: 5px; padding: 4px 8px; font-size: 9px; }
+.blacklist-table .candidate-table-actions { gap: 4px; }
+.blacklist-table .candidate-table-actions a, .blacklist-table .candidate-table-actions button { min-height: 28px; padding: 0 8px; font-size: 9px; }
 .blacklist-reason-cell { min-width: 230px; max-width: 340px; }
 .blacklist-reason-cell strong, .blacklist-reason-cell small, .blacklist-author strong, .blacklist-author small, .blacklist-period strong, .blacklist-period small { display: block; }
 .blacklist-reason-cell strong { color: #8f2822; font-size: 11px; line-height: 1.5; }

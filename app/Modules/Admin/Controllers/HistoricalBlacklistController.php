@@ -16,6 +16,8 @@ use Throwable;
 
 class HistoricalBlacklistController extends BaseController
 {
+    private const PER_PAGE = 50;
+
     private const DURATION_LABELS = [
         '1_month' => '1 bulan',
         '3_months' => '3 bulan',
@@ -71,6 +73,11 @@ class HistoricalBlacklistController extends BaseController
             $allRows,
             static fn (array $row): bool => $row['computed_status'] === $status
         ));
+        $total = count($rows);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        $page = min(max(1, (int) $this->request->getGet('page')), $totalPages);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $rows = array_slice($rows, $offset, self::PER_PAGE);
         $histories = [];
         $ids = array_map('intval', array_column($rows, 'id'));
         if ($ids !== []) {
@@ -87,6 +94,7 @@ class HistoricalBlacklistController extends BaseController
         return view('admin/historical_blacklist', [
             'auth' => $auth,
             'entries' => $rows,
+            'pagination' => ['page' => $page, 'per_page' => self::PER_PAGE, 'total' => $total, 'total_pages' => $totalPages, 'offset' => $offset],
             'historiesByEntry' => $histories,
             'filters' => ['keyword' => $keyword, 'status' => $status],
             'durationLabels' => self::DURATION_LABELS,
