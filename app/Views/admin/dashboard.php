@@ -26,6 +26,8 @@ $passedDegrees = ((int) $screening['passed'] / $screenTotal) * 360;
 $failedDegrees = ((int) $screening['failed'] / $screenTotal) * 360;
 $vacancyMax = max(1, $vacancyChart === [] ? 1 : max(array_map('intval', array_column($vacancyChart, 'application_count'))));
 $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_column($pipeline, 'value'))));
+$activeReminderCount = array_sum(array_map(static fn (array $reminder): int => (int) $reminder['count'], $automaticReminders));
+$reminderPriorityLabels = ['urgent' => 'Mendesak', 'high' => 'Tinggi', 'normal' => 'Normal'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -37,7 +39,7 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
     <title>Dashboard HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=77">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -76,6 +78,23 @@ $pipelineMax = max(1, $pipeline === [] ? 1 : max(array_map('intval', array_colum
                 <article><span class="analytics-metric-icon icon-cyan"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><div><small>Dalam proses</small><strong><?= (int) $metrics['active'] ?></strong><p>Belum terminal</p></div></article>
                 <article><span class="analytics-metric-icon icon-green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg></span><div><small>Diterima</small><strong><?= (int) $metrics['accepted'] ?></strong><p>Kandidat berhasil</p></div></article>
                 <article class="<?= (int) $metrics['overdue'] > 0 ? 'metric-attention' : '' ?>"><span class="analytics-metric-icon icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></span><div><small>Melewati SLA</small><strong><?= (int) $metrics['overdue'] ?></strong><p>Perlu perhatian</p></div></article>
+            </section>
+
+            <section class="analytics-card recruiter-reminder-card" aria-labelledby="recruiter-reminder-title">
+                <header>
+                    <div><span>Automatic Reminder</span><h2 id="recruiter-reminder-title">Tugas &amp; pengingat recruiter</h2><p>Dihitung otomatis dari kondisi lamaran, tahapan, dan jadwal saat ini.</p></div>
+                    <strong class="recruiter-reminder-total <?= $activeReminderCount > 0 ? 'has-task' : '' ?>"><?= $activeReminderCount ?><small>pekerjaan aktif</small></strong>
+                </header>
+                <div class="recruiter-reminder-grid">
+                    <?php foreach ($automaticReminders as $reminder): ?>
+                        <a class="recruiter-reminder-item reminder-<?= esc($reminder['key'], 'attr') ?> <?= (int) $reminder['count'] === 0 ? 'is-clear' : 'has-task' ?>" href="<?= esc($reminder['href'], 'attr') ?>">
+                            <span class="recruiter-reminder-icon" aria-hidden="true"><?php if ($reminder['key'] === 'screening'): ?><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><?php elseif ($reminder['key'] === 'sla'): ?><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg><?php elseif ($reminder['key'] === 'interview'): ?><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M8 14h3M8 17h6"/></svg><?php elseif ($reminder['key'] === 'confirmation'): ?><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="m8 12 2.5 2.5L16 9"/></svg><?php else: ?><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3V5Z"/><path d="M8 9h8M8 13h5"/></svg><?php endif ?></span>
+                            <div class="recruiter-reminder-copy"><span><?= (int) $reminder['count'] === 0 ? 'Kondisi aman' : esc($reminderPriorityLabels[$reminder['priority']] ?? 'Normal') ?></span><h3><b><?= (int) $reminder['count'] ?></b><?= esc($reminder['title']) ?></h3><p><?= esc($reminder['description']) ?></p></div>
+                            <dl><div><dt>Deadline</dt><dd><?= esc($reminder['deadline']) ?></dd></div><div><dt>PIC</dt><dd><?= esc($reminder['pic']) ?></dd></div></dl>
+                            <span class="recruiter-reminder-action"><?= (int) $reminder['count'] > 0 ? 'Tindak lanjuti' : 'Lihat data' ?><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></span>
+                        </a>
+                    <?php endforeach ?>
+                </div>
             </section>
 
             <section class="analytics-card schedule-agenda-card">

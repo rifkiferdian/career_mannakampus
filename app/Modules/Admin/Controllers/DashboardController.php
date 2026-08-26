@@ -27,14 +27,7 @@ class DashboardController extends BaseController
         $applications = $this->applicationRows($filters);
         $applicationIds = array_map('intval', array_column($applications, 'id'));
         $now = time();
-        foreach ($applications as &$application) {
-            $since = strtotime((string) ($application['stage_changed_at'] ?: $application['submitted_at']));
-            $application['days_in_stage'] = $since === false ? 0 : max(0, (int) floor(($now - $since) / 86400));
-            $application['is_overdue'] = (int) $application['sla_days'] > 0 && $application['days_in_stage'] > (int) $application['sla_days'];
-            $application['status_label'] = $this->statusLabel((string) $application['application_status'], $stages);
-            $application['stage_color'] = $this->stageColor((string) $application['application_status'], $stages);
-        }
-        unset($application);
+        $this->enrichApplications($applications, $stages, $now);
 
         $activeStatuses = static fn (array $row): bool => ! in_array($row['application_status'], ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'], true);
         $followUps = array_values(array_filter($applications, $activeStatuses));
@@ -50,6 +43,15 @@ class DashboardController extends BaseController
         $auth = session()->get('hrd_auth');
         $userId = (int) ($auth['user_id'] ?? 0);
         $canViewAllSchedules = Services::authorization()->can($userId, 'schedules.view_all');
+        $reminderFilters = $filters;
+        $reminderFilters['date_from'] = '';
+        $reminderFilters['date_to'] = '';
+        $reminderApplications = $this->applicationRows($reminderFilters);
+        $this->enrichApplications($reminderApplications, $stages, $now);
+        if (! Services::authorization()->can($userId, 'hrd.teams.manage')) {
+            $teamIds = array_map('intval', array_column($database->table('hrd_team_users')->select('hrd_team_id')->where('user_id', $userId)->get()->getResultArray(), 'hrd_team_id'));
+            $reminderApplications = array_values(array_filter($reminderApplications, static fn (array $row): bool => in_array((int) $row['assigned_hrd_team_id'], $teamIds, true)));
+        }
         $scheduleAgenda = Services::authorization()->can($userId, 'schedules.view')
             ? $this->scheduleAgenda($userId, $canViewAllSchedules)
             : [];
@@ -80,6 +82,7 @@ class DashboardController extends BaseController
                 'pending' => count(array_filter($scheduleAgenda, static fn (array $row): bool => $row['status'] === 'scheduled')),
                 'reschedule' => count(array_filter($scheduleAgenda, static fn (array $row): bool => $row['status'] === 'reschedule_requested')),
             ],
+            'automaticReminders' => $this->automaticReminders($reminderApplications, $userId, $canViewAllSchedules, (string) ($auth['name'] ?? 'Recruiter')),
             'canViewCandidates' => Services::authorization()->can($userId, 'candidates.view'),
             'canViewReports' => Services::authorization()->can($userId, 'reports.view'),
             'canViewVacancies' => Services::authorization()->can($userId, 'vacancies.view'),
@@ -111,6 +114,84 @@ class DashboardController extends BaseController
         return $builder
             ->orderBy("CASE WHEN schedules.status = 'reschedule_requested' THEN 0 ELSE 1 END", 'ASC', false)
             ->orderBy('schedules.scheduled_at', 'ASC')->limit(8)->get()->getResultArray();
+    }
+
+    /** @param list<array<string, mixed>> $applications
+     * @return list<array<string, mixed>>
+     */
+    private function automaticReminders(array $applications, int $userId, bool $viewAllSchedules, string $recruiterName): array
+    {
+        $activeStatuses = ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'];
+        $activeApplications = array_values(array_filter($applications, static fn (array $row): bool => ! in_array((string) $row['application_status'], $activeStatuses, true)));
+        $unscreened = array_values(array_filter($activeApplications, static fn (array $row): bool => ! in_array((string) $row['screening_status'], ['passed', 'failed'], true)
+            && in_array((string) $row['application_status'], ['lamaran_baru', 'submitted', 'document_screening'], true)));
+        $overdue = array_values(array_filter($activeApplications, static fn (array $row): bool => (bool) $row['is_overdue']));
+        $applicationIds = array_map('intval', array_column($applications, 'id'));
+        $schedules = [];
+        if ($applicationIds !== []) {
+            $scheduleBuilder = db_connect()->table('recruitment_schedules AS schedules')
+                ->select('schedules.application_id, schedules.scheduled_at, schedules.confirmation_deadline_at, schedules.status, stages.code AS stage_code, stages.name AS stage_name, pic.full_name AS pic_name')
+                ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
+                ->join('users AS pic', 'pic.id = schedules.pic_user_id')
+                ->whereIn('schedules.application_id', $applicationIds)
+                ->where('schedules.status !=', 'cancelled');
+            if (! $viewAllSchedules) {
+                $scheduleBuilder->where('schedules.pic_user_id', $userId);
+            }
+            $schedules = $scheduleBuilder->orderBy('schedules.scheduled_at', 'ASC')->get()->getResultArray();
+        }
+
+        $today = date('Y-m-d');
+        $now = date('Y-m-d H:i:s');
+        $isInterview = static fn (array $row): bool => str_contains((string) $row['stage_code'], 'interview')
+            || str_contains(mb_strtolower((string) $row['stage_name']), 'wawancara');
+        $todayInterviews = array_values(array_filter($schedules, static fn (array $row): bool => substr((string) $row['scheduled_at'], 0, 10) === $today && $isInterview($row)));
+        $pendingConfirmations = array_values(array_filter($schedules, static fn (array $row): bool => $row['status'] === 'scheduled' && (string) $row['scheduled_at'] >= $now));
+        $completedUserInterviews = [];
+        foreach ($schedules as $schedule) {
+            $isUserInterview = (string) $schedule['stage_code'] === 'user_interview'
+                || str_contains(mb_strtolower((string) $schedule['stage_name']), 'user');
+            if ($isUserInterview && $schedule['status'] === 'present') {
+                $completedUserInterviews[(int) $schedule['application_id']] = true;
+            }
+        }
+        $waitingUserDecision = array_values(array_filter($activeApplications, static fn (array $row): bool => in_array((string) $row['application_status'], ['user_interview', 'interview_user'], true)
+            && isset($completedUserInterviews[(int) $row['id']])));
+
+        $oldUnscreened = count(array_filter($unscreened, static fn (array $row): bool => (int) $row['days_in_stage'] >= 2));
+        $maximumOverdueDays = 0;
+        foreach ($overdue as $row) {
+            $maximumOverdueDays = max($maximumOverdueDays, (int) $row['days_in_stage'] - (int) $row['sla_days']);
+        }
+        $nearestInterview = $todayInterviews[0]['scheduled_at'] ?? null;
+        $confirmationDeadlines = array_values(array_filter(array_column($pendingConfirmations, 'confirmation_deadline_at')));
+        sort($confirmationDeadlines);
+        $nearestConfirmationDeadline = $confirmationDeadlines[0] ?? null;
+        $pic = $viewAllSchedules ? 'Semua recruiter' : $recruiterName;
+        $calendarUrl = site_url('adminhrdmannakampus/kalender-rekrutmen?month=' . date('Y-m'));
+
+        return [
+            ['key' => 'screening', 'title' => 'Pelamar belum di-screening', 'count' => count($unscreened), 'description' => $oldUnscreened > 0 ? $oldUnscreened . ' pelamar sudah menunggu minimal 2 hari' : 'Tidak ada pelamar yang melewati target 2 hari', 'deadline' => 'Target maksimal 2 hari', 'pic' => $pic, 'priority' => $oldUnscreened > 0 ? 'high' : 'normal', 'href' => site_url('adminhrdmannakampus/list-pelamar')],
+            ['key' => 'sla', 'title' => 'Kandidat melewati SLA', 'count' => count($overdue), 'description' => count($overdue) > 0 ? 'Kandidat terlalu lama berada pada tahap saat ini' : 'Seluruh kandidat masih dalam batas SLA', 'deadline' => $maximumOverdueDays > 0 ? 'Terlambat hingga ' . $maximumOverdueDays . ' hari' : 'Tidak ada keterlambatan', 'pic' => $pic, 'priority' => count($overdue) > 0 ? 'urgent' : 'normal', 'href' => site_url('adminhrdmannakampus/kandidat')],
+            ['key' => 'interview', 'title' => 'Wawancara hari ini', 'count' => count($todayInterviews), 'description' => count($todayInterviews) > 0 ? 'Pastikan interviewer dan kandidat siap hadir' : 'Tidak ada wawancara untuk hari ini', 'deadline' => $nearestInterview ? 'Jadwal mulai ' . date('H:i', strtotime((string) $nearestInterview)) . ' WIB' : 'Hari ini', 'pic' => $pic, 'priority' => count($todayInterviews) > 0 ? 'high' : 'normal', 'href' => $calendarUrl],
+            ['key' => 'confirmation', 'title' => 'Kandidat belum dikonfirmasi', 'count' => count($pendingConfirmations), 'description' => count($pendingConfirmations) > 0 ? 'Kehadiran kandidat masih menunggu konfirmasi' : 'Semua jadwal mendatang sudah dikonfirmasi', 'deadline' => $nearestConfirmationDeadline ? 'Batas ' . date('d M, H:i', strtotime((string) $nearestConfirmationDeadline)) . ' WIB' : 'Tidak ada deadline', 'pic' => $pic, 'priority' => count($pendingConfirmations) > 0 ? 'high' : 'normal', 'href' => $calendarUrl],
+            ['key' => 'decision', 'title' => 'Menunggu keputusan user', 'count' => count($waitingUserDecision), 'description' => count($waitingUserDecision) > 0 ? 'Wawancara User selesai dan tahap belum diperbarui' : 'Tidak ada keputusan user yang tertunda', 'deadline' => count($waitingUserDecision) > 0 ? 'Tindak lanjuti hari ini' : 'Tidak ada deadline', 'pic' => $pic, 'priority' => count($waitingUserDecision) > 0 ? 'high' : 'normal', 'href' => site_url('adminhrdmannakampus/kandidat?status=user_interview')],
+        ];
+    }
+
+    /** @param list<array<string, mixed>> $applications
+     * @param list<array<string, mixed>> $stages
+     */
+    private function enrichApplications(array &$applications, array $stages, int $now): void
+    {
+        foreach ($applications as &$application) {
+            $since = strtotime((string) ($application['stage_changed_at'] ?: $application['submitted_at']));
+            $application['days_in_stage'] = $since === false ? 0 : max(0, (int) floor(($now - $since) / 86400));
+            $application['is_overdue'] = (int) $application['sla_days'] > 0 && $application['days_in_stage'] > (int) $application['sla_days'];
+            $application['status_label'] = $this->statusLabel((string) $application['application_status'], $stages);
+            $application['stage_color'] = $this->stageColor((string) $application['application_status'], $stages);
+        }
+        unset($application);
     }
 
     /** @return array{period: string, date_from: string, date_to: string, department_id: int, vacancy_id: int, period_label: string} */
@@ -157,7 +238,7 @@ class DashboardController extends BaseController
     private function applicationRows(array $filters): array
     {
         $builder = db_connect()->table('applications AS applications')
-            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.vacancy_period_id, applications.application_number, applications.application_status, applications.screening_status, applications.submitted_at, applications.updated_at, applicants.full_name, applicants.email, vacancies.title AS vacancy_title, vacancies.department_id, departments.name AS department_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
+            ->select('applications.id, applications.applicant_id, applications.vacancy_id, applications.vacancy_period_id, applications.application_number, applications.application_status, applications.screening_status, applications.submitted_at, applications.updated_at, applicants.assigned_hrd_team_id, applicants.full_name, applicants.email, vacancies.title AS vacancy_title, vacancies.department_id, departments.name AS department_name, stages.sla_days, stages.color_hex, (SELECT MAX(histories.created_at) FROM application_status_histories histories WHERE histories.application_id = applications.id) AS stage_changed_at', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('departments', 'departments.id = vacancies.department_id')
