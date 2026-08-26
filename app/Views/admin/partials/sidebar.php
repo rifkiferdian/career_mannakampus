@@ -9,6 +9,7 @@ $canViewVacancies = $authorization->can($userId, 'vacancies.view');
 $canViewVacancyPeriods = $authorization->can($userId, 'vacancy.periods.view');
 $canViewProcessTemplates = $authorization->can($userId, 'recruitment.templates.view');
 $canViewRecruitmentSettings = $authorization->can($userId, 'recruitment.settings.view');
+$canViewRecommendationAspects = $authorization->can($userId, 'recommendation.aspects.view');
 $canViewScreeningQuestions = $authorization->can($userId, 'screening.questions.view');
 $canViewApplicantPool = $authorization->can($userId, 'applicants.pool.view');
 $canViewApplicantBlacklist = $authorization->can($userId, 'applicants.blacklist.view');
@@ -146,6 +147,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('recruitment-settings') ?> href="<?= site_url('adminhrdmannakampus/pengaturan-rekrutmen') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
                 Template Penolakan
+            </a>
+        <?php endif ?>
+        <?php if ($canViewRecommendationAspects): ?>
+            <a<?= $activeClass('recommendation-aspects') ?> href="<?= site_url('adminhrdmannakampus/aspek-penilaian') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h5M8 12h8M8 16h4"/><path d="m15 7 1 1 2-2"/></svg>
+                Aspek Nilai
             </a>
         <?php endif ?>
         <?php if ($canViewScreeningQuestions): ?>

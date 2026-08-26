@@ -102,5 +102,10 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)', 'RecruitmentSettingsController::updateRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.update']);
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)/status', 'RecruitmentSettingsController::toggleRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.status']);
     $routes->post('pengaturan-rekrutmen/penolakan/(:num)/hapus', 'RecruitmentSettingsController::deleteRejectionTemplate/$1', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.delete']);
+    $routes->get('aspek-penilaian', 'RecommendationAspectController::index', ['filter' => 'permission:recommendation.aspects.view', 'as' => 'hrd.recommendation.aspects']);
+    $routes->post('aspek-penilaian', 'RecommendationAspectController::create', ['filter' => 'permission:recommendation.aspects.manage', 'as' => 'hrd.recommendation.aspects.create']);
+    $routes->post('aspek-penilaian/(:num)', 'RecommendationAspectController::update/$1', ['filter' => 'permission:recommendation.aspects.manage', 'as' => 'hrd.recommendation.aspects.update']);
+    $routes->post('aspek-penilaian/(:num)/status', 'RecommendationAspectController::toggle/$1', ['filter' => 'permission:recommendation.aspects.manage', 'as' => 'hrd.recommendation.aspects.status']);
+    $routes->post('aspek-penilaian/(:num)/hapus', 'RecommendationAspectController::delete/$1', ['filter' => 'permission:recommendation.aspects.manage', 'as' => 'hrd.recommendation.aspects.delete']);
     $routes->post('logout', 'AuthController::logout', ['filter' => 'hrd-auth', 'as' => 'hrd.logout']);
 });
