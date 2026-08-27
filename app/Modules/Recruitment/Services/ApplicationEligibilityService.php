@@ -14,14 +14,7 @@ class ApplicationEligibilityService
     ) {
     }
 
-    /**
-     * @return array{
-     *     type: 'blacklist'|'cooldown',
-     *     rejected_at?: string,
-     *     available_at?: string,
-     *     stage_name?: string
-     * }|null
-     */
+    /** @return array<string, mixed>|null */
     public function restrictionFor(int $applicantId, ?DateTimeImmutable $now = null): ?array
     {
         if ($applicantId <= 0) {
@@ -29,8 +22,17 @@ class ApplicationEligibilityService
         }
 
         $now ??= new DateTimeImmutable();
-        if ($this->blacklistService->isActive($applicantId, $now->format('Y-m-d H:i:s'))) {
-            return ['type' => 'blacklist'];
+        $blacklist = $this->blacklistService->activeFor($applicantId, $now->format('Y-m-d H:i:s'));
+        if ($blacklist !== null) {
+            return [
+                'type' => 'blacklist',
+                'source' => 'applicant',
+                'reference' => sprintf('BLP-%06d', (int) $blacklist['id']),
+                'matched_identifier' => 'NIK',
+                'identifier_hint' => '',
+                'is_permanent' => (int) $blacklist['is_permanent'] === 1,
+                'ends_at' => $blacklist['ends_at'] ?? null,
+            ];
         }
 
         $writtenTestOrders = '(SELECT links.template_id, MIN(links.display_order) AS first_written_test_order

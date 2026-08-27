@@ -138,6 +138,10 @@ class ApplicationController extends BaseController
         if (($restriction['type'] ?? null) === 'cooldown') {
             $restriction['rejected_date_label'] = $this->indonesianDate((string) ($restriction['rejected_at'] ?? ''));
             $restriction['available_date_label'] = $this->indonesianDate((string) ($restriction['available_at'] ?? ''));
+        } else {
+            $restriction['expiry_label'] = ! empty($restriction['is_permanent'])
+                ? 'Tidak terbatas (permanen)'
+                : $this->indonesianDate((string) ($restriction['ends_at'] ?? ''));
         }
 
         return view('application_restricted', ['restriction' => $restriction]);

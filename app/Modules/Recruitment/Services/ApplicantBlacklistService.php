@@ -14,8 +14,14 @@ class ApplicantBlacklistService
 
     public function isActive(int $applicantId, ?string $now = null): bool
     {
+        return $this->activeFor($applicantId, $now) !== null;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function activeFor(int $applicantId, ?string $now = null): ?array
+    {
         if ($applicantId <= 0) {
-            return false;
+            return null;
         }
 
         $now ??= date('Y-m-d H:i:s');
@@ -28,7 +34,9 @@ class ApplicantBlacklistService
                 ->where('is_permanent', 1)
                 ->orWhere('ends_at >=', $now)
             ->groupEnd()
-            ->countAllResults() > 0;
+            ->orderBy('id', 'DESC')
+            ->get(1)
+            ->getRowArray() ?: null;
     }
 
     /** @param array<string, mixed> $blacklist */

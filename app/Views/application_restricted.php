@@ -1,6 +1,13 @@
 <?php
 $isCooldown = ($restriction['type'] ?? '') === 'cooldown';
 $stageName = trim((string) ($restriction['stage_name'] ?? 'tahap seleksi'));
+$matchedIdentifier = trim((string) ($restriction['matched_identifier'] ?? 'identitas')) ?: 'identitas';
+$identifierHint = trim((string) ($restriction['identifier_hint'] ?? ''));
+$restrictionReference = trim((string) ($restriction['reference'] ?? '-')) ?: '-';
+$expiryLabel = trim((string) ($restriction['expiry_label'] ?? '-')) ?: '-';
+$restrictionSource = ($restriction['source'] ?? '') === 'historical'
+    ? 'blacklist historis yang dikelola HRD'
+    : 'blacklist pelamar aktif';
 ?>
 <!doctype html>
 <html lang="id">
@@ -10,7 +17,7 @@ $stageName = trim((string) ($restriction['stage_name'] ?? 'tahap seleksi'));
     <meta name="robots" content="noindex, nofollow">
     <title>Lamaran Belum Dapat Diproses | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=17">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=18">
 </head>
 <body class="application-page restricted-page">
     <main class="restricted-card <?= $isCooldown ? 'restricted-card-cooldown' : 'restricted-card-access' ?>">
@@ -22,8 +29,8 @@ $stageName = trim((string) ($restriction['stage_name'] ?? 'tahap seleksi'));
             <?php endif ?>
         </div>
 
-        <span class="restricted-eyebrow"><?= $isCooldown ? 'Masa tunggu rekrutmen' : 'Pendaftaran dibatasi' ?></span>
-        <h1><?= $isCooldown ? 'Anda belum dapat melamar kembali' : 'Lamaran belum dapat diproses' ?></h1>
+        <span class="restricted-eyebrow"><?= $isCooldown ? 'Masa tunggu rekrutmen' : 'Blacklist aktif' ?></span>
+        <h1><?= $isCooldown ? 'Anda belum dapat melamar kembali' : 'Identitas Anda masuk blacklist' ?></h1>
 
         <?php if ($isCooldown): ?>
             <p class="restricted-lead">Riwayat seleksi menunjukkan Anda belum lolos pada tahap <strong><?= esc($stageName) ?></strong>. Sesuai ketentuan, pendaftaran baru dapat dilakukan setelah masa tunggu tiga bulan selesai.</p>
@@ -42,10 +49,18 @@ $stageName = trim((string) ($restriction['stage_name'] ?? 'tahap seleksi'));
 
             <p class="restricted-note">Masa tunggu ini bukan blacklist dan akan berakhir otomatis tanpa perlu menghubungi tim rekrutmen.</p>
         <?php else: ?>
-            <p class="restricted-lead">Saat ini identitas Anda belum dapat digunakan untuk mengirim lamaran ke lowongan yang tersedia.</p>
+            <p class="restricted-lead"><strong>Anda belum dapat melamar karena identitas Anda sedang masuk blacklist.</strong> <?= esc(ucfirst($matchedIdentifier)) ?> yang dimasukkan cocok dengan <?= esc($restrictionSource) ?>, sehingga lamaran tidak disimpan.</p>
+
+            <section class="restricted-match-details" aria-label="Informasi pembatasan pendaftaran">
+                <article><span>Data yang cocok</span><strong><?= esc(ucfirst($matchedIdentifier)) ?><?= $identifierHint !== '' ? ' · ' . esc($identifierHint) : '' ?></strong></article>
+                <article><span>Masa berlaku</span><strong><?= esc($expiryLabel) ?></strong></article>
+                <article><span>Kode referensi</span><strong><?= esc($restrictionReference) ?></strong></article>
+            </section>
+
+            <p class="restricted-privacy-note">Alasan dan catatan internal tidak ditampilkan untuk melindungi kerahasiaan proses rekrutmen.</p>
             <section class="restricted-contact">
                 <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4V5Z"/><path d="m4 7 8 6 8-6"/></svg></span>
-                <div><strong>Butuh informasi lebih lanjut?</strong><p>Silakan hubungi tim rekrutmen melalui kanal resmi Manna Kampus. Detail internal pembatasan tidak ditampilkan pada halaman ini.</p></div>
+                <div><strong>Merasa data ini tidak sesuai?</strong><p>Hubungi tim rekrutmen melalui kanal resmi Manna Kampus dan sertakan kode referensi <b><?= esc($restrictionReference) ?></b> agar pemeriksaan dapat dilakukan lebih cepat.</p></div>
             </section>
         <?php endif ?>
 

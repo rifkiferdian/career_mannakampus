@@ -66,7 +66,12 @@ class ApplicationSubmissionService
             $now,
         );
         if ($historicalMatch !== null) {
-            throw new ApplicationRestrictedException(['type' => 'blacklist', 'source' => 'historical']);
+            throw new ApplicationRestrictedException($this->historicalRestriction(
+                $historicalMatch,
+                $nikHash,
+                (string) ($input['email'] ?? ''),
+                (string) ($input['phone'] ?? ''),
+            ));
         }
 
         $this->database->transBegin();
@@ -275,6 +280,48 @@ class ApplicationSubmissionService
 
             throw $exception;
         }
+    }
+
+    /**
+     * @param array<string, mixed> $match
+     * @return array<string, mixed>
+     */
+    private function historicalRestriction(array $match, string $nikHash, string $email, string $phone): array
+    {
+        $identifier = 'identitas';
+        $hint = '';
+        if ($nikHash !== '' && hash_equals((string) ($match['nik_hash'] ?? ''), $nikHash)) {
+            $identifier = 'NIK';
+            $lastFour = preg_replace('/\D+/', '', (string) ($match['nik_last_four'] ?? '')) ?? '';
+            $hint = $lastFour !== '' ? '•••• ' . $lastFour : '';
+        } elseif (HistoricalBlacklistService::normalizeEmail($email) === (string) ($match['email'] ?? '')) {
+            $identifier = 'email';
+            $hint = $this->maskEmail(HistoricalBlacklistService::normalizeEmail($email));
+        } elseif (HistoricalBlacklistService::normalizePhone($phone) === (string) ($match['phone'] ?? '')) {
+            $identifier = 'nomor telepon';
+            $normalizedPhone = HistoricalBlacklistService::normalizePhone($phone);
+            $hint = '••••••' . substr($normalizedPhone, -4);
+        }
+
+        return [
+            'type' => 'blacklist',
+            'source' => 'historical',
+            'reference' => sprintf('BLH-%06d', (int) $match['id']),
+            'matched_identifier' => $identifier,
+            'identifier_hint' => $hint,
+            'is_permanent' => (int) ($match['is_permanent'] ?? 0) === 1,
+            'ends_at' => $match['ends_at'] ?? null,
+        ];
+    }
+
+    private function maskEmail(string $email): string
+    {
+        [$local, $domain] = array_pad(explode('@', $email, 2), 2, '');
+        if ($domain === '') {
+            return '***';
+        }
+
+        return mb_substr($local, 0, min(2, mb_strlen($local))) . '***@' . $domain;
     }
 
     /**
