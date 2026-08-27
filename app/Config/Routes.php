@@ -29,6 +29,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('profil/perangkat/(:num)/revoke', 'ProfileController::revokeSession/$1', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.session.revoke']);
     $routes->post('profil/perangkat/revoke-all', 'ProfileController::revokeAllSessions', ['filter' => 'hrd-auth', 'as' => 'hrd.profile.sessions.revoke']);
     $routes->get('akses', 'AccessController::index', ['filter' => 'super-admin', 'as' => 'hrd.access']);
+    $routes->get('history-log', 'HistoryLogController::index', ['filter' => 'super-admin', 'as' => 'hrd.history.logs']);
     $routes->post('akses/users', 'AccessController::createUser', ['filter' => 'super-admin', 'as' => 'hrd.access.users.create']);
     $routes->post('akses/users/(:num)/status', 'AccessController::updateStatus/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.users.status']);
     $routes->post('akses/users/(:num)/role', 'AccessController::updateRole/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.users.role']);

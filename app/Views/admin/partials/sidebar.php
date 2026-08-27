@@ -118,6 +118,10 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 7h5M18.5 4.5v5M15 15h6M18 12v6"/></svg>
                 User &amp; Akses
             </a>
+            <a<?= $activeClass('history-logs') ?> href="<?= site_url('adminhrdmannakampus/history-log') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/><path d="M16 16h3v3"/></svg>
+                History Log
+            </a>
         <?php endif ?>
         <?php if ($canViewDepartments): ?>
             <a<?= $activeClass('departments') ?> href="<?= site_url('adminhrdmannakampus/departemen') ?>">
