@@ -7,10 +7,61 @@
     <meta name="theme-color" content="#12372a">
     <title>Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
+    <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=29">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+
+    <dialog class="recruitment-notice" id="recruitment-notice" aria-labelledby="recruitment-notice-title" aria-describedby="recruitment-notice-description">
+        <div class="recruitment-notice-panel">
+            <header class="recruitment-notice-header">
+                <span class="recruitment-notice-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><path d="M24 5 44 41H4L24 5Z"/><path d="M24 17v11M24 34h.01"/></svg>
+                </span>
+                <p>Perhatian!</p>
+                <h2 id="recruitment-notice-title">Waspada Penipuan Rekrutmen yang Mengatasnamakan <br> Manna Kampus</h2>
+            </header>
+
+            <div class="recruitment-notice-content">
+                <p>Halo Talenta Manna,</p>
+                <p id="recruitment-notice-description">Seluruh proses rekrutmen resmi Manna Kampus <strong>tidak pernah memungut biaya dalam bentuk apa pun</strong> kepada kandidat.</p>
+                <p>Mohon berhati-hati terhadap pihak yang mengatasnamakan Manna Kampus.</p>
+
+                <div class="recruitment-notice-boxes">
+                    <section class="recruitment-warning-box" aria-labelledby="recruitment-warning-title">
+                        <h3 id="recruitment-warning-title">
+                            <span aria-hidden="true">!</span>
+                            Kami Tidak Pernah Meminta:
+                        </h3>
+                        <ul>
+                            <li><span aria-hidden="true">Rp</span><p>Transfer biaya administrasi, perjalanan, akomodasi, atau pelatihan.</p></li>
+                            <li><span aria-hidden="true">ID</span><p>Data pribadi atau perbankan melalui saluran yang tidak resmi.</p></li>
+                            <li><span aria-hidden="true">@</span><p>Kontak melalui nomor atau akun yang tidak tercantum di situs resmi.</p></li>
+                        </ul>
+                    </section>
+
+                    <section class="recruitment-official-box" aria-labelledby="recruitment-official-title">
+                        <h3 id="recruitment-official-title">
+                            <span aria-hidden="true">&#10003;</span>
+                            Informasi Resmi Diperoleh Melalui:
+                        </h3>
+                        <ul>
+                            <li><span aria-hidden="true">&#10003;</span><p>Situs karier resmi Manna Kampus yang sedang Anda buka.</p></li>
+                            <li><span aria-hidden="true">&#10003;</span><p>Halaman lowongan dan status lamaran resmi kami.</p></li>
+                            <li><span aria-hidden="true">&#10003;</span><p>Tim rekrutmen setelah Anda mengirim lamaran resmi.</p></li>
+                        </ul>
+                    </section>
+                </div>
+
+                <p class="recruitment-notice-closing">Terima kasih atas perhatian dan kewaspadaan Anda.<br><strong>Tim Rekrutmen<br>Manna Kampus</strong></p>
+            </div>
+
+            <footer class="recruitment-notice-footer">
+                <a href="<?= site_url('lowongan') ?>">Lihat Lowongan Resmi</a>
+                <button type="button" data-recruitment-notice-accept>Saya Mengerti</button>
+            </footer>
+        </div>
+    </dialog>
 
     <?= view('partials/public_header', ['activeMenu' => 'homepage']) ?>
 
@@ -239,6 +290,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/career.js') ?>?v=11" defer></script>
+    <script src="<?= base_url('assets/js/career.js') ?>?v=12" defer></script>
 </body>
 </html>
