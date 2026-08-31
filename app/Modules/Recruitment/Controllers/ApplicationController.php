@@ -19,6 +19,16 @@ class ApplicationController extends BaseController
         return view('application_form', $this->formData($vacancyCode));
     }
 
+    public function csrf(): ResponseInterface
+    {
+        return $this->response
+            ->setHeader('Cache-Control', 'no-store, max-age=0')
+            ->setJSON([
+                'tokenName' => csrf_token(),
+                'tokenHash' => csrf_hash(),
+            ]);
+    }
+
     public function store(string $vacancyCode): RedirectResponse
     {
         $data = $this->formData($vacancyCode);

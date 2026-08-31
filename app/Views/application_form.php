@@ -69,6 +69,7 @@
             method="post"
             enctype="multipart/form-data"
             novalidate
+            data-csrf-url="<?= site_url('lamaran/csrf') ?>"
             data-validation-errors="<?= esc(json_encode($errors, JSON_UNESCAPED_UNICODE), 'attr') ?>"
         >
             <?= csrf_field() ?>
@@ -376,6 +377,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=9" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=10" defer></script>
 </body>
 </html>

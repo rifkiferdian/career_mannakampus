@@ -423,7 +423,9 @@
         });
     });
 
-    form.addEventListener('submit', (event) => {
+    let csrfReady = false;
+
+    form.addEventListener('submit', async (event) => {
         synchronizeScreening();
         const invalidPanelIndex = panels.findIndex((panel) =>
             [...panel.querySelectorAll('input, select, textarea')].some((field) => !field.checkValidity()));
@@ -433,6 +435,48 @@
             validatePanel(panels[invalidPanelIndex]);
             return;
         }
+
+        if (!csrfReady && form.dataset.csrfUrl) {
+            event.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Menyiapkan pengiriman...';
+
+            try {
+                const response = await fetch(form.dataset.csrfUrl, {
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json' },
+                    cache: 'no-store',
+                });
+                if (!response.ok) throw new Error('CSRF refresh failed');
+
+                const token = await response.json();
+                const csrfField = form.elements.namedItem(token.tokenName);
+                if (!(csrfField instanceof HTMLInputElement) || !token.tokenHash) {
+                    throw new Error('Invalid CSRF response');
+                }
+
+                csrfField.value = token.tokenHash;
+                csrfReady = true;
+                submitButton.disabled = false;
+                form.requestSubmit(submitButton);
+            } catch (error) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Kirim Lamaran';
+
+                let alert = form.querySelector('[data-csrf-error]');
+                if (!alert) {
+                    alert = document.createElement('div');
+                    alert.className = 'form-alert';
+                    alert.dataset.csrfError = '';
+                    alert.setAttribute('role', 'alert');
+                    form.prepend(alert);
+                }
+                alert.textContent = 'Sesi pengiriman belum dapat diperbarui. Periksa koneksi internet, lalu coba kirim kembali.';
+                alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
         submitButton.disabled = true;
         submitButton.textContent = 'Mengirim...';
     });

@@ -60,9 +60,10 @@ class Security extends BaseConfig
      *
      * Expiration time for Cross Site Request Forgery protection cookie.
      *
-     * Defaults to two hours (in seconds).
+     * The application form may stay open while an applicant prepares files,
+     * so keep the cookie valid for one working day.
      */
-    public int $expires = 7200;
+    public int $expires = 28800;
 
     /**
      * --------------------------------------------------------------------------
