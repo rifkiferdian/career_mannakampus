@@ -58,6 +58,9 @@ class ScheduleController extends BaseController
         if ((string) $schedule['status'] === 'cancelled') {
             return $this->error('Kehadiran tidak dapat dicatat pada jadwal yang dibatalkan.');
         }
+        if (strtotime((string) $schedule['scheduled_at']) > time()) {
+            return $this->error('Kehadiran baru dapat dicatat setelah waktu pelaksanaan dimulai.');
+        }
         Services::recruitmentSchedule()->setStatus($scheduleId, $status, $this->userId(), trim((string) $this->request->getPost('notes')));
 
         return $this->success($status === 'present' ? 'Kandidat dicatat hadir.' : 'Kandidat dicatat tidak hadir.');
@@ -79,7 +82,7 @@ class ScheduleController extends BaseController
         }
         $ownsTeam = db_connect()->table('hrd_team_users')->where('user_id', $this->userId())->where('hrd_team_id', (int) $row['assigned_hrd_team_id'])->countAllResults() > 0;
 
-        return $ownsTeam ? $row : null;
+        return $ownsTeam || (int) $row['pic_user_id'] === $this->userId() ? $row : null;
     }
 
     private function userId(): int
@@ -99,6 +102,17 @@ class ScheduleController extends BaseController
 
     private function returnUrl(): string
     {
+        if ((string) $this->request->getPost('return_to') === 'attendance-recap') {
+            $parameters = [];
+            parse_str(mb_substr((string) $this->request->getPost('return_query'), 0, 1500), $parameters);
+            $allowed = array_flip(['keyword', 'stage_id', 'vacancy_id', 'team_id', 'status', 'date_from', 'date_to', 'page']);
+            $parameters = array_filter(
+                array_intersect_key($parameters, $allowed),
+                static fn (mixed $value): bool => is_scalar($value) && mb_strlen((string) $value) <= 100,
+            );
+
+            return site_url('adminhrdmannakampus/rekap-kehadiran') . ($parameters === [] ? '' : '?' . http_build_query($parameters));
+        }
         $teamId = max(0, (int) $this->request->getPost('team_id'));
 
         return site_url('adminhrdmannakampus/kandidat') . ($teamId > 0 ? '?team_id=' . $teamId : '');

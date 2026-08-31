@@ -108,6 +108,10 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M13 14h3M8 17h3"/></svg>
                 Kalender Rekrutmen
             </a>
+            <a<?= $activeClass('attendance-recap') ?> href="<?= site_url('adminhrdmannakampus/rekap-kehadiran') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h4M8 16h3"/><path d="m14 15 2 2 4-5"/></svg>
+                Rekap Kehadiran
+            </a>
         <?php endif ?>
         <a<?= $activeClass('profile') ?> href="<?= site_url('adminhrdmannakampus/profil') ?>">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
