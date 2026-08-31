@@ -36,6 +36,7 @@ class ApplicantReportController extends BaseController
         $database = db_connect();
         $stages = $database->table('recruitment_stages')->orderBy('display_order')->get()->getResultArray();
         $statusLabels = $this->statusLabels($stages);
+        $hrdTeams = $database->table('hrd_teams')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
         $filters = $this->filters(array_keys($statusLabels));
         $summary = $this->reportSummary($filters);
         $totalPages = max(1, (int) ceil($summary['applicants'] / self::PER_PAGE));
@@ -90,6 +91,7 @@ class ApplicantReportController extends BaseController
             'vacancies' => $database->table('vacancies')->select('id, title')->where('deleted_at', null)->orderBy('title')->get()->getResultArray(),
             'periods' => $database->table('vacancy_recruitment_periods AS periods')->select('periods.id, periods.period_name, vacancies.title AS vacancy_title')->join('vacancies', 'vacancies.id = periods.vacancy_id')->where('periods.deleted_at', null)->orderBy('periods.opened_at', 'DESC')->get()->getResultArray(),
             'departments' => $database->table('departments')->select('id, name')->orderBy('name')->get()->getResultArray(),
+            'hrdTeams' => $hrdTeams,
             'statusLabels' => $statusLabels,
             'canViewCandidate' => Services::authorization()->can($userId, 'candidates.view'),
             'canAssignPermission' => Services::authorization()->can($userId, 'applicants.assign'),
@@ -180,13 +182,18 @@ class ApplicantReportController extends BaseController
 
     /**
      * @param list<string> $validStatuses
-     * @return array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string}
+     * @return array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, assignment: string, date_from: string, date_to: string}
      */
     private function filters(array $validStatuses): array
     {
         $status = trim((string) $this->request->getGet('status'));
         if ($status !== '' && ! in_array($status, $validStatuses, true)) {
             $status = '';
+        }
+        $assignment = trim((string) $this->request->getGet('assignment'));
+        if (! in_array($assignment, ['', 'unassigned', 'assigned'], true)
+            && preg_match('/^team:[1-9][0-9]*$/', $assignment) !== 1) {
+            $assignment = '';
         }
 
         return [
@@ -195,13 +202,14 @@ class ApplicantReportController extends BaseController
             'vacancy_period_id' => max(0, (int) $this->request->getGet('vacancy_period_id')),
             'department_id' => max(0, (int) $this->request->getGet('department_id')),
             'status' => $status,
+            'assignment' => $assignment,
             'date_from' => $this->validDate((string) $this->request->getGet('date_from')),
             'date_to' => $this->validDate((string) $this->request->getGet('date_to')),
         ];
     }
 
     /**
-     * @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters
+     * @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, assignment: string, date_from: string, date_to: string} $filters
      * @param array<string, string> $statusLabels
      * @return list<array<string, mixed>>
      */
@@ -253,7 +261,7 @@ class ApplicantReportController extends BaseController
     }
 
     /**
-     * @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters
+     * @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, assignment: string, date_from: string, date_to: string} $filters
      * @return array{applicants: int, applications: int, unassigned: int, assigned: int}
      */
     private function reportSummary(array $filters): array
@@ -278,7 +286,7 @@ class ApplicantReportController extends BaseController
         ];
     }
 
-    /** @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, date_from: string, date_to: string} $filters */
+    /** @param array{keyword: string, vacancy_id: int, vacancy_period_id: int, department_id: int, status: string, assignment: string, date_from: string, date_to: string} $filters */
     private function applyFilters(BaseBuilder $builder, array $filters): void
     {
         if ($filters['keyword'] !== '') {
@@ -300,6 +308,13 @@ class ApplicantReportController extends BaseController
         }
         if ($filters['status'] !== '') {
             $builder->whereIn('applications.application_status', self::STATUS_ALIASES[$filters['status']] ?? [$filters['status']]);
+        }
+        if ($filters['assignment'] === 'unassigned') {
+            $builder->where('applicants.assigned_hrd_team_id', null)->where('active_blacklist.id', null);
+        } elseif ($filters['assignment'] === 'assigned') {
+            $builder->where('applicants.assigned_hrd_team_id IS NOT NULL', null, false);
+        } elseif (str_starts_with($filters['assignment'], 'team:')) {
+            $builder->where('applicants.assigned_hrd_team_id', (int) substr($filters['assignment'], 5));
         }
         if ($filters['date_from'] !== '') {
             $builder->where('applications.submitted_at >=', $filters['date_from'] . ' 00:00:00');

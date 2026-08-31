@@ -16,6 +16,28 @@
     const sidebar = document.querySelector('#admin-sidebar');
     const sidebarToggle = document.querySelector('.sidebar-toggle');
 
+    document.querySelectorAll('.department-create-form').forEach((form) => {
+        const nameInput = form.querySelector('[data-department-name]');
+        const codeInput = form.querySelector('[data-department-code]');
+        if (!(nameInput instanceof HTMLInputElement) || !(codeInput instanceof HTMLInputElement)) return;
+
+        const createCode = (name) => name
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 50)
+            .replace(/-+$/g, '');
+
+        const synchronizeCode = () => {
+            codeInput.value = createCode(nameInput.value);
+        };
+
+        nameInput.addEventListener('input', synchronizeCode);
+        synchronizeCode();
+    });
+
     const closeSidebar = () => {
         sidebar?.classList.remove('open');
         sidebarToggle?.setAttribute('aria-expanded', 'false');

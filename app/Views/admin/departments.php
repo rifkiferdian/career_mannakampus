@@ -60,8 +60,8 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
                         <form class="department-create-form" action="<?= site_url('adminhrdmannakampus/departemen') ?>" method="post">
                             <?= csrf_field() ?>
                             <input type="hidden" name="form_origin" value="create">
-                            <label>Nama departemen<input type="text" name="name" value="<?= esc((string) old('name'), 'attr') ?>" maxlength="100" placeholder="Contoh: Customer Experience" autocomplete="organization" required autofocus></label>
-                            <label>Kode<input type="text" name="code" value="<?= esc((string) old('code'), 'attr') ?>" maxlength="50" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="customer-experience" required></label>
+                            <label>Nama departemen<input type="text" name="name" value="<?= esc((string) old('name'), 'attr') ?>" maxlength="100" placeholder="Contoh: Customer Experience" autocomplete="organization" data-department-name required autofocus></label>
+                            <label>Kode otomatis<input type="text" name="code" value="<?= esc((string) old('code'), 'attr') ?>" maxlength="50" placeholder="Terisi dari nama departemen" data-department-code readonly></label>
                             <label>Urutan<input type="number" name="display_order" min="0" max="999" value="<?= esc((string) (old('display_order') ?? count($departments) + 1), 'attr') ?>" required></label>
                             <label class="department-description-field">Deskripsi<textarea name="description" rows="3" maxlength="500" placeholder="Jelaskan ruang lingkup departemen"><?= esc((string) old('description')) ?></textarea></label>
                             <div class="department-modal-actions">
@@ -123,6 +123,6 @@ $vacancyCount = array_sum(array_map(static fn (array $department): int => (int) 
     </main>
     </div>
     <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
-    <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=7" defer></script>
+    <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=8" defer></script>
 </body>
 </html>

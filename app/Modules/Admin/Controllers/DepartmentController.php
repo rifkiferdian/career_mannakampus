@@ -46,7 +46,7 @@ class DepartmentController extends BaseController
 
     public function create(): RedirectResponse
     {
-        $data = $this->validatedInput();
+        $data = $this->validatedInput(true);
         if ($data instanceof RedirectResponse) {
             return $data;
         }
@@ -122,10 +122,12 @@ class DepartmentController extends BaseController
     }
 
     /** @return array<string, mixed>|RedirectResponse */
-    private function validatedInput(): array|RedirectResponse
+    private function validatedInput(bool $generateCode = false): array|RedirectResponse
     {
-        $code = mb_strtolower(trim((string) $this->request->getPost('code')));
         $name = trim((string) $this->request->getPost('name'));
+        $code = $generateCode
+            ? $this->codeFromName($name)
+            : mb_strtolower(trim((string) $this->request->getPost('code')));
         $description = trim((string) $this->request->getPost('description'));
         $order = (int) $this->request->getPost('display_order');
 
@@ -149,6 +151,15 @@ class DepartmentController extends BaseController
             'display_order' => $order,
             'is_active' => $this->request->getPost('is_active') !== null ? 1 : 0,
         ];
+    }
+
+    private function codeFromName(string $name): string
+    {
+        $normalized = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $name);
+        $normalized = is_string($normalized) ? $normalized : mb_strtolower($name);
+        $code = preg_replace('/[^a-z0-9]+/', '-', $normalized) ?? '';
+
+        return trim(mb_substr(trim($code, '-'), 0, 50), '-');
     }
 
     private function duplicateExists(string $code, string $name, ?int $exceptId = null): bool

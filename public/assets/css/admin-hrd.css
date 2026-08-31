@@ -580,14 +580,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .vacancy-question-form .screening-flags { margin: 4px 0; }
 .report-content { max-width: 1380px; padding-bottom: 60px; }
 .report-export-link { color: white; background: var(--admin-orange); border-color: var(--admin-orange); }
-.report-filter-form { display: grid; grid-template-columns: minmax(190px, 1.2fr) minmax(125px, .7fr) minmax(170px, 1fr) minmax(120px, .65fr) minmax(120px, .65fr) 110px 110px 76px 56px; align-items: end; gap: 9px; padding: 15px 18px; }
+.report-filter-form { display: grid; grid-template-columns: minmax(180px, 1.2fr) repeat(5, minmax(130px, .8fr)) 110px 110px auto auto; align-items: end; gap: 9px; padding: 15px 18px; }
 .report-filter-form > input, .report-filter-form select, .report-filter-form label input { width: 100%; min-width: 0; height: 42px; padding: 0 11px; color: #3d5062; background: #fbfcfd; border: 1px solid #dce3e9; border-radius: 8px; font-size: 10px; outline: 0; }
 .report-filter-form label { color: #6c7b87; font-size: 8px; font-weight: 800; }
 .report-filter-form label span { display: block; margin-bottom: 4px; }
 .report-filter-form button, .report-filter-form > a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border-radius: 7px; font-size: 10px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .report-filter-form button { color: white; background: var(--admin-navy); border: 0; cursor: pointer; }
 .report-filter-form > a { color: #657582; background: white; border: 1px solid #dce3e9; }
-.report-table { min-width: 1020px; }
+.report-table { min-width: 1240px; }
 .report-table td { color: #60717e; font-size: 10px; }
 .report-table .report-order { width: 54px; color: var(--admin-navy); font-weight: 700; text-align: center; }
 .report-applicant strong, .report-applicant a, .report-applicant small, .report-date small, .report-score { display: block; }
@@ -1673,6 +1673,10 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
 .applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
 .applicant-division-badge.blacklisted { color: #a1261d; background: #fff0ed; }
+.applicant-assignment-meta { display: block; max-width: 180px; margin-top: 6px; color: #7d8b96; font-size: 9px; line-height: 1.45; }
+.applicant-unassigned-reminder { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; color: #725e35; background: #fff8e8; border-top: 1px solid #f1dfb8; }
+.applicant-unassigned-reminder strong { color: #8b671e; font-size: 12px; }
+.applicant-unassigned-reminder span { font-size: 10px; }
 .applicant-position-meta { display: block; margin-top: 5px; color: #8a969f; font-size: 9px; }
 .candidate-filter-form.candidate-filter-with-team { grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.1fr) 88px repeat(5, minmax(125px, .7fr)) auto auto; }
 
