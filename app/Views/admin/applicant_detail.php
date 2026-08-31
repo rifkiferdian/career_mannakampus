@@ -52,7 +52,7 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
     <title>Detail <?= esc($applicant['full_name']) ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=81">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=87">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -79,7 +79,7 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
                             <span class="candidate-recommendation-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 14.6 8l5.1 1.1-3.5 3.9.5 5.2-4.7-2.1-4.7 2.1.5-5.2-3.5-3.9L9.4 8 12 3.5Z"/></svg></span>
                             <div><span class="login-eyebrow">Scorecard kandidat</span><h2>Penilaian &amp; rekomendasi</h2><p>Catatan penilaian yang menempel pada biodata pelamar.</p></div>
                         </div>
-                        <?php if ($canManageRecommendation): ?><button class="candidate-recommendation-button" type="button" data-admin-modal-open="applicant-recommendation-modal"><?= $applicantRecommendation === null ? 'Isi penilaian' : 'Ubah penilaian' ?></button><?php endif ?>
+                        <div class="candidate-recommendation-actions"><?php if ($canViewRecommendation): ?><a class="candidate-scorecard-pdf" href="<?= site_url('adminhrdmannakampus/pelamar/' . $applicant['id'] . '/scorecard.pdf') ?>" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 15h6M9 18h4"/></svg>Cetak PDF</a><?php endif ?><?php if ($canManageRecommendation): ?><button class="candidate-recommendation-button" type="button" data-admin-modal-open="applicant-recommendation-modal"><?= $applicantRecommendation === null ? 'Isi penilaian' : 'Ubah penilaian' ?></button><?php endif ?></div>
                     </div>
                     <?php if ($applicantRecommendation === null): ?>
                         <div class="candidate-recommendation-empty"><strong>Belum ada penilaian</strong><span>Isi aspek penilaian dan rekomendasi agar tim HRD memiliki satu ringkasan kandidat yang sama.</span><?php if (! $canManageRecommendation): ?><small>Penilaian hanya dapat diisi oleh tim HRD yang menangani pelamar ini.</small><?php endif ?></div>

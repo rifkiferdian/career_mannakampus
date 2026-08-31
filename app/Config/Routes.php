@@ -75,6 +75,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('laporan-pelamar', 'ApplicantReportController::index', ['filter' => 'permission:applicants.pool.view']);
     $routes->get('laporan-pelamar/export', 'ApplicantReportController::export', ['filter' => 'permission:applicants.pool.view']);
     $routes->get('pelamar/(:num)', 'ApplicantDetailController::show/$1', ['filter' => 'permission:candidates.view', 'as' => 'hrd.applicant.detail']);
+    $routes->get('pelamar/(:num)/scorecard.pdf', 'ApplicantScorecardController::download/$1', ['filter' => 'permission:candidates.view', 'as' => 'hrd.applicant.scorecard']);
     $routes->post('pelamar/(:num)/penilaian', 'ApplicantRecommendationController::save/$1', ['filter' => 'permission:recommendations.manage', 'as' => 'hrd.applicant.recommendation.save']);
     $routes->get('pelamar/(:num)/dokumen/(:num)', 'ApplicantDetailController::downloadDocument/$1/$2', ['filter' => 'permission:candidates.cv.download', 'as' => 'hrd.applicant.document']);
     $routes->get('blacklist-pelamar', 'ApplicantBlacklistController::index', ['filter' => 'permission:applicants.blacklist.view', 'as' => 'hrd.applicant.blacklist']);
