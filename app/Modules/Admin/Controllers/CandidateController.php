@@ -128,11 +128,11 @@ class CandidateController extends BaseController
         $schedulesByApplication = [];
         if ($applicationIds !== []) {
             $scheduleRows = $database->table('recruitment_schedules AS schedules')
-                ->select('schedules.*, stages.name AS stage_name, pic.full_name AS pic_name')
+                ->select('schedules.*, stages.code AS stage_code, stages.name AS stage_name, pic.full_name AS pic_name')
                 ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
                 ->join('users AS pic', 'pic.id = schedules.pic_user_id')
                 ->whereIn('schedules.application_id', $applicationIds)
-                ->orderBy('schedules.created_at', 'DESC')->get()->getResultArray();
+                ->orderBy('schedules.created_at', 'DESC')->orderBy('schedules.id', 'DESC')->get()->getResultArray();
             foreach ($scheduleRows as $schedule) {
                 $schedulesByApplication[(int) $schedule['application_id']][] = $schedule;
             }
@@ -140,11 +140,16 @@ class CandidateController extends BaseController
         foreach ($applications as &$application) {
             $application['schedules'] = $schedulesByApplication[(int) $application['id']] ?? [];
             $application['active_schedule'] = null;
+            $application['reschedulable_schedule'] = null;
             foreach ($application['schedules'] as $schedule) {
                 if (in_array((string) $schedule['status'], ['scheduled', 'confirmed', 'reschedule_requested'], true)) {
                     $application['active_schedule'] = $schedule;
                     break;
                 }
+            }
+            $latestSchedule = $application['schedules'][0] ?? null;
+            if ($application['active_schedule'] === null && is_array($latestSchedule) && (string) $latestSchedule['status'] === 'absent' && (string) $latestSchedule['stage_code'] === (string) $application['application_status']) {
+                $application['reschedulable_schedule'] = $latestSchedule;
             }
         }
         unset($application);

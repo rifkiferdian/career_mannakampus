@@ -48,6 +48,43 @@ class ScheduleController extends BaseController
         return $this->success('Jadwal berhasil dibatalkan.');
     }
 
+    public function rescheduleAfterAbsence(int $scheduleId): RedirectResponse
+    {
+        $schedule = $this->authorizedSchedule($scheduleId);
+        if ($schedule === null) {
+            return $this->error('Jadwal tidak ditemukan atau tidak dapat Anda kelola.');
+        }
+        if ((string) $schedule['status'] !== 'absent') {
+            return $this->error('Hanya jadwal berstatus Tidak hadir yang dapat dijadwalkan ulang.');
+        }
+        if ((string) $schedule['application_status'] !== (string) $schedule['stage_code']) {
+            return $this->error('Tahap pelamar sudah berubah sehingga jadwal lama ini tidak dapat dijadwalkan ulang.');
+        }
+        if (Services::applicantBlacklist()->isActive((int) $schedule['applicant_id'])) {
+            return $this->error('Pelamar berada dalam blacklist aktif dan tidak dapat dijadwalkan ulang.');
+        }
+
+        try {
+            $data = Services::recruitmentSchedule()->validateInput([
+                'scheduled_at' => $this->request->getPost('scheduled_at'),
+                'venue' => $this->request->getPost('venue'),
+                'pic_user_id' => $this->request->getPost('pic_user_id'),
+                'instructions' => $this->request->getPost('instructions'),
+                'confirmation_deadline_at' => $this->request->getPost('confirmation_deadline_at'),
+            ]);
+            Services::recruitmentSchedule()->rescheduleAfterAbsence(
+                $scheduleId,
+                $data,
+                $this->userId(),
+                (string) $this->request->getPost('reason'),
+            );
+        } catch (\InvalidArgumentException $exception) {
+            return $this->error($exception->getMessage());
+        }
+
+        return $this->success('Jadwal ulang berhasil dibuat dan menunggu konfirmasi kandidat.');
+    }
+
     public function attendance(int $scheduleId): RedirectResponse
     {
         $schedule = $this->authorizedSchedule($scheduleId);
@@ -70,9 +107,10 @@ class ScheduleController extends BaseController
     private function authorizedSchedule(int $scheduleId): ?array
     {
         $row = db_connect()->table('recruitment_schedules AS schedules')
-            ->select('schedules.*, applicants.assigned_hrd_team_id')
+            ->select('schedules.*, applications.application_status, applicants.id AS applicant_id, applicants.assigned_hrd_team_id, stages.code AS stage_code')
             ->join('applications', 'applications.id = schedules.application_id')
             ->join('applicants', 'applicants.id = applications.applicant_id')
+            ->join('recruitment_stages AS stages', 'stages.id = schedules.stage_id')
             ->where('schedules.id', $scheduleId)->where('applications.deleted_at', null)->get()->getRowArray();
         if ($row === null) {
             return null;

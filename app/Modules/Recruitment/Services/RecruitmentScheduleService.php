@@ -84,6 +84,37 @@ class RecruitmentScheduleService
         $this->record($scheduleId, 'rescheduled', 'Jadwal diperbarui dan menunggu konfirmasi ulang kandidat.', $userId);
     }
 
+    /** @param array<string, mixed> $data */
+    public function rescheduleAfterAbsence(int $sourceScheduleId, array $data, int $userId, string $reason): int
+    {
+        $source = $this->find($sourceScheduleId);
+        if ($source === null || (string) $source['status'] !== 'absent') {
+            throw new InvalidArgumentException('Hanya jadwal berstatus Tidak hadir yang dapat dijadwalkan ulang.');
+        }
+        if ($this->database->table('recruitment_schedules')
+            ->where('application_id', (int) $source['application_id'])
+            ->whereIn('status', self::ACTIVE_STATUSES)
+            ->countAllResults() > 0) {
+            throw new InvalidArgumentException('Pelamar sudah memiliki jadwal aktif. Muat ulang halaman untuk melihat jadwal terbaru.');
+        }
+
+        $reason = mb_substr(trim($reason), 0, 1000);
+        if (mb_strlen($reason) < 5) {
+            throw new InvalidArgumentException('Alasan penjadwalan ulang minimal 5 karakter.');
+        }
+
+        $this->database->transStart();
+        $newScheduleId = $this->create((int) $source['application_id'], (int) $source['stage_id'], $data, $userId);
+        $this->record($sourceScheduleId, 'reschedule_created', 'Dibuat jadwal ulang #' . $newScheduleId . '. Alasan: ' . $reason, $userId);
+        $this->record($newScheduleId, 'rescheduled_after_absence', 'Jadwal ulang dari jadwal #' . $sourceScheduleId . '. Alasan: ' . $reason, $userId);
+        $this->database->transComplete();
+        if (! $this->database->transStatus()) {
+            throw new InvalidArgumentException('Jadwal ulang gagal disimpan. Silakan coba kembali.');
+        }
+
+        return $newScheduleId;
+    }
+
     public function setStatus(int $scheduleId, string $status, ?int $userId, ?string $notes = null): void
     {
         if (! in_array($status, self::STATUSES, true)) {

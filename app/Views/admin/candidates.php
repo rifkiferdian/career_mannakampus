@@ -14,7 +14,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=82">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=85">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -105,7 +105,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
                                         <?php endif ?>
                                     </td>
                                     <td class="report-date"><?= esc(date('d/m/Y', strtotime($application['submitted_at']))) ?><small><?= esc(date('H:i', strtotime($application['submitted_at']))) ?></small></td>
-                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) . '?source=division' . ($selectedTeamId > 0 ? '&amp;team_id=' . $selectedTeamId : '') ?>" target="_blank" rel="noopener noreferrer">Detail</a><?php if ($application['active_schedule']): ?><button class="candidate-process-link schedule-action-link" type="button" data-admin-modal-open="candidate-schedule-modal-<?= (int) $application['active_schedule']['id'] ?>">Jadwal</button><?php endif ?><?php if (! $isBlacklisted && $canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
+                                    <td><div class="candidate-table-actions"><a href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) . '?source=division' . ($selectedTeamId > 0 ? '&amp;team_id=' . $selectedTeamId : '') ?>" target="_blank" rel="noopener noreferrer">Detail</a><?php if ($application['active_schedule']): ?><button class="candidate-process-link schedule-action-link" type="button" data-admin-modal-open="candidate-schedule-modal-<?= (int) $application['active_schedule']['id'] ?>">Jadwal</button><?php elseif (! $isBlacklisted && $canManageSchedules && $application['reschedulable_schedule']): ?><button class="candidate-process-link schedule-reschedule-link" type="button" data-admin-modal-open="candidate-reschedule-modal-<?= (int) $application['reschedulable_schedule']['id'] ?>">Jadwal ulang</button><?php endif ?><?php if (! $isBlacklisted && $canUpdateStatus && $application['available_stages'] !== []): ?><button class="candidate-process-link" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $application['id'] ?>">Ubah tahap</button><?php endif ?></div></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -217,6 +217,26 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
     </div>
 </dialog>
 <?php endforeach ?>
+<?php if ($canManageSchedules): ?>
+<?php foreach ($applications as $application): $sourceSchedule = $application['reschedulable_schedule']; if (! is_array($sourceSchedule)) { continue; } ?>
+<dialog class="admin-modal candidate-stage-modal" id="candidate-reschedule-modal-<?= (int) $sourceSchedule['id'] ?>" aria-labelledby="candidate-reschedule-title-<?= (int) $sourceSchedule['id'] ?>">
+    <div class="admin-modal-panel">
+        <div class="settings-card-heading admin-modal-heading"><span class="settings-icon settings-icon-orange"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M8 3v6M16 3v6M4 11h16M9 16h6M12 13v6"/></svg></span><div><h2 id="candidate-reschedule-title-<?= (int) $sourceSchedule['id'] ?>">Jadwalkan ulang <?= esc($application['full_name']) ?></h2><p><?= esc($sourceSchedule['stage_name']) ?> · <?= esc($application['vacancy_title']) ?></p></div><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup modal">&times;</button></div>
+        <div class="schedule-status-summary schedule-reschedule-summary"><span class="schedule-status schedule-status-absent">Tidak hadir</span><strong>Jadwal sebelumnya: <?= esc(date('d M Y, H:i', strtotime($sourceSchedule['scheduled_at']))) ?> WIB</strong><small><?= esc($sourceSchedule['venue']) ?> · PIC <?= esc($sourceSchedule['pic_name']) ?></small><p>Jadwal lama tetap tersimpan sebagai riwayat. Form berikut akan membuat jadwal baru pada tahap yang sama.</p></div>
+        <form class="candidate-process-form candidate-modal-form schedule-edit-form schedule-reschedule-form" action="<?= site_url('adminhrdmannakampus/jadwal/' . $sourceSchedule['id'] . '/jadwal-ulang') ?>" method="post">
+            <?= csrf_field() ?><input type="hidden" name="team_id" value="<?= $selectedTeamId ?>">
+            <label>Tanggal dan jam baru<input type="datetime-local" name="scheduled_at" min="<?= date('Y-m-d\TH:i') ?>" required></label>
+            <label>Batas konfirmasi baru<input type="datetime-local" name="confirmation_deadline_at" min="<?= date('Y-m-d\TH:i') ?>" required></label>
+            <label>PIC / interviewer<select name="pic_user_id" required><option value="">Pilih PIC</option><?php foreach ($picUsers as $pic): ?><option value="<?= (int) $pic['id'] ?>" <?= (int) $sourceSchedule['pic_user_id'] === (int) $pic['id'] ? 'selected' : '' ?>><?= esc($pic['full_name']) ?></option><?php endforeach ?></select></label>
+            <label>Lokasi atau link meeting<input type="text" name="venue" value="<?= esc($sourceSchedule['venue'], 'attr') ?>" maxlength="1000" required></label>
+            <label class="candidate-process-note">Instruksi kandidat<textarea name="instructions" rows="3" maxlength="5000"><?= esc($sourceSchedule['instructions'] ?? '') ?></textarea></label>
+            <label class="candidate-process-note">Alasan jadwal ulang<textarea name="reason" rows="3" minlength="5" maxlength="1000" required placeholder="Contoh: Kandidat mengonfirmasi kendala darurat dan mendapat kesempatan tes ulang."></textarea></label>
+            <div class="candidate-process-buttons"><button class="candidate-modal-cancel" type="button" data-admin-modal-close>Batal</button><button type="submit" data-confirm-title="Buat jadwal ulang?" data-confirm="Jadwal lama tetap berstatus Tidak hadir dan jadwal baru akan menunggu konfirmasi kandidat.">Buat jadwal ulang</button></div>
+        </form>
+    </div>
+</dialog>
+<?php endforeach ?>
+<?php endif ?>
 <script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>?v=11.26.25" defer></script>
 <script src="<?= base_url('assets/js/admin-hrd.js') ?>?v=14" defer></script>
 </body>

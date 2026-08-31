@@ -92,6 +92,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);
     $routes->post('kandidat/lamaran/(:num)/urungkan-tahap', 'CandidateController::undoStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage.undo']);
     $routes->post('jadwal/(:num)', 'ScheduleController::update/$1', ['filter' => 'permission:schedules.manage', 'as' => 'hrd.schedules.update']);
+    $routes->post('jadwal/(:num)/jadwal-ulang', 'ScheduleController::rescheduleAfterAbsence/$1', ['filter' => 'permission:schedules.manage', 'as' => 'hrd.schedules.reschedule']);
     $routes->post('jadwal/(:num)/batal', 'ScheduleController::cancel/$1', ['filter' => 'permission:schedules.manage', 'as' => 'hrd.schedules.cancel']);
     $routes->post('jadwal/(:num)/kehadiran', 'ScheduleController::attendance/$1', ['filter' => 'permission:schedules.attendance', 'as' => 'hrd.schedules.attendance']);
     $routes->get('talent-pool', 'TalentPoolController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.talent.pool']);
