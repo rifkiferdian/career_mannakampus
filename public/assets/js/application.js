@@ -412,13 +412,18 @@
         input.addEventListener('change', () => {
             input.setCustomValidity('');
             const file = input.files?.[0];
-            if (file && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                input.setCustomValidity('Berkas lamaran harus berformat PDF.');
-            } else if (file && file.size > 10 * 1024 * 1024) {
-                input.setCustomValidity('Ukuran berkas lamaran maksimal 10 MB.');
-            }
             const label = input.closest('.document-upload')?.querySelector('small');
-            if (label && file) label.textContent = file.name;
+            if (file && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                input.setCustomValidity('Berkas lamaran harus berformat PDF. Silakan pilih berkas lain.');
+                if (label) label.textContent = 'File ditolak: pilih berkas berformat PDF.';
+            } else if (file && file.size > 2 * 1024 * 1024) {
+                input.setCustomValidity('Ukuran berkas lamaran maksimal 2 MB. Silakan kompres atau pilih berkas lain.');
+                if (label) label.textContent = 'File ditolak: ukuran melebihi 2 MB.';
+            } else if (label && file) {
+                label.textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            } else if (label) {
+                label.textContent = 'Pilih Berkas PDF maksimal 2 MB';
+            }
             if (!input.checkValidity()) input.reportValidity();
         });
     });

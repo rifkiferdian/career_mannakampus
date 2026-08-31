@@ -300,7 +300,7 @@ class ApplicationController extends BaseController
             'career_goal'         => 'required|min_length[20]|max_length[5000]',
             'privacy_consent'     => 'required|in_list[1]',
             'profile_photo'       => 'permit_empty|max_size[profile_photo,2048]|ext_in[profile_photo,jpg,jpeg,png]|is_image[profile_photo]',
-            'application_bundle'  => 'uploaded[application_bundle]|max_size[application_bundle,10240]|ext_in[application_bundle,pdf]',
+            'application_bundle'  => 'uploaded[application_bundle]|max_size[application_bundle,2048]|ext_in[application_bundle,pdf]',
         ];
 
         foreach ($questions as $question) {
@@ -350,7 +350,7 @@ class ApplicationController extends BaseController
             ],
             'application_bundle' => [
                 'uploaded' => 'Berkas lamaran PDF wajib diunggah.',
-                'max_size' => 'Ukuran berkas lamaran maksimal 10 MB.',
+                'max_size' => 'Ukuran berkas lamaran maksimal 2 MB. Silakan kompres atau pilih berkas lain.',
                 'ext_in' => 'Berkas lamaran harus berformat PDF.',
             ],
         ];

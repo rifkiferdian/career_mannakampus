@@ -2,12 +2,12 @@
 
 namespace Config;
 
+use App\Filters\CsrfFilter;
 use App\Filters\HrdAuthFilter;
 use App\Filters\PermissionFilter;
 use App\Filters\SuperAdminFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
-use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
 use CodeIgniter\Filters\ForceHTTPS;
 use CodeIgniter\Filters\Honeypot;
@@ -28,7 +28,7 @@ class Filters extends BaseFilters
      * or [filter_name => [classname1, classname2, ...]]
      */
     public array $aliases = [
-        'csrf'          => CSRF::class,
+        'csrf'          => CsrfFilter::class,
         'toolbar'       => DebugToolbar::class,
         'honeypot'      => Honeypot::class,
         'invalidchars'  => InvalidChars::class,

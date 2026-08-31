@@ -339,7 +339,7 @@
             <section class="wizard-panel" data-step="7" aria-labelledby="step-title-7" hidden>
                 <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 7 dari 8</span><h2 id="step-title-7">Dokumen Pendukung</h2><p>Dokumen disimpan di area privat dan tidak dapat diakses langsung dari internet.</p></div></div>
                 <div class="document-grid">
-                    <label class="document-upload"><span>PDF</span><strong>SILAKAN POSTING BERKAS DALAM 1 FILE PDF <b>*</b></strong><em>SURAT LAMARAN, CV, KTP, KK, IJAZAH, TRANSKRIP NILAI, SERTIF VAKSIN, PAS FOTO BERWARNA, SERTIF SECURITY BAGI PELAMAR SECURITY. Maksimal 10 MB.</em><input type="file" name="application_bundle" accept=".pdf,application/pdf" required><small>Pilih Berkas PDF</small></label>
+                    <label class="document-upload"><span>PDF</span><strong>SILAKAN POSTING BERKAS DALAM 1 FILE PDF <b>*</b></strong><em>SURAT LAMARAN, CV, KTP, KK, IJAZAH, TRANSKRIP NILAI, SERTIF VAKSIN, PAS FOTO BERWARNA, SERTIF SECURITY BAGI PELAMAR SECURITY. Maksimal 2 MB.</em><input type="file" name="application_bundle" accept=".pdf,application/pdf" required><small>Pilih Berkas PDF maksimal 2 MB</small></label>
                 </div>
             </section>
 
@@ -377,6 +377,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=10" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=11" defer></script>
 </body>
 </html>
