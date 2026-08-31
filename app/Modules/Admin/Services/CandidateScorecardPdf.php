@@ -52,7 +52,14 @@ class CandidateScorecardPdf
         $this->keyValue('Pendidikan terakhir', (string) ($applicant['last_education'] ?? '-'));
         $this->keyValue('Institusi', (string) ($applicant['institution'] ?? '-'));
         $this->keyValue('Jurusan', (string) ($applicant['major'] ?? '-'));
-        $this->keyValue('IPK / Nilai', (string) ($applicant['gpa'] ?? '-'));
+        $isSchoolGrade = in_array((string) ($applicant['last_education'] ?? ''), ['SMP', 'SMA/SMK'], true);
+        $gradeValue = (string) ($applicant['gpa'] ?? '-');
+        if ($isSchoolGrade && is_numeric($gradeValue)) {
+            $gradeValue .= (float) $gradeValue <= 10 ? ' / 10' : ' / 100';
+        } elseif (! $isSchoolGrade && is_numeric($gradeValue)) {
+            $gradeValue .= ' / 4';
+        }
+        $this->keyValue($isSchoolGrade ? 'Nilai akhir' : 'IPK', $gradeValue);
         $this->keyValue('Pelatihan / sertifikasi', (string) ($applicant['training_experience'] ?? '-'));
 
         $experiences = (array) ($data['experiences'] ?? []);

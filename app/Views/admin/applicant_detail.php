@@ -140,7 +140,8 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
                         <div><span>Pendidikan terakhir</span><strong><?= esc($value($applicant['last_education'])) ?></strong></div>
                         <div><span>Institusi</span><strong><?= esc($value($applicant['institution'])) ?></strong></div>
                         <div><span>Jurusan</span><strong><?= esc($value($applicant['major'])) ?></strong></div>
-                        <div><span>IPK</span><strong><?= $applicant['gpa'] !== null ? esc(number_format((float) $applicant['gpa'], 2, ',', '.')) : '-' ?></strong></div>
+                        <?php $isSchoolGrade = in_array($applicant['last_education'], ['SMP', 'SMA/SMK'], true); ?>
+                        <div><span><?= $isSchoolGrade ? 'Nilai akhir' : 'IPK' ?></span><strong><?= $applicant['gpa'] !== null ? esc(number_format((float) $applicant['gpa'], 2, ',', '.') . ($isSchoolGrade ? ((float) $applicant['gpa'] <= 10 ? ' / 10' : ' / 100') : ' / 4')) : '-' ?></strong></div>
                         <div class="candidate-info-wide"><span>Pelatihan dan sertifikasi</span><strong><?= nl2br(esc($value($applicant['training_experience']))) ?></strong></div>
                     </div>
                 </section>

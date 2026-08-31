@@ -12,6 +12,9 @@
     const birthDateInput = form.querySelector('#birth-date');
     const ageOutput = form.querySelector('#applicant-age');
     const educationInput = form.querySelector('#last-education');
+    const educationGradeInput = form.querySelector('#education-grade');
+    const educationGradeLabel = form.querySelector('[data-grade-label]');
+    const educationGradeHelp = form.querySelector('[data-grade-help]');
     const photoInput = form.querySelector('#profile-photo');
     const photoPreview = form.querySelector('#photo-preview');
     const photoLabel = form.querySelector('#photo-label');
@@ -68,6 +71,23 @@
         form.querySelectorAll('[data-autofill="marital_status"]').forEach((input) => {
             input.value = form.querySelector('[name="marital_status"]')?.value || '';
         });
+    };
+
+    const synchronizeEducationGrade = () => {
+        const usesSchoolGrade = ['SMP', 'SMA/SMK'].includes(educationInput?.value || '');
+        const maximum = usesSchoolGrade ? 100 : 4;
+        if (educationGradeLabel) educationGradeLabel.textContent = usesSchoolGrade ? 'Nilai akhir (skala 10 atau 100)' : 'IPK (skala 0-4)';
+        if (educationGradeHelp) educationGradeHelp.textContent = usesSchoolGrade
+            ? 'Masukkan nilai sesuai ijazah atau rapor; skala 10 dan 100 sama-sama diterima.'
+            : 'Masukkan IPK sesuai transkrip nilai.';
+        if (educationGradeInput) {
+            educationGradeInput.max = String(maximum);
+            educationGradeInput.placeholder = usesSchoolGrade ? 'Contoh: 8.50 atau 85.50' : 'Contoh: 3.50';
+            const value = Number(educationGradeInput.value);
+            educationGradeInput.setCustomValidity(educationGradeInput.value !== '' && value > maximum
+                ? (usesSchoolGrade ? 'Nilai akhir maksimal 100.' : 'IPK maksimal 4,00.')
+                : '');
+        }
     };
 
     const synchronizePositions = () => {
@@ -251,7 +271,7 @@
                 ['Jenjang pendidikan', selectedText('last_education')],
                 ['Sekolah/perguruan tinggi', selectedText('institution')],
                 ['Jurusan', selectedText('major')],
-                ['IPK/Nilai akhir', selectedText('gpa')],
+                [['SMP', 'SMA/SMK'].includes(educationInput?.value || '') ? 'Nilai akhir (skala 10/100)' : 'IPK (0-4)', selectedText('gpa')],
                 ['Pelatihan atau sertifikasi', selectedText('training_experience')],
             ]),
         ];
@@ -346,10 +366,16 @@
     previousButton?.addEventListener('click', () => showStep(currentStep - 1));
 
     birthDateInput?.addEventListener('change', synchronizeScreening);
-    educationInput?.addEventListener('change', synchronizeScreening);
+    educationInput?.addEventListener('change', () => {
+        synchronizeScreening();
+        synchronizeEducationGrade();
+    });
+    educationGradeInput?.addEventListener('input', synchronizeEducationGrade);
     form.querySelectorAll('[name="gender"], [name="marital_status"]').forEach((field) => {
         field.addEventListener('change', synchronizeScreening);
     });
+
+    synchronizeEducationGrade();
 
     positionChoices.forEach((choice) => {
         choice.addEventListener('change', () => {

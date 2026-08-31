@@ -279,6 +279,7 @@ class ApplicationController extends BaseController
      */
     private function validationRules(array $questions): array
     {
+        $usesSchoolGrade = in_array(trim((string) $this->request->getPost('last_education')), ['SMP', 'SMA/SMK'], true);
         $rules = [
             'nik'                 => 'required|numeric|exact_length[16]',
             'full_name'           => 'required|max_length[150]',
@@ -294,7 +295,7 @@ class ApplicationController extends BaseController
             'last_education'      => 'required|in_list[SMP,SMA/SMK,D1,D3,S1,S2]',
             'institution'         => 'required|max_length[150]',
             'major'               => 'required|max_length[150]',
-            'gpa'                 => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[4]',
+            'gpa'                 => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[' . ($usesSchoolGrade ? '100' : '4') . ']',
             'training_experience' => 'permit_empty|max_length[3000]',
             'work_motivation'     => 'required|min_length[20]|max_length[5000]',
             'career_goal'         => 'required|min_length[20]|max_length[5000]',
@@ -318,6 +319,7 @@ class ApplicationController extends BaseController
      */
     private function validationMessages(array $questions): array
     {
+        $usesSchoolGrade = in_array(trim((string) $this->request->getPost('last_education')), ['SMP', 'SMA/SMK'], true);
         $messages = [
             'nik' => [
                 'required' => 'NIK wajib diisi.',
@@ -340,6 +342,11 @@ class ApplicationController extends BaseController
             'last_education' => ['required' => 'Jenjang pendidikan wajib dipilih.', 'in_list' => 'Jenjang pendidikan belum valid.'],
             'institution' => ['required' => 'Nama sekolah atau perguruan tinggi wajib diisi.'],
             'major' => ['required' => 'Jurusan wajib diisi.'],
+            'gpa' => [
+                'decimal' => ($usesSchoolGrade ? 'Nilai akhir' : 'IPK') . ' harus berupa angka.',
+                'greater_than_equal_to' => ($usesSchoolGrade ? 'Nilai akhir' : 'IPK') . ' tidak boleh kurang dari 0.',
+                'less_than_equal_to' => $usesSchoolGrade ? 'Nilai akhir maksimal 100.' : 'IPK maksimal 4,00.',
+            ],
             'work_motivation' => ['required' => 'Motivasi bekerja wajib diisi.', 'min_length' => 'Motivasi bekerja minimal 20 karakter.'],
             'career_goal' => ['required' => 'Target atau impian wajib diisi.', 'min_length' => 'Target atau impian minimal 20 karakter.'],
             'privacy_consent' => ['required' => 'Persetujuan pemrosesan data wajib dicentang.', 'in_list' => 'Persetujuan pemrosesan data wajib dicentang.'],

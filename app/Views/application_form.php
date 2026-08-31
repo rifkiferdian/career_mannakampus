@@ -234,7 +234,8 @@
                     </label>
                     <label class="field"><span>Nama sekolah/perguruan tinggi <b>*</b></span><input name="institution" type="text" value="<?= esc(old('institution'), 'attr') ?>" maxlength="150" required></label>
                     <label class="field"><span>Jurusan <b>*</b></span><input name="major" type="text" value="<?= esc(old('major'), 'attr') ?>" maxlength="150" required></label>
-                    <label class="field"><span>IPK/Nilai akhir</span><input name="gpa" type="number" value="<?= esc(old('gpa'), 'attr') ?>" min="0" max="4" step="0.01" placeholder="Contoh: 3.50"></label>
+                    <?php $usesSchoolGrade = in_array(old('last_education'), ['SMP', 'SMA/SMK'], true); ?>
+                    <label class="field"><span data-grade-label><?= $usesSchoolGrade ? 'Nilai akhir (skala 10 atau 100)' : 'IPK (skala 0-4)' ?></span><input id="education-grade" name="gpa" type="number" value="<?= esc(old('gpa'), 'attr') ?>" min="0" max="<?= $usesSchoolGrade ? '100' : '4' ?>" step="0.01" placeholder="<?= $usesSchoolGrade ? 'Contoh: 8.50 atau 85.50' : 'Contoh: 3.50' ?>" inputmode="decimal"><small data-grade-help><?= $usesSchoolGrade ? 'Masukkan nilai sesuai ijazah atau rapor; skala 10 dan 100 sama-sama diterima.' : 'Masukkan IPK sesuai transkrip nilai.' ?></small></label>
                     <label class="field field-full"><span>Pelatihan atau sertifikasi</span><textarea name="training_experience" rows="5" maxlength="3000" placeholder="Tuliskan pelatihan, sertifikasi, atau kursus yang relevan"><?= esc(old('training_experience')) ?></textarea></label>
                 </div>
             </section>
@@ -377,6 +378,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=11" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=12" defer></script>
 </body>
 </html>
