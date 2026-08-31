@@ -144,7 +144,7 @@ class CandidateScorecardPdf
         $this->line(55, $signatureY, 235, $signatureY, '0.65 0.70 0.73');
         $this->line(360, $signatureY, 540, $signatureY, '0.65 0.70 0.73');
         $this->text(55, $signatureY - 15, 8, 'Recruiter / HRD');
-        $this->text(360, $signatureY - 15, 8, 'Atasan / User');
+        $this->text(360, $signatureY - 15, 8, ' ');
         $this->y -= 78;
         $this->finishPage();
 
