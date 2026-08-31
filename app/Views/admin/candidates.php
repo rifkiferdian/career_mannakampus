@@ -14,7 +14,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
     <title>Pelamar <?= esc($selectedTeam['name'] ?? 'Divisi') ?> | HRD Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=85">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=86">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -32,7 +32,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
 
             <section class="dashboard-welcome department-heading">
                 <div><span class="login-eyebrow">Pelamar Divisi</span><h1><?= $selectedTeam ? 'Pelamar ' . esc($selectedTeam['name']) : 'Pelamar Divisi' ?></h1><p>Pelamar yang telah dipilih dan menjadi tanggung jawab divisi ini.</p></div>
-                <div class="candidate-heading-actions"><a class="talent-pool-page-link" href="<?= site_url('adminhrdmannakampus/talent-pool' . ($selectedTeamId > 0 ? '?team_id=' . $selectedTeamId : '')) ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15l-7-3-7 3V5Z"/><path d="M9 9h6M9 12h6"/></svg>Talent Pool</a><?php if (! $canUpdateStatus): ?><span class="read-only-badge">Mode lihat saja</span><?php endif ?></div>
+                <div class="candidate-heading-actions"><a class="candidate-excel-link" href="<?= esc(site_url('adminhrdmannakampus/kandidat/export') . '?' . http_build_query($paginationQuery), 'attr') ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 11l6 6M15 11l-6 6"/></svg>Unduh Excel</a><a class="talent-pool-page-link" href="<?= site_url('adminhrdmannakampus/talent-pool' . ($selectedTeamId > 0 ? '?team_id=' . $selectedTeamId : '')) ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15l-7-3-7 3V5Z"/><path d="M9 9h6M9 12h6"/></svg>Talent Pool</a><?php if (! $canUpdateStatus): ?><span class="read-only-badge">Mode lihat saja</span><?php endif ?></div>
             </section>
 
             <?php if ($selectedTeam === null): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert">Akun Anda belum memiliki divisi HRD. Hubungi pengelola Tim HRD agar dapat melihat dan memproses pelamar divisi.</div><?php endif ?>

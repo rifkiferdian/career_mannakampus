@@ -3,8 +3,10 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
+use App\Modules\Admin\Services\ExcelWorkbookBuilder;
 use App\Modules\Recruitment\Services\ApplicationEligibilityService;
 use CodeIgniter\Database\BaseBuilder;
+use CodeIgniter\HTTP\DownloadResponse;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\Services;
 
@@ -192,6 +194,101 @@ class CandidateController extends BaseController
             'success' => session()->getFlashdata('candidate_success'),
             'error' => session()->getFlashdata('candidate_error'),
         ]);
+    }
+
+    public function export(): DownloadResponse
+    {
+        $this->disableClientCaching();
+        $database = db_connect();
+        $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
+        $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
+        $currentTeam = $this->currentTeam($userId);
+        $teams = $database->table('hrd_teams')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $requestedTeamId = max(0, (int) $this->request->getGet('team_id'));
+        if ($canManageTeams) {
+            $validTeamIds = array_map('intval', array_column($teams, 'id'));
+            $selectedTeamId = in_array($requestedTeamId, $validTeamIds, true)
+                ? $requestedTeamId
+                : (int) ($currentTeam['id'] ?? ($teams[0]['id'] ?? 0));
+        } else {
+            $selectedTeamId = (int) ($currentTeam['id'] ?? 0);
+        }
+        $selectedTeamName = 'Divisi HRD';
+        foreach ($teams as $team) {
+            if ((int) $team['id'] === $selectedTeamId) {
+                $selectedTeamName = (string) $team['name'];
+                break;
+            }
+        }
+
+        $stages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
+        $statusCodes = array_merge(['lamaran_baru', 'screening_passed', 'screening_failed'], array_map('strval', array_column($stages, 'code')));
+        $rejectionStageCodes = [];
+        foreach ($this->templateStages() as $sequence) {
+            foreach ($sequence as $stage) {
+                if (! in_array((string) $stage['code'], ['accepted', 'rejected'], true)) {
+                    $rejectionStageCodes[] = (string) $stage['code'];
+                }
+            }
+        }
+        $rejectionStageCodes = array_values(array_unique(array_merge(
+            $rejectionStageCodes,
+            array_map('strval', array_column($database->table('application_rejections')->select('stage_code')->distinct()->get()->getResultArray(), 'stage_code')),
+        )));
+        $filters = $this->filters($statusCodes, $rejectionStageCodes);
+        $builder = $this->candidateQuery();
+        if ($selectedTeamId > 0) {
+            $builder->where('applicants.assigned_hrd_team_id', $selectedTeamId);
+        } else {
+            $builder->where('applications.id', 0);
+        }
+        $this->applyFilters($builder, $filters);
+        $applications = $builder->orderBy('applications.updated_at', 'DESC')->orderBy('applications.id', 'DESC')->get()->getResultArray();
+        $today = new \DateTimeImmutable('today');
+        $now = time();
+        $excelRows = [];
+        foreach ($applications as $index => $application) {
+            $birthDate = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) ($application['birth_date'] ?? ''));
+            $age = $birthDate !== false && $birthDate <= $today ? (string) $birthDate->diff($today)->y : '-';
+            $stageChangedAt = (string) ($application['stage_changed_at'] ?: $application['submitted_at']);
+            $stageTimestamp = strtotime($stageChangedAt);
+            $daysInStage = $stageTimestamp === false ? 0 : max(0, (int) floor(($now - $stageTimestamp) / 86400));
+            $slaDays = (int) ($application['sla_days'] ?? 0);
+            $excelRows[] = [
+                (string) ($index + 1),
+                (string) $application['full_name'],
+                (string) $application['email'],
+                (string) $application['phone'],
+                $age,
+                (string) $application['application_number'],
+                (string) $application['vacancy_title'],
+                (string) $application['period_name'],
+                (string) $application['department_name'],
+                $this->statusLabel((string) $application['application_status'], $stages),
+                (string) $daysInStage,
+                $slaDays > 0 ? (string) $slaDays : '-',
+                $slaDays > 0 && $daysInStage > $slaDays ? 'Melewati SLA' : 'Sesuai SLA',
+                (string) ($application['rejected_stage_name'] ?: '-'),
+                (string) ($application['rejection_reason_title'] ?: '-'),
+                $this->formatExportDate((string) ($application['rejected_at'] ?? '')),
+                $this->formatExportDate((string) $application['submitted_at']),
+                (string) ($application['hrd_team_name'] ?: '-'),
+                (string) ($application['assigned_by_name'] ?: '-'),
+                $this->formatExportDate((string) ($application['assigned_at'] ?? '')),
+                ! empty($application['active_blacklist_id']) ? 'Blacklist aktif' : 'Tidak',
+            ];
+        }
+
+        $workbook = (new ExcelWorkbookBuilder())->build(
+            'Pelamar ' . $selectedTeamName,
+            ['No.', 'Nama Pelamar', 'Email', 'Telepon / WhatsApp', 'Umur', 'Nomor Lamaran', 'Posisi', 'Sesi Lowongan', 'Departemen', 'Tahap Saat Ini', 'Hari di Tahap', 'SLA (hari)', 'Status SLA', 'Tahap Gugur', 'Alasan Gugur', 'Tanggal Gugur', 'Tanggal Daftar', 'Divisi HRD', 'Dipilih Oleh', 'Tanggal Dipilih', 'Status Blacklist'],
+            $excelRows,
+            'Divisi: ' . $selectedTeamName . ' · ' . count($excelRows) . ' data sesuai filter · Diekspor ' . date('d/m/Y H:i') . ' WIB',
+            [4, 6],
+        );
+        $fileTeam = trim((string) preg_replace('/[^a-z0-9]+/i', '-', mb_strtolower($selectedTeamName)), '-');
+
+        return $this->response->download('pelamar-' . ($fileTeam !== '' ? $fileTeam : 'divisi') . '-' . date('Ymd-His') . '.xlsx', $workbook, true);
     }
 
     public function cancelAssignment(int $applicantId): RedirectResponse
@@ -596,6 +693,13 @@ class CandidateController extends BaseController
             ->join('applicant_blacklists AS active_blacklist', 'active_blacklist.applicant_id = applicants.id AND active_blacklist.revoked_at IS NULL AND active_blacklist.starts_at <= NOW() AND (active_blacklist.is_permanent = 1 OR active_blacklist.ends_at >= NOW())', 'left', false)
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null);
+    }
+
+    private function formatExportDate(string $value): string
+    {
+        $timestamp = strtotime($value);
+
+        return $value !== '' && $timestamp !== false ? date('d/m/Y H:i', $timestamp) : '-';
     }
 
     /** @return array<int, list<array<string, mixed>>> */

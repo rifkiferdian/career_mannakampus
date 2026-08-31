@@ -970,6 +970,7 @@ button.candidate-whatsapp-link { padding: 0; border: 0; background: transparent;
     .historical-import-actions .new-user-jump { width: 100%; min-height: 44px; }
 }
 .candidate-heading-actions { display: flex; align-items: center; gap: 9px; }
+.candidate-excel-link{min-height:40px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:#32674f;background:#eef8f3;border:1px solid #c7e2d4;border-radius:8px;font-size:11px;font-weight:800;text-decoration:none}.candidate-excel-link svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.candidate-excel-link:hover{color:#fff;background:#2d7454;border-color:#2d7454}
 .talent-pool-page-link, .talent-pool-back-link { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; color: white; background: #267052; border-radius: 8px; font-size: 11px; font-weight: 800; text-decoration: none; }
 .talent-pool-page-link svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .talent-pool-page-link:hover, .talent-pool-back-link:hover { background: #1e5d43; }
@@ -1703,7 +1704,7 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 
 @media (max-width: 680px) {
     .candidate-heading-actions, .talent-pool-heading { width: 100%; align-items: stretch; flex-direction: column; }
-    .talent-pool-page-link, .talent-pool-back-link { width: 100%; }
+    .talent-pool-page-link, .talent-pool-back-link, .candidate-excel-link { width: 100%; }
     .talent-pool-filter, .talent-pool-filter.talent-pool-filter-with-team, .talent-pool-form, .talent-call-form { grid-template-columns: 1fr; padding-inline: 14px; }
     .talent-pool-wide, .talent-call-help, .talent-call-form .talent-confirm-check { grid-column: auto; }
     .talent-card > header { grid-template-columns: 44px minmax(0, 1fr); padding-inline: 15px; }

@@ -88,6 +88,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('blacklist-historis/(:num)', 'HistoricalBlacklistController::update/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.historical.blacklist.update']);
     $routes->post('blacklist-historis/(:num)/cabut', 'HistoricalBlacklistController::revoke/$1', ['filter' => 'permission:applicants.blacklist.manage', 'as' => 'hrd.historical.blacklist.revoke']);
     $routes->get('kandidat', 'CandidateController::index', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates']);
+    $routes->get('kandidat/export', 'CandidateController::export', ['filter' => 'permission:candidates.view', 'as' => 'hrd.candidates.export']);
     $routes->post('kandidat/pelamar/(:num)/batal-pilih', 'CandidateController::cancelAssignment/$1', ['filter' => 'permission:applicants.assign', 'as' => 'hrd.candidates.assignment.cancel']);
     $routes->post('kandidat/lamaran/(:num)/tahap', 'CandidateController::updateStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage']);
     $routes->post('kandidat/lamaran/(:num)/urungkan-tahap', 'CandidateController::undoStage/$1', ['filter' => 'permission:candidates.status.update', 'as' => 'hrd.candidates.stage.undo']);
