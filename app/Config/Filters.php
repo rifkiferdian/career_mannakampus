@@ -6,6 +6,7 @@ use App\Filters\CsrfFilter;
 use App\Filters\HrdAuthFilter;
 use App\Filters\PermissionFilter;
 use App\Filters\SuperAdminFilter;
+use App\Filters\StorageSyncAuthFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\DebugToolbar;
@@ -40,6 +41,7 @@ class Filters extends BaseFilters
         'hrd-auth'      => HrdAuthFilter::class,
         'permission'    => PermissionFilter::class,
         'super-admin'   => SuperAdminFilter::class,
+        'storage-sync'  => StorageSyncAuthFilter::class,
     ];
 
     /**
@@ -77,7 +79,7 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'csrf',
+            'csrf' => ['except' => ['api/storage/*']],
             // 'invalidchars',
         ],
         'after' => [

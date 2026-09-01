@@ -18,6 +18,12 @@ class ApplicantDocumentModel extends Model
         'original_name',
         'mime_type',
         'file_size',
+        'sha256_checksum',
+        'local_transfer_status',
+        'local_transferred_at',
+        'local_confirmed_checksum',
+        'local_confirmed_size',
+        'hosting_deleted_at',
         'created_at',
     ];
 }

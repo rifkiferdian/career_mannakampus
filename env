@@ -27,6 +27,20 @@
 # app.CSPEnabled = false
 
 #--------------------------------------------------------------------
+# LOCAL FILE SERVER SYNC API
+# Generate secret with: php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+#--------------------------------------------------------------------
+
+# storageSync.clientId = 'manna-local-01'
+# storageSync.secret = ''
+# storageSync.clockSkewSeconds = 300
+# storageSync.nonceTtlSeconds = 600
+# storageSync.rateLimitPerMinute = 120
+# storageSync.pendingLimit = 100
+# storageSync.maxFileSize = 5242880
+# storageSync.requireHttps = true
+
+#--------------------------------------------------------------------
 # DATABASE
 #--------------------------------------------------------------------
 

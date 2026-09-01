@@ -19,6 +19,15 @@ $routes->post('lamaran/status', '\App\Modules\Recruitment\Controllers\Applicatio
 $routes->post('lamaran/status/jadwal/(:num)', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::respond/$1');
 $routes->get('tahapan-seleksi', 'Home::selectionProcess');
 
+$routes->group('api/storage', [
+    'namespace' => 'App\Modules\Recruitment\Controllers',
+    'filter' => 'storage-sync',
+], static function (RouteCollection $routes): void {
+    $routes->get('documents/pending', 'StorageSyncController::pending');
+    $routes->get('documents/(:num)/download', 'StorageSyncController::download/$1');
+    $routes->post('documents/(:num)/confirm', 'StorageSyncController::confirm/$1');
+});
+
 $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Controllers'], static function ($routes): void {
     $routes->get('', 'AuthController::login', ['as' => 'hrd.login']);
     $routes->post('', 'AuthController::authenticate', ['as' => 'hrd.authenticate']);
