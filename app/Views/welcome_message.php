@@ -285,7 +285,8 @@
             <a class="back-top" href="#homepage">Kembali ke atas ↑</a>
         </div>
         <div class="container footer-bottom">
-            <span>© <?= date('Y') ?> Manna Kampus. All rights reserved.</span>
+            <span>© <?= date('Y') ?> Created by Manna Kampus Software Engineering Division
+-- Rifki Ahmad P</span>
             <div><a href="<?= site_url('lowongan') ?>">Karier</a><a href="#faq">FAQ</a></div>
         </div>
     </footer>

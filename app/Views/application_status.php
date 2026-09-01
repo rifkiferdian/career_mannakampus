@@ -182,7 +182,8 @@
             <a class="back-top" href="#main-content">Kembali ke atas &uarr;</a>
         </div>
         <div class="container footer-bottom">
-            <span>&copy; <?= date('Y') ?> Manna Kampus. All rights reserved.</span>
+            <span>&copy; <?= date('Y') ?> Created by Manna Kampus Software Engineering Division
+-- Rifki Ahmad P</span>
             <div>
                 <a href="<?= site_url('lowongan') ?>">Karier</a>
                 <a href="<?= site_url('lamaran/status') ?>">Cek Status</a>
