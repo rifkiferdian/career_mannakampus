@@ -1670,6 +1670,26 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .applicant-pool-actions form { margin: 0; }
 .applicant-pool-actions button { min-height: 32px; padding: 0 12px; color: #fff; background: var(--admin-orange); border: 0; border-radius: 7px; font-size: 10px; font-weight: 800; cursor: pointer; }
 .applicant-pool-actions button:hover { background: var(--admin-orange-dark); }
+.report-table-card .department-table-wrap { position: relative; scrollbar-gutter: stable; }
+.report-table th:last-child,
+.report-table td:last-child { position: sticky; right: 0; min-width: 126px; background: #fff; box-shadow: -10px 0 18px -16px rgba(16, 42, 67, .65); }
+.report-table thead th:last-child { z-index: 4; background: #f7f9fa; }
+.report-table tbody td:last-child { z-index: 2; }
+.report-table tbody tr:hover td:last-child { background: #fbfcfd; }
+.report-table .department-description-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.report-table .department-name-cell { max-width: 250px; }
+.report-table .department-name-cell strong,
+.report-table .department-name-cell small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.candidate-table-card .department-table-wrap { position: relative; scrollbar-gutter: stable; }
+.candidate-table-card .candidate-table th:last-child,
+.candidate-table-card .candidate-table td:last-child { position: sticky; right: 0; min-width: 220px; background: #fff; box-shadow: -10px 0 18px -16px rgba(16, 42, 67, .65); }
+.candidate-table-card .candidate-table thead th:last-child { z-index: 4; background: #f7f9fa; }
+.candidate-table-card .candidate-table tbody td:last-child { z-index: 2; }
+.candidate-table-card .candidate-table tbody tr:hover td:last-child { background: #fbfcfd; }
+.candidate-table-card .candidate-table-actions { max-width: 220px; flex-wrap: wrap; }
+.candidate-table-card .candidate-table .department-name-cell { max-width: 220px; }
+.candidate-table-card .candidate-table .department-name-cell strong,
+.candidate-table-card .candidate-table .department-name-cell code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .applicant-division-badge { display: inline-flex; align-items: center; padding: 7px 10px; border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
 .applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
 .applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
