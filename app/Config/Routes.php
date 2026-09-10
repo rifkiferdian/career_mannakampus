@@ -26,6 +26,7 @@ $routes->group('api/storage', [
     $routes->get('documents/pending', 'StorageSyncController::pending');
     $routes->get('documents/(:num)/download', 'StorageSyncController::download/$1');
     $routes->post('documents/(:num)/confirm', 'StorageSyncController::confirm/$1');
+    $routes->post('documents/(:num)/delete', 'StorageSyncController::delete/$1');
 });
 
 $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Controllers'], static function ($routes): void {

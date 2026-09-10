@@ -88,6 +88,19 @@ Body JSON:
 
 Server menghitung ulang ukuran dan checksum file hosting. Status hanya berubah menjadi `confirmed` apabila keduanya sama. Endpoint bersifat idempotent selama file dan nilai konfirmasi tetap sama.
 
+### `POST /api/storage/documents/{id}/delete`
+
+Endpoint ini hanya dipanggil secara manual dari aplikasi file server lokal setelah HRD memilih **Hapus dari hosting**. Body JSON:
+
+```json
+{
+  "sha256_checksum": "checksum-hex-64-karakter",
+  "file_size": 12345
+}
+```
+
+Hosting hanya menghapus PDF fisik apabila dokumen telah berstatus `confirmed` di server lokal dan checksum serta ukuran yang dikirim cocok dengan nilai konfirmasi maupun file hosting. Data pelamar dan metadata dokumen tidak dihapus; hosting hanya mengisi `hosting_deleted_at`. Endpoint aman dipanggil ulang dan akan melaporkan bahwa file sebelumnya sudah dihapus.
+
 ## Respons keamanan
 
 - `401`: header, timestamp, atau signature tidak valid.

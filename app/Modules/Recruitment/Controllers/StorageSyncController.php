@@ -212,6 +212,81 @@ class StorageSyncController extends BaseController
         ]);
     }
 
+    public function delete(int $id): ResponseInterface
+    {
+        try {
+            $payload = json_decode((string) ($this->request->getBody() ?? ''), true, 8, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return $this->jsonError(400, 'Invalid JSON body.');
+        }
+        if (! is_array($payload)) {
+            return $this->jsonError(400, 'Invalid JSON body.');
+        }
+
+        $confirmedChecksum = mb_strtolower(trim((string) ($payload['sha256_checksum'] ?? '')));
+        $confirmedSize = $payload['file_size'] ?? null;
+        if (preg_match('/^[a-f0-9]{64}$/', $confirmedChecksum) !== 1
+            || ! is_int($confirmedSize) || $confirmedSize < 1) {
+            return $this->jsonError(422, 'Checksum and file size are required.');
+        }
+
+        $document = $this->findDocumentForDeletion($id);
+        if ($document === null) {
+            return $this->jsonError(404, 'Document not found.');
+        }
+        if ($document['hosting_deleted_at'] !== null) {
+            return $this->json([
+                'status' => 'success',
+                'message' => 'Document file was already deleted from hosting.',
+                'data' => ['document_id' => $id, 'deleted_at' => $document['hosting_deleted_at'], 'already_deleted' => true],
+            ]);
+        }
+        if ($document['local_transfer_status'] !== 'confirmed'
+            || ! is_string($document['local_confirmed_checksum'])
+            || ! is_numeric($document['local_confirmed_size'])
+            || ! hash_equals((string) $document['local_confirmed_checksum'], $confirmedChecksum)
+            || (int) $document['local_confirmed_size'] !== $confirmedSize) {
+            return $this->jsonError(409, 'Document has not been verified on the local server.');
+        }
+
+        /** @var StorageSync $config */
+        $config = config(StorageSync::class);
+        $path = $this->resolveUploadPath((string) $document['file_path']);
+        if ($path === null || ! $this->isValidPdf($path, $config->maxFileSize)) {
+            return $this->jsonError(404, 'Document file is unavailable.');
+        }
+        $actualSize = filesize($path);
+        $actualChecksum = hash_file('sha256', $path);
+        if ($actualSize === false || ! is_string($actualChecksum)
+            || $actualSize !== $confirmedSize
+            || ! hash_equals($actualChecksum, $confirmedChecksum)
+            || ($document['sha256_checksum'] !== null && ! hash_equals((string) $document['sha256_checksum'], $actualChecksum))) {
+            return $this->jsonError(409, 'Document integrity validation failed.');
+        }
+        if (! @unlink($path)) {
+            log_message('error', '[Storage Sync] Penghapusan file hosting gagal. Document ID: {id}; IP: {ip}', [
+                'id' => $id,
+                'ip' => $this->request->getIPAddress(),
+            ]);
+
+            return $this->jsonError(500, 'Document file could not be deleted.');
+        }
+
+        $deletedAt = date('Y-m-d H:i:s');
+        (new ApplicantDocumentModel())->update($id, ['hosting_deleted_at' => $deletedAt]);
+        log_message('notice', '[Storage Sync] File hosting dihapus setelah verifikasi lokal. Client: {client}; Document ID: {id}; IP: {ip}', [
+            'client' => $this->request->getHeaderLine('X-Sync-Client'),
+            'id' => $id,
+            'ip' => $this->request->getIPAddress(),
+        ]);
+
+        return $this->json([
+            'status' => 'success',
+            'message' => 'Document file deleted from hosting. The applicant record is retained.',
+            'data' => ['document_id' => $id, 'deleted_at' => $deletedAt, 'already_deleted' => false],
+        ]);
+    }
+
     /** @return array<string, mixed>|null */
     private function findDocument(int $id): ?array
     {
@@ -219,6 +294,17 @@ class StorageSyncController extends BaseController
             ->where('id', $id)
             ->where('document_type', 'application_bundle')
             ->where('hosting_deleted_at', null)
+            ->get()->getRowArray();
+
+        return $row !== null ? $row : null;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function findDocumentForDeletion(int $id): ?array
+    {
+        $row = db_connect()->table('applicant_documents')
+            ->where('id', $id)
+            ->where('document_type', 'application_bundle')
             ->get()->getRowArray();
 
         return $row !== null ? $row : null;
