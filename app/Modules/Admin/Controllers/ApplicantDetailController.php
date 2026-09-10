@@ -6,6 +6,8 @@ use App\Controllers\BaseController;
 use App\Modules\Recruitment\Services\ApplicantBlacklistService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\DownloadResponse;
+use CodeIgniter\HTTP\RedirectResponse;
+use Config\LocalFileServer;
 use Config\Services;
 
 class ApplicantDetailController extends BaseController
@@ -96,7 +98,7 @@ class ApplicantDetailController extends BaseController
             }
         }
         $documents = $database->table('applicant_documents AS documents')
-            ->select('documents.id, documents.batch_id, documents.document_type, documents.original_name, documents.mime_type, documents.file_size, documents.created_at, batches.batch_number')
+            ->select('documents.id, documents.batch_id, documents.document_type, documents.original_name, documents.mime_type, documents.file_size, documents.local_transfer_status, documents.hosting_deleted_at, documents.created_at, batches.batch_number')
             ->join('application_batches AS batches', 'batches.id = documents.batch_id')
             ->where('documents.applicant_id', $applicantId)
             ->orderBy('documents.created_at', 'DESC')
@@ -241,7 +243,7 @@ class ApplicantDetailController extends BaseController
         ]);
     }
 
-    public function downloadDocument(int $applicantId, int $documentId): DownloadResponse
+    public function downloadDocument(int $applicantId, int $documentId): DownloadResponse|RedirectResponse
     {
         $document = db_connect()->table('applicant_documents')
             ->where('id', $documentId)
@@ -250,6 +252,17 @@ class ApplicantDetailController extends BaseController
             ->getRowArray();
         if ($document === null) {
             throw PageNotFoundException::forPageNotFound('Dokumen tidak ditemukan.');
+        }
+
+        if (! empty($document['hosting_deleted_at'])) {
+            $localUrl = config(LocalFileServer::class)->documentUrl($documentId);
+            if ($localUrl === null) {
+                throw PageNotFoundException::forPageNotFound(
+                    'File sudah dipindahkan ke server lokal, tetapi URL server lokal belum dikonfigurasi.'
+                );
+            }
+
+            return redirect()->to($localUrl);
         }
 
         $uploadRoot = realpath(WRITEPATH . 'uploads');

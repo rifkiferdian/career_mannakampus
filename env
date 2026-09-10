@@ -40,6 +40,9 @@
 # storageSync.maxFileSize = 5242880
 # storageSync.requireHttps = true
 
+# URL aplikasi penyimpanan lokal yang dapat diakses oleh browser HRD.
+# localFileServer.baseUrl = 'http://200.0.0.3/career_mannakampus_file_server_local/public/'
+
 #--------------------------------------------------------------------
 # DATABASE
 #--------------------------------------------------------------------
