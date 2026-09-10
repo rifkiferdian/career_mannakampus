@@ -1690,6 +1690,52 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .candidate-table-card .candidate-table .department-name-cell { max-width: 220px; }
 .candidate-table-card .candidate-table .department-name-cell strong,
 .candidate-table-card .candidate-table .department-name-cell code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.candidate-table-card .department-table-wrap { overflow-x: hidden; }
+.candidate-table-card .candidate-table { width: 100%; min-width: 0; table-layout: fixed; }
+.candidate-table-card .candidate-table th,
+.candidate-table-card .candidate-table td { padding-inline: 8px; overflow-wrap: anywhere; }
+.candidate-table-card .candidate-table th:nth-child(1) { width: 4%; }
+.candidate-table-card .candidate-table th:nth-child(2) { width: 14%; }
+.candidate-table-card .candidate-table th:nth-child(3) { width: 6%; }
+.candidate-table-card .candidate-table th:nth-child(4) { width: 11%; }
+.candidate-table-card .candidate-table th:nth-child(5) { width: 14%; }
+.candidate-table-card .candidate-table th:nth-child(6) { width: 10%; }
+.candidate-table-card .candidate-table th:nth-child(7) { width: 10%; }
+.candidate-table-card .candidate-table th:nth-child(8) { width: 14%; }
+.candidate-table-card .candidate-table th:nth-child(9) { width: 8%; }
+.candidate-table-card .candidate-table th:nth-child(10) { width: 9%; }
+.candidate-table-card .candidate-table th:last-child,
+.candidate-table-card .candidate-table td:last-child { min-width: 0; }
+.candidate-table-card .candidate-table-actions { width: 100%; max-width: none; align-items: stretch; flex-direction: column; }
+.candidate-table-card .candidate-table-actions a,
+.candidate-table-card .candidate-table-actions button { width: 100%; min-height: 29px; justify-content: center; padding-inline: 5px; white-space: normal; text-align: center; }
+.candidate-table-card .candidate-stage-pill { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1200px) {
+    .candidate-table-card .candidate-table th:nth-child(3),
+    .candidate-table-card .candidate-table td:nth-child(3),
+    .candidate-table-card .candidate-table th:nth-child(7),
+    .candidate-table-card .candidate-table td:nth-child(7),
+    .candidate-table-card .candidate-table th:nth-child(8),
+    .candidate-table-card .candidate-table td:nth-child(8) { display: none; }
+    .candidate-table-card .candidate-table th:nth-child(1) { width: 6%; }
+    .candidate-table-card .candidate-table th:nth-child(2) { width: 20%; }
+    .candidate-table-card .candidate-table th:nth-child(4) { width: 16%; }
+    .candidate-table-card .candidate-table th:nth-child(5) { width: 20%; }
+    .candidate-table-card .candidate-table th:nth-child(6) { width: 15%; }
+    .candidate-table-card .candidate-table th:nth-child(9) { width: 10%; }
+    .candidate-table-card .candidate-table th:nth-child(10) { width: 13%; }
+}
+@media (max-width: 720px) {
+    .candidate-table-card .candidate-table th:nth-child(4),
+    .candidate-table-card .candidate-table td:nth-child(4),
+    .candidate-table-card .candidate-table th:nth-child(9),
+    .candidate-table-card .candidate-table td:nth-child(9) { display: none; }
+    .candidate-table-card .candidate-table th:nth-child(1) { width: 8%; }
+    .candidate-table-card .candidate-table th:nth-child(2) { width: 27%; }
+    .candidate-table-card .candidate-table th:nth-child(5) { width: 27%; }
+    .candidate-table-card .candidate-table th:nth-child(6) { width: 18%; }
+    .candidate-table-card .candidate-table th:nth-child(10) { width: 20%; }
+}
 .applicant-division-badge { display: inline-flex; align-items: center; padding: 7px 10px; border-radius: 999px; font-size: 10px; font-weight: 850; white-space: nowrap; }
 .applicant-division-badge.assigned { color: #247052; background: #e8f5ef; }
 .applicant-division-badge.unassigned { color: #7a6743; background: #fff5dc; }
