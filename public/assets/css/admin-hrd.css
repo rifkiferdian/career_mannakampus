@@ -1695,20 +1695,26 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .candidate-table-card .candidate-table th,
 .candidate-table-card .candidate-table td { padding-inline: 8px; overflow-wrap: anywhere; }
 .candidate-table-card .candidate-table th:nth-child(1) { width: 4%; }
-.candidate-table-card .candidate-table th:nth-child(2) { width: 14%; }
+.candidate-table-card .candidate-table th:nth-child(2) { width: 13%; }
 .candidate-table-card .candidate-table th:nth-child(3) { width: 6%; }
 .candidate-table-card .candidate-table th:nth-child(4) { width: 11%; }
-.candidate-table-card .candidate-table th:nth-child(5) { width: 14%; }
+.candidate-table-card .candidate-table th:nth-child(5) { width: 13%; }
 .candidate-table-card .candidate-table th:nth-child(6) { width: 10%; }
 .candidate-table-card .candidate-table th:nth-child(7) { width: 10%; }
 .candidate-table-card .candidate-table th:nth-child(8) { width: 14%; }
 .candidate-table-card .candidate-table th:nth-child(9) { width: 8%; }
-.candidate-table-card .candidate-table th:nth-child(10) { width: 9%; }
+.candidate-table-card .candidate-table th:nth-child(10) { width: 11%; }
 .candidate-table-card .candidate-table th:last-child,
 .candidate-table-card .candidate-table td:last-child { min-width: 0; }
-.candidate-table-card .candidate-table-actions { width: 100%; max-width: none; align-items: stretch; flex-direction: column; }
-.candidate-table-card .candidate-table-actions a,
-.candidate-table-card .candidate-table-actions button { width: 100%; min-height: 29px; justify-content: center; padding-inline: 5px; white-space: normal; text-align: center; }
+.candidate-table-card .candidate-table-actions { width: 100%; max-width: none; align-items: center; justify-content: center; flex-direction: row; flex-wrap: nowrap; gap: 5px; }
+.candidate-table-card .candidate-table-actions .candidate-action-icon { width: 32px; min-width: 32px; height: 32px; min-height: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: 8px; }
+.candidate-table-card .candidate-action-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.candidate-table-card .candidate-action-detail { color: #fff; background: var(--admin-navy); border-color: var(--admin-navy); }
+.candidate-table-card .candidate-action-schedule { color: #247052; background: #eff9f4; border-color: #bcdccb; }
+.candidate-table-card .candidate-action-reschedule { color: #a45c25; background: #fff3e8; border-color: #efc8aa; }
+.candidate-table-card .candidate-action-stage { color: #a95027; background: #fff5ef; border-color: #f0d6c8; }
+.candidate-table-card .candidate-action-icon:hover { filter: brightness(.96); transform: translateY(-1px); }
+.candidate-table-card .candidate-action-icon:focus-visible { outline: 2px solid rgba(36, 95, 198, .3); outline-offset: 2px; }
 .candidate-table-card .candidate-stage-pill { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 1200px) {
     .candidate-table-card .candidate-table th:nth-child(3),
