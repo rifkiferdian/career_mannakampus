@@ -234,7 +234,7 @@ class ApplicationController extends BaseController
             $selectedIds[] = (int) $primaryVacancy['id'];
         }
 
-        $maximum = 3;
+        $maximum = \App\Modules\Recruitment\Services\ApplicationPositionPolicy::MAX_POSITIONS;
         if ($selectedIds === [] || count($selectedIds) > $maximum) {
             throw new DomainException("Pilih minimal satu dan maksimal {$maximum} posisi.");
         }
@@ -253,6 +253,11 @@ class ApplicationController extends BaseController
             $priority = (int) ($submittedPriorities[(string) $selectedId] ?? 0);
             $selectableById[$selectedId]['preference_order'] = $priority;
             $selectedVacancies[] = $selectableById[$selectedId];
+        }
+
+        (new \App\Modules\Recruitment\Services\ApplicationPositionPolicy())->validate($selectedVacancies, $primaryVacancy);
+        if ((int) ($submittedPriorities[(string) $primaryVacancy['id']] ?? 0) !== 1) {
+            throw new DomainException('Lowongan awal harus tetap menjadi prioritas pertama.');
         }
 
         $priorities = array_column($selectedVacancies, 'preference_order');

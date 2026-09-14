@@ -34,6 +34,8 @@
     let positionOrder = positionChoices
         .filter((choice) => choice.checked)
         .sort((first, second) => {
+            if (first.disabled) return -1;
+            if (second.disabled) return 1;
             const firstPriority = Number(form.querySelector(`[data-priority-input="${first.value}"]`)?.value || 99);
             const secondPriority = Number(form.querySelector(`[data-priority-input="${second.value}"]`)?.value || 99);
             return firstPriority - secondPriority;
@@ -380,9 +382,9 @@
     positionChoices.forEach((choice) => {
         choice.addEventListener('change', () => {
             const selectedCount = positionChoices.filter((item) => item.checked).length;
-            if (selectedCount > 3) {
+            if (selectedCount > 2) {
                 choice.checked = false;
-                choice.setCustomValidity('Maksimal tiga posisi dapat dipilih.');
+                choice.setCustomValidity('Maksimal dua posisi dengan pendidikan setara dapat dipilih.');
                 choice.reportValidity();
                 choice.setCustomValidity('');
             }

@@ -101,9 +101,9 @@
                 <div class="position-selection">
                     <div>
                         <strong>Pilih posisi yang dilamar</strong>
-                        <span>Maksimal 3 posisi aktif dari departemen mana pun. Urutan memilih menentukan prioritas.</span>
+                        <span>Maksimal 2 posisi aktif dengan persyaratan pendidikan setara dengan lowongan awal (<?= esc($vacancy['minimum_education'] ?: 'belum ditentukan') ?>). Lowongan awal menjadi prioritas pertama; hanya posisi setara yang ditampilkan.</span>
                     </div>
-                    <span class="position-counter"><b id="selected-position-count">1</b>/3 posisi</span>
+                    <span class="position-counter"><b id="selected-position-count">1</b>/2 posisi</span>
                     <div class="position-options">
                         <?php foreach ($selectableVacancies as $selectableVacancy): ?>
                             <?php $isPrimary = (int) $selectableVacancy['id'] === (int) $vacancy['id']; ?>
@@ -118,7 +118,7 @@
                                 >
                                 <span>
                                     <strong><?= esc($selectableVacancy['title']) ?></strong>
-                                    <small><?= esc($selectableVacancy['department']) ?> · <?= esc($selectableVacancy['location']) ?> · <?= esc($selectableVacancy['recruitment_period_name'] ?? 'Sesi aktif') ?></small>
+                                    <small>Pendidikan minimum: <?= esc(trim((string) ($selectableVacancy['minimum_education'] ?? '')) ?: 'Belum ditentukan') ?></small>
                                 </span>
                                 <?php $priority = (int) ($positionPriorities[(int) $selectableVacancy['id']] ?? 0); ?>
                                 <b class="priority-badge" data-priority-badge="<?= (int) $selectableVacancy['id'] ?>" <?= $priority > 0 ? '' : 'hidden' ?>>
@@ -378,6 +378,6 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=12" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=13" defer></script>
 </body>
 </html>

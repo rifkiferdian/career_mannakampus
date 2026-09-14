@@ -50,7 +50,12 @@ class VacancyCatalogService
             return [];
         }
 
-        return $this->openVacancies();
+        $policy = new ApplicationPositionPolicy();
+
+        return array_values(array_filter(
+            $this->openVacancies(),
+            static fn (array $vacancy): bool => $policy->equivalent($selectedVacancy, $vacancy),
+        ));
     }
 
     /**

@@ -47,9 +47,8 @@ class ApplicationSubmissionService
         string $ipAddress,
         string $userAgent,
     ): array {
-        if ($vacancies === [] || count($vacancies) > 3) {
-            throw new DomainException('Pilih minimal satu dan maksimal tiga posisi.');
-        }
+        $positionPolicy = new ApplicationPositionPolicy();
+        $positionPolicy->validate($vacancies);
 
         $nik = preg_replace('/\D+/', '', (string) $input['nik']) ?? '';
         $nikHash = hash_hmac('sha256', $nik, (string) config('Encryption')->key);
@@ -146,7 +145,9 @@ class ApplicationSubmissionService
                 throw new DomainException('Salah satu posisi yang dipilih sudah pernah Anda lamar pada sesi ini.');
             }
 
-            $activeApplicationCount = $this->database->table('applications AS applications')
+            $activeApplications = $this->database->table('applications AS applications')
+                ->select('vacancies.id, vacancies.minimum_education')
+                ->join('vacancies', 'vacancies.id = applications.vacancy_id')
                 ->join('vacancy_recruitment_periods AS periods', 'periods.id = applications.vacancy_period_id')
                 ->where('applications.applicant_id', $applicantId)
                 ->where('applications.deleted_at', null)
@@ -160,10 +161,15 @@ class ApplicationSubmissionService
                     ->where('periods.closed_at', null)
                     ->orWhere('periods.closed_at >=', $now)
                 ->groupEnd()
-                ->countAllResults();
+                ->orderBy('applications.submitted_at', 'ASC')
+                ->orderBy('applications.id', 'ASC')
+                ->get()->getResultArray();
 
-            if ($activeApplicationCount + count($vacancies) > 3) {
-                throw new DomainException('Setiap pelamar hanya dapat memiliki maksimal tiga lamaran pada lowongan aktif.');
+            if (count($activeApplications) + count($vacancies) > ApplicationPositionPolicy::MAX_POSITIONS) {
+                throw new DomainException('Setiap pelamar hanya dapat memiliki maksimal dua lamaran pada lowongan aktif.');
+            }
+            if ($activeApplications !== []) {
+                $positionPolicy->validate($vacancies, $activeApplications[0]);
             }
 
             $batchNumber = 'MKB-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
