@@ -213,9 +213,22 @@
                 <div class="panel-heading">
                     <div><span class="panel-eyebrow">Langkah 2 dari 8</span><h2 id="step-title-2">Alamat Domisili</h2><p>Alamat digunakan untuk kebutuhan administrasi dan penempatan.</p></div>
                 </div>
+                <div class="form-grid" data-region-fields data-region-url="<?= esc(site_url('lamaran/wilayah'), 'attr') ?>">
+                    <?php foreach (['province_code' => 'Provinsi', 'regency_code' => 'Kabupaten/Kota', 'district_code' => 'Kecamatan', 'village_code' => 'Kelurahan/Desa'] as $regionField => $regionLabel): ?>
+                        <label class="field"><span><?= esc($regionLabel) ?> <b>*</b></span>
+                            <select name="<?= esc($regionField, 'attr') ?>" data-region-select required>
+                                <option value="">Pilih <?= esc(strtolower($regionLabel)) ?></option>
+                                <?php foreach ($regionOptions[$regionField] as $regionOption): ?>
+                                    <option value="<?= esc($regionOption['code'], 'attr') ?>" <?= old($regionField) === (string) $regionOption['code'] ? 'selected' : '' ?>><?= esc($regionOption['name']) ?></option>
+                                <?php endforeach ?>
+                            </select>
+                        </label>
+                    <?php endforeach ?>
+                    <div class="field field-full"><small data-region-status role="status" aria-live="polite">Pilih wilayah berurutan dari provinsi hingga kelurahan/desa.</small><button type="button" data-region-retry hidden>Coba muat wilayah lagi</button></div>
+                </div>
                 <label class="field field-full">
-                    <span>Alamat lengkap saat ini <b>*</b></span>
-                    <textarea name="address" rows="7" minlength="10" maxlength="1000" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan, kota/kabupaten, dan provinsi" required><?= esc(old('address')) ?></textarea>
+                    <span>Detail Alamat<b>*</b></span>
+                    <textarea name="address" rows="5" minlength="10" maxlength="1000" placeholder="Nama jalan, nomor rumah, RT/RW, dusun, atau detail alamat lainnya" required><?= esc(old('address')) ?></textarea>
                 </label>
             </section>
 
@@ -378,6 +391,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=13" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=14" defer></script>
+    <script src="<?= base_url('assets/js/application-regions.js') ?>?v=1" defer></script>
 </body>
 </html>

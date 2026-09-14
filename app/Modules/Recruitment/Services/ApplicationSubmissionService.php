@@ -49,6 +49,7 @@ class ApplicationSubmissionService
     ): array {
         $positionPolicy = new ApplicationPositionPolicy();
         $positionPolicy->validate($vacancies);
+        $region = (new IndonesiaRegionService($this->database))->resolve($input);
 
         $nik = preg_replace('/\D+/', '', (string) $input['nik']) ?? '';
         $nikHash = hash_hmac('sha256', $nik, (string) config('Encryption')->key);
@@ -109,7 +110,13 @@ class ApplicationSubmissionService
                 'gender'                => (string) $input['gender'],
                 'marital_status'        => (string) $input['marital_status'],
                 'religion'              => (string) $input['religion'],
-                'address'               => trim((string) $input['address']),
+                'address'               => trim((string) $input['address']) . "\n"
+                    . $region['village_name'] . ', Kecamatan ' . $region['district_name'] . ', '
+                    . $region['regency_name'] . ', ' . $region['province_name'],
+                'province_code'         => $region['province_code'],
+                'regency_code'          => $region['regency_code'],
+                'district_code'         => $region['district_code'],
+                'village_code'          => $region['village_code'],
                 'last_education'        => (string) $input['last_education'],
                 'institution'           => trim((string) $input['institution']),
                 'major'                 => trim((string) $input['major']),
@@ -439,6 +446,7 @@ class ApplicationSubmissionService
                 'phone' => $applicantData['phone'],
             ],
             'address'          => $applicantData['address'],
+            'domicile_region'  => array_intersect_key($applicantData, array_flip(['province_code', 'regency_code', 'district_code', 'village_code'])),
             'education'        => [
                 'level'               => $applicantData['last_education'],
                 'institution'         => $applicantData['institution'],

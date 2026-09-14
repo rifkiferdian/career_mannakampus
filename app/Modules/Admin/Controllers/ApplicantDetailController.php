@@ -35,6 +35,11 @@ class ApplicantDetailController extends BaseController
 
         $database = db_connect();
         $applicant = $database->table('applicants AS applicants')
+            ->select('domicile_province.name AS province_name, domicile_regency.name AS regency_name, domicile_district.name AS district_name, domicile_village.name AS village_name')
+            ->join('provinces AS domicile_province', 'domicile_province.code = applicants.province_code', 'left')
+            ->join('regencies AS domicile_regency', 'domicile_regency.code = applicants.regency_code', 'left')
+            ->join('districts AS domicile_district', 'domicile_district.code = applicants.district_code', 'left')
+            ->join('villages AS domicile_village', 'domicile_village.code = applicants.village_code', 'left')
             ->select('applicants.id, applicants.full_name, applicants.email, applicants.phone, applicants.profile_photo_path, applicants.birth_place, applicants.birth_date, applicants.height_cm, applicants.gender, applicants.marital_status, applicants.religion, applicants.address, applicants.last_education, applicants.institution, applicants.major, applicants.gpa, applicants.training_experience, applicants.is_active, applicants.assigned_hrd_team_id, applicants.created_at, applicants.updated_at, teams.name AS assigned_hrd_team_name')
             ->join('hrd_teams AS teams', 'teams.id = applicants.assigned_hrd_team_id', 'left')
             ->where('applicants.id', $applicantId)

@@ -267,6 +267,10 @@
                 ['Foto profil', selectedText('profile_photo')],
             ]),
             reviewSection('Alamat Domisili', [
+                ['Provinsi', selectedText('province_code')],
+                ['Kabupaten/Kota', selectedText('regency_code')],
+                ['Kecamatan', selectedText('district_code')],
+                ['Kelurahan/Desa', selectedText('village_code')],
                 ['Alamat lengkap saat ini', selectedText('address')],
             ]),
             reviewSection('Pendidikan Terakhir', [

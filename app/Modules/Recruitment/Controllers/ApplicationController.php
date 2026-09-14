@@ -208,7 +208,15 @@ class ApplicationController extends BaseController
             throw PageNotFoundException::forPageNotFound('Lowongan tidak ditemukan atau sudah ditutup.');
         }
 
+        $regions = new \App\Modules\Recruitment\Services\IndonesiaRegionService(db_connect());
+
         return [
+            'regionOptions' => [
+                'province_code' => $regions->options('provinces'),
+                'regency_code' => $regions->options('regencies', (string) old('province_code')),
+                'district_code' => $regions->options('districts', (string) old('regency_code')),
+                'village_code' => $regions->options('villages', (string) old('district_code')),
+            ],
             'vacancy'              => $vacancy,
             'selectableVacancies' => Services::vacancyCatalog()->selectableVacancies($vacancyCode),
         ];
@@ -297,6 +305,10 @@ class ApplicationController extends BaseController
             'marital_status'      => 'required|in_list[BELUM MENIKAH,MENIKAH,CERAI]',
             'religion'            => 'required|max_length[30]',
             'address'             => 'required|min_length[10]|max_length[1000]',
+            'province_code'       => 'required|max_length[20]',
+            'regency_code'        => 'required|max_length[20]',
+            'district_code'       => 'required|max_length[20]',
+            'village_code'        => 'required|max_length[20]',
             'last_education'      => 'required|in_list[SMP,SMA/SMK,D1,D3,S1,S2]',
             'institution'         => 'required|max_length[150]',
             'major'               => 'required|max_length[150]',
@@ -339,6 +351,10 @@ class ApplicationController extends BaseController
             'gender' => ['required' => 'Jenis kelamin wajib dipilih.', 'in_list' => 'Pilihan jenis kelamin belum valid.'],
             'marital_status' => ['required' => 'Status pernikahan wajib dipilih.', 'in_list' => 'Pilihan status pernikahan belum valid.'],
             'religion' => ['required' => 'Agama wajib dipilih.'],
+            'province_code' => ['required' => 'Provinsi domisili wajib dipilih.', 'max_length' => 'Kode provinsi tidak valid.'],
+            'regency_code' => ['required' => 'Kabupaten/kota domisili wajib dipilih.', 'max_length' => 'Kode kabupaten/kota tidak valid.'],
+            'district_code' => ['required' => 'Kecamatan domisili wajib dipilih.', 'max_length' => 'Kode kecamatan tidak valid.'],
+            'village_code' => ['required' => 'Kelurahan/desa domisili wajib dipilih.', 'max_length' => 'Kode kelurahan/desa tidak valid.'],
             'address' => [
                 'required' => 'Alamat lengkap wajib diisi.',
                 'min_length' => 'Alamat lengkap minimal 10 karakter.',

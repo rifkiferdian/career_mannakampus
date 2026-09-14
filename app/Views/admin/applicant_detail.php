@@ -130,7 +130,11 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
                         <div><span>Tinggi badan</span><strong><?= $applicant['height_cm'] ? (int) $applicant['height_cm'] . ' cm' : '-' ?></strong></div>
                         <div><span>Status pernikahan</span><strong><?= esc(ucwords(mb_strtolower($value($applicant['marital_status'])))) ?></strong></div>
                         <div><span>Agama</span><strong><?= esc($value($applicant['religion'])) ?></strong></div>
-                        <div class="candidate-info-wide"><span>Alamat</span><strong><?= nl2br(esc($value($applicant['address']))) ?></strong></div>
+                        <div><span>Provinsi</span><strong><?= esc($value($applicant['province_name'])) ?></strong></div>
+                        <div><span>Kabupaten/Kota</span><strong><?= esc($value($applicant['regency_name'])) ?></strong></div>
+                        <div><span>Kecamatan</span><strong><?= esc($value($applicant['district_name'])) ?></strong></div>
+                        <div><span>Kelurahan/Desa</span><strong><?= esc($value($applicant['village_name'])) ?></strong></div>
+                        <div class="candidate-info-wide"><span>Alamat lengkap</span><strong><?= nl2br(esc($value($applicant['address']))) ?></strong></div>
                     </div>
                 </section>
 
