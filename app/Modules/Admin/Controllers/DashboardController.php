@@ -57,6 +57,7 @@ class DashboardController extends BaseController
             : [];
 
         return view('admin/dashboard', [
+            'diskUsage' => (new \App\Libraries\DiskUsage())->read(WRITEPATH),
             'auth' => $auth,
             'filters' => $filters,
             'departments' => $database->table('departments')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray(),

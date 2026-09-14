@@ -40,6 +40,7 @@ $reminderPriorityLabels = ['urgent' => 'Mendesak', 'high' => 'Tinggi', 'normal' 
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=77">
+    <link rel="stylesheet" href="<?= base_url('assets/css/dashboard-storage.css') ?>?v=1">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -79,6 +80,8 @@ $reminderPriorityLabels = ['urgent' => 'Mendesak', 'high' => 'Tinggi', 'normal' 
                 <article><span class="analytics-metric-icon icon-green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg></span><div><small>Diterima</small><strong><?= (int) $metrics['accepted'] ?></strong><p>Kandidat berhasil</p></div></article>
                 <article class="<?= (int) $metrics['overdue'] > 0 ? 'metric-attention' : '' ?>"><span class="analytics-metric-icon icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></span><div><small>Melewati SLA</small><strong><?= (int) $metrics['overdue'] ?></strong><p>Perlu perhatian</p></div></article>
             </section>
+
+            <?= view('admin/partials/dashboard_storage', ['diskUsage' => $diskUsage]) ?>
 
             <section class="analytics-card recruiter-reminder-card" aria-labelledby="recruiter-reminder-title">
                 <header>
