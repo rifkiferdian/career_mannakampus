@@ -64,7 +64,7 @@ class ApplicationController extends BaseController
                 $this->request->getPost(),
                 $selectedVacancies,
                 [
-                    'profile_photo'  => $this->request->getFile('profile_photo'),
+                    'profile_photo'  => config('ApplicationForm')->profilePhotoEnabled ? $this->request->getFile('profile_photo') : null,
                     'application_bundle' => $this->request->getFile('application_bundle'),
                 ],
                 $this->request->getIPAddress(),
@@ -316,9 +316,12 @@ class ApplicationController extends BaseController
             'training_experience' => 'permit_empty|max_length[3000]',
             'work_motivation'     => 'required|min_length[20]|max_length[5000]',
             'privacy_consent'     => 'required|in_list[1]',
-            'profile_photo'       => 'permit_empty|max_size[profile_photo,2048]|ext_in[profile_photo,jpg,jpeg,png]|is_image[profile_photo]',
             'application_bundle'  => 'uploaded[application_bundle]|max_size[application_bundle,2048]|ext_in[application_bundle,pdf]',
         ];
+
+        if (config('ApplicationForm')->profilePhotoEnabled) {
+            $rules['profile_photo'] = 'permit_empty|max_size[profile_photo,2048]|ext_in[profile_photo,jpg,jpeg,png]|is_image[profile_photo]';
+        }
 
         foreach ($questions as $question) {
             if ((int) $question['is_required'] === 1) {

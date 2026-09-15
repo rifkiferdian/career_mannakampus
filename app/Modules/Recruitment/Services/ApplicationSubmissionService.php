@@ -92,7 +92,7 @@ class ApplicationSubmissionService
             }
 
             $photoPath = $applicant['profile_photo_path'] ?? null;
-            if (($files['profile_photo'] ?? null)?->isValid()) {
+            if (config('ApplicationForm')->profilePhotoEnabled && ($files['profile_photo'] ?? null)?->isValid()) {
                 $photoPath = $this->storeFile($files['profile_photo'], $batchUuid);
                 $storedFiles[] = $photoPath;
             }

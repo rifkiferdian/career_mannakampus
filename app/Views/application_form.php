@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f5f7f8">
     <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=17">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=18">
 </head>
 <body class="application-page">
     <header class="application-header">
@@ -100,6 +100,19 @@
                     <span class="save-status">Data terlindungi</span>
                 </div>
 
+                <aside class="document-preparation" aria-labelledby="document-preparation-title">
+                    <span class="document-preparation-label">Sebelum mulai mengisi</span>
+                    <h2 id="document-preparation-title">Siapkan dokumen lamaran terlebih dahulu</h2>
+                    <p>Agar pengisian lebih lancar, siapkan berkas berikut di perangkat Anda:</p>
+                    <ul>
+                        <li><strong>Berkas lamaran: 1 file PDF, maksimal 2 MB.</strong> Gabungkan surat lamaran, CV, KTP, KK, ijazah, transkrip nilai, dan pas foto berwarna. Khusus pelamar Security, sertakan sertifikat Security.</li>
+                        <?php if (config('ApplicationForm')->profilePhotoEnabled): ?>
+                            <li><strong>Foto profil: JPG atau PNG, maksimal 2 MB.</strong> Gunakan foto formal dengan latar polos.</li>
+                        <?php endif ?>
+                    </ul>
+                    <p class="document-preparation-note">Berkas PDF akan diunggah pada langkah 7 — Dokumen Pendukung. Pastikan seluruh halaman terbaca jelas dan ukuran file sesuai sebelum melanjutkan.</p>
+                </aside>
+
                 <div class="position-selection">
                     <div>
                         <strong>Pilih posisi yang dilamar</strong>
@@ -140,6 +153,7 @@
                     </div>
                 </div>
 
+                <?php if (config('ApplicationForm')->profilePhotoEnabled): ?>
                 <label class="photo-upload">
                     <span class="photo-preview" id="photo-preview" aria-hidden="true">◎</span>
                     <span>
@@ -149,6 +163,7 @@
                     </span>
                     <input type="file" name="profile_photo" id="profile-photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
                 </label>
+                <?php endif ?>
 
                 <div class="form-grid">
                     <label class="field">
@@ -394,7 +409,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=18" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=19" defer></script>
     <script src="<?= base_url('assets/js/application-regions.js') ?>?v=1" defer></script>
 </body>
 </html>

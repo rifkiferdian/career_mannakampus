@@ -53,6 +53,13 @@ button, label, select { -webkit-tap-highlight-color: transparent; }
 .save-status::before { content: '✓'; margin-right: 6px; }
 .form-alert { margin: 24px 44px 0; padding: 12px 15px; color: #8a270d; background: #fff0eb; border: 1px solid #f2c2b4; border-radius: 8px; font-size: 12px; }
 .form-alert ul { margin: 7px 0 0; padding-left: 18px; }
+.document-preparation { margin-bottom: 26px; padding: 20px; border: 1px solid #efd7b9; border-left: 4px solid #cc8436; border-radius: 10px; background: #fff9ef; color: #654c2d; }
+.document-preparation-label { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.document-preparation h2 { margin: 6px 0 10px; color: #50391f; font-size: 18px; line-height: 1.4; }
+.document-preparation p, .document-preparation li { font-size: 13px; line-height: 1.7; }
+.document-preparation p { margin: 0; }
+.document-preparation ul { display: grid; gap: 10px; margin: 12px 0; padding-left: 20px; }
+.document-preparation .document-preparation-note { padding-top: 12px; border-top: 1px solid #efd7b9; }
 
 .position-selection { display: grid; grid-template-columns: 1fr auto; gap: 14px 20px; margin-bottom: 25px; padding: 17px; background: #f8faf9; border: 1px solid #e1e7e4; border-radius: 9px; }
 .position-selection > div:first-child { display: grid; gap: 2px; }

@@ -265,7 +265,7 @@
                 ['Tinggi badan', selectedText('height_cm') === '-' ? '-' : `${selectedText('height_cm')} cm`],
                 ['Nomor WhatsApp', selectedText('phone')],
                 ['Email aktif', selectedText('email')],
-                ['Foto profil', selectedText('profile_photo')],
+                ...(photoInput ? [['Foto profil', selectedText('profile_photo')]] : []),
             ]),
             reviewSection('Alamat Domisili', [
                 ['Provinsi', selectedText('province_code')],
