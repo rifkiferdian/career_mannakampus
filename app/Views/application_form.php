@@ -228,7 +228,7 @@
                 </div>
                 <label class="field field-full">
                     <span>Detail Alamat<b>*</b></span>
-                    <textarea name="address" rows="5" minlength="10" maxlength="1000" placeholder="Nama jalan, nomor rumah, RT/RW, dusun, atau detail alamat lainnya" required><?= esc(old('address')) ?></textarea>
+                    <textarea name="address" rows="5" maxlength="1000" placeholder="Nama jalan, nomor rumah, RT/RW, dusun, atau detail alamat lainnya" required><?= esc(old('address')) ?></textarea>
                 </label>
             </section>
 
@@ -265,6 +265,7 @@
                                 <label class="field"><span>Tahun masuk</span><input name="work_experiences[<?= $experienceIndex ?>][start_year]" type="number" value="<?= esc((string) ($experience['start_year'] ?? ''), 'attr') ?>" min="1950" max="<?= date('Y') ?>" placeholder="Contoh: 2020" data-experience-field></label>
                                 <label class="field"><span>Tahun akhir</span><input name="work_experiences[<?= $experienceIndex ?>][end_year]" type="number" value="<?= esc((string) ($experience['end_year'] ?? ''), 'attr') ?>" min="1950" max="<?= date('Y') + 1 ?>" placeholder="Kosongkan jika masih bekerja" data-experience-field></label>
                                 <label class="field field-full"><span>Deskripsi tugas dan tanggung jawab</span><textarea name="work_experiences[<?= $experienceIndex ?>][responsibilities]" rows="5" maxlength="5000" placeholder="Jelaskan posisi, tugas utama, dan tanggung jawab Anda" data-experience-field><?= esc((string) ($experience['responsibilities'] ?? '')) ?></textarea></label>
+                                <label class="field field-full"><span>Alasan keluar (opsional)</span><textarea name="work_experiences[<?= $experienceIndex ?>][leaving_reason]" rows="3" maxlength="1000" placeholder="Contoh: kontrak selesai, pengembangan karier, atau pindah domisili. Kosongkan jika masih bekerja." data-experience-field><?= esc((string) ($experience['leaving_reason'] ?? '')) ?></textarea></label>
                             </div>
                         </article>
                     <?php endforeach ?>
@@ -279,6 +280,7 @@
                             <label class="field"><span>Tahun masuk</span><input name="work_experiences[__INDEX__][start_year]" type="number" min="1950" max="<?= date('Y') ?>" placeholder="Contoh: 2020" data-experience-field></label>
                             <label class="field"><span>Tahun akhir</span><input name="work_experiences[__INDEX__][end_year]" type="number" min="1950" max="<?= date('Y') + 1 ?>" placeholder="Kosongkan jika masih bekerja" data-experience-field></label>
                             <label class="field field-full"><span>Deskripsi tugas dan tanggung jawab</span><textarea name="work_experiences[__INDEX__][responsibilities]" rows="5" maxlength="5000" placeholder="Jelaskan posisi, tugas utama, dan tanggung jawab Anda" data-experience-field></textarea></label>
+                            <label class="field field-full"><span>Alasan keluar (opsional)</span><textarea name="work_experiences[__INDEX__][leaving_reason]" rows="3" maxlength="1000" placeholder="Contoh: kontrak selesai, pengembangan karier, atau pindah domisili. Kosongkan jika masih bekerja." data-experience-field></textarea></label>
                         </div>
                     </article>
                 </template>
@@ -391,7 +393,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=14" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=15" defer></script>
     <script src="<?= base_url('assets/js/application-regions.js') ?>?v=1" defer></script>
 </body>
 </html>

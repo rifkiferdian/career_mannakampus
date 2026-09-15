@@ -381,7 +381,11 @@ class ApplicationSubmissionService
             $startYear = trim((string) ($experience['start_year'] ?? ''));
             $endYear = trim((string) ($experience['end_year'] ?? ''));
             $responsibilities = trim((string) ($experience['responsibilities'] ?? ''));
-            if ($company === '' && $positionTitle === '' && $startYear === '' && $endYear === '' && $responsibilities === '') {
+            $leavingReason = trim((string) ($experience['leaving_reason'] ?? ''));
+            if (mb_strlen($leavingReason) > 1000) {
+                throw new DomainException('Alasan keluar maksimal 1.000 karakter.');
+            }
+            if ($company === '' && $positionTitle === '' && $startYear === '' && $endYear === '' && $responsibilities === '' && $leavingReason === '') {
                 continue;
             }
             if ($company === '' || mb_strlen($company) > 150 || $positionTitle === '' || mb_strlen($positionTitle) > 150
@@ -398,6 +402,7 @@ class ApplicationSubmissionService
                 'start_year' => (int) $startYear,
                 'end_year' => $endYear === '' ? null : (int) $endYear,
                 'responsibilities' => $responsibilities,
+                'leaving_reason' => $leavingReason,
                 'display_order' => count($experiences) + 1,
             ];
         }
@@ -415,7 +420,7 @@ class ApplicationSubmissionService
                 $experience['position_title'],
                 $experience['start_year'],
                 $experience['end_year'] ?? 'Sekarang',
-                $experience['responsibilities'],
+                $experience['responsibilities'] . (($experience['leaving_reason'] ?? '') !== '' ? "\nAlasan keluar: " . $experience['leaving_reason'] : ''),
             ),
             $experiences,
         ));

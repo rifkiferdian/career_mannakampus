@@ -304,7 +304,7 @@ class ApplicationController extends BaseController
             'gender'              => 'required|in_list[PRIA,WANITA]',
             'marital_status'      => 'required|in_list[BELUM MENIKAH,MENIKAH,CERAI]',
             'religion'            => 'required|max_length[30]',
-            'address'             => 'required|min_length[10]|max_length[1000]',
+            'address'             => 'required|max_length[1000]',
             'province_code'       => 'required|max_length[20]',
             'regency_code'        => 'required|max_length[20]',
             'district_code'       => 'required|max_length[20]',
@@ -357,7 +357,6 @@ class ApplicationController extends BaseController
             'village_code' => ['required' => 'Kelurahan/desa domisili wajib dipilih.', 'max_length' => 'Kode kelurahan/desa tidak valid.'],
             'address' => [
                 'required' => 'Alamat lengkap wajib diisi.',
-                'min_length' => 'Alamat lengkap minimal 10 karakter.',
                 'max_length' => 'Alamat lengkap maksimal 1.000 karakter.',
             ],
             'last_education' => ['required' => 'Jenjang pendidikan wajib dipilih.', 'in_list' => 'Jenjang pendidikan belum valid.'],
@@ -419,11 +418,15 @@ class ApplicationController extends BaseController
             $startYear = trim((string) ($experience['start_year'] ?? ''));
             $endYear = trim((string) ($experience['end_year'] ?? ''));
             $responsibilities = trim((string) ($experience['responsibilities'] ?? ''));
-            if ($company === '' && $positionTitle === '' && $startYear === '' && $endYear === '' && $responsibilities === '') {
+            $leavingReason = trim((string) ($experience['leaving_reason'] ?? ''));
+            if ($company === '' && $positionTitle === '' && $startYear === '' && $endYear === '' && $responsibilities === '' && $leavingReason === '') {
                 continue;
             }
 
             $prefix = 'Perusahaan ke-' . ($index + 1) . ': ';
+            if (mb_strlen($leavingReason) > 1000) {
+                $errors['work_experiences.' . $index . '.leaving_reason'] = $prefix . 'alasan keluar maksimal 1.000 karakter.';
+            }
             if ($company === '' || mb_strlen($company) > 150) {
                 $errors['work_experiences.' . $index . '.company_name'] = $prefix . 'nama PT/perusahaan wajib diisi dan maksimal 150 karakter.';
             }

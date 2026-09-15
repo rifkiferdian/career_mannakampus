@@ -131,7 +131,7 @@
         const hasValue = fields.some((field) => field.value.trim() !== '');
         fields.forEach((field) => {
             const fieldName = field.name.match(/\[([^\]]+)]$/)?.[1];
-            field.required = hasValue && fieldName !== 'end_year';
+            field.required = hasValue && !['end_year', 'leaving_reason'].includes(fieldName);
         });
         const startYear = entry.querySelector('[name$="[start_year]"]');
         const endYear = entry.querySelector('[name$="[end_year]"]');
@@ -290,7 +290,8 @@
                 const startYear = fieldText(entry.querySelector('[name$="[start_year]"]'));
                 const endYear = fieldText(entry.querySelector('[name$="[end_year]"]'));
                 const responsibilities = fieldText(entry.querySelector('[name$="[responsibilities]"]'));
-                return [company, `${positionTitle}\n${startYear}–${endYear === '-' ? 'Sekarang' : endYear}\n${responsibilities}`];
+                const leavingReason = fieldText(entry.querySelector('[name$="[leaving_reason]"]'));
+                return [company, `${positionTitle}\n${startYear}–${endYear === '-' ? 'Sekarang' : endYear}\n${responsibilities}\nAlasan keluar: ${leavingReason}`];
             })
             .filter(Boolean);
         sections.push(reviewSection('Pengalaman Kerja', experienceItems.length > 0
