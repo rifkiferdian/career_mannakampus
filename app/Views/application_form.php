@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f5f7f8">
     <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=16">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=17">
 </head>
 <body class="application-page">
     <header class="application-header">
@@ -54,9 +54,11 @@
             <ol>
                 <?php foreach ($steps as $index => [$label, $english]): ?>
                     <li class="<?= $index === 0 ? 'active' : '' ?>" data-step-indicator="<?= $index + 1 ?>">
+                        <button type="button" data-step-jump="<?= $index + 1 ?>" aria-controls="step-title-<?= $index + 1 ?>" <?= $index === 0 ? 'aria-current="step"' : '' ?>>
                         <span><?= $index + 1 ?></span>
                         <small><?= esc($label) ?></small>
                         <em><?= esc($english) ?></em>
+                        </button>
                     </li>
                 <?php endforeach ?>
             </ol>
@@ -392,7 +394,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=16" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=17" defer></script>
     <script src="<?= base_url('assets/js/application-regions.js') ?>?v=1" defer></script>
 </body>
 </html>

@@ -42,6 +42,7 @@
         })
         .map((choice) => choice.value);
     let currentStep = 1;
+    const visitedSteps = new Set();
 
     const ageFromDate = (dateValue) => {
         if (!dateValue) return '';
@@ -341,6 +342,7 @@
     };
 
     const showStep = (step) => {
+        visitedSteps.add(currentStep);
         currentStep = Math.min(Math.max(step, 1), panels.length);
 
         panels.forEach((panel, index) => {
@@ -351,9 +353,12 @@
 
         indicators.forEach((indicator, index) => {
             indicator.classList.toggle('active', index + 1 === currentStep);
-            indicator.classList.toggle('completed', index + 1 < currentStep);
-            if (index + 1 === currentStep) indicator.setAttribute('aria-current', 'step');
-            else indicator.removeAttribute('aria-current');
+            const complete = visitedSteps.has(index + 1) && index + 1 !== currentStep
+                && [...panels[index].querySelectorAll('input, select, textarea')].every((field) => field.disabled || field.validity.valid);
+            indicator.classList.toggle('completed', complete);
+            const button = indicator.querySelector('[data-step-jump]');
+            if (index + 1 === currentStep) button?.setAttribute('aria-current', 'step');
+            else button?.removeAttribute('aria-current');
         });
 
         previousButton.hidden = currentStep === 1;
@@ -370,6 +375,14 @@
     });
 
     previousButton?.addEventListener('click', () => showStep(currentStep - 1));
+    indicators.forEach((indicator) => {
+        indicator.querySelector('[data-step-jump]')?.addEventListener('click', () => {
+            showStep(Number(indicator.dataset.stepIndicator));
+            const heading = panels[currentStep - 1].querySelector('h1, h2');
+            heading?.setAttribute('tabindex', '-1');
+            heading?.focus({ preventScroll: true });
+        });
+    });
 
     birthDateInput?.addEventListener('change', synchronizeScreening);
     educationInput?.addEventListener('change', () => {
