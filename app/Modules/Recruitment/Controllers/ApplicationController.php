@@ -315,7 +315,6 @@ class ApplicationController extends BaseController
             'gpa'                 => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[' . ($usesSchoolGrade ? '100' : '4') . ']',
             'training_experience' => 'permit_empty|max_length[3000]',
             'work_motivation'     => 'required|min_length[20]|max_length[5000]',
-            'career_goal'         => 'required|min_length[20]|max_length[5000]',
             'privacy_consent'     => 'required|in_list[1]',
             'profile_photo'       => 'permit_empty|max_size[profile_photo,2048]|ext_in[profile_photo,jpg,jpeg,png]|is_image[profile_photo]',
             'application_bundle'  => 'uploaded[application_bundle]|max_size[application_bundle,2048]|ext_in[application_bundle,pdf]',
@@ -368,7 +367,6 @@ class ApplicationController extends BaseController
                 'less_than_equal_to' => $usesSchoolGrade ? 'Nilai akhir maksimal 100.' : 'IPK maksimal 4,00.',
             ],
             'work_motivation' => ['required' => 'Motivasi bekerja wajib diisi.', 'min_length' => 'Motivasi bekerja minimal 20 karakter.'],
-            'career_goal' => ['required' => 'Target atau impian wajib diisi.', 'min_length' => 'Target atau impian minimal 20 karakter.'],
             'privacy_consent' => ['required' => 'Persetujuan pemrosesan data wajib dicentang.', 'in_list' => 'Persetujuan pemrosesan data wajib dicentang.'],
             'profile_photo' => [
                 'max_size' => 'Ukuran foto profil maksimal 2 MB.',

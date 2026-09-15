@@ -231,7 +231,7 @@ class ApplicationSubmissionService
                     'preference_order'      => (int) $vacancy['preference_order'],
                     'work_experience'      => $legacyWorkExperience,
                     'work_motivation'      => trim((string) $input['work_motivation']),
-                    'career_goal'          => trim((string) $input['career_goal']),
+                    'career_goal'          => '',
                     'screening_status'     => 'pending',
                     'screening_score'      => null,
                     'screening_notes'      => null,

@@ -315,7 +315,6 @@
         sections.push(
             reviewSection('Motivasi', [
                 ['Motivasi bekerja dan alasan ingin bergabung', selectedText('work_motivation')],
-                ['Target/impian yang akan dicapai', selectedText('career_goal')],
             ]),
             reviewSection('Dokumen Pendukung', [
                 ['Berkas lamaran lengkap (PDF)', selectedText('application_bundle')],

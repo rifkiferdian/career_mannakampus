@@ -348,14 +348,13 @@
                 <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 6 dari 8</span><h2 id="step-title-6">Motivasi</h2><p>Bantu kami memahami alasan dan tujuan kariermu.</p></div></div>
                 <div class="form-stack">
                     <label class="field"><span>MOTIVASI BEKERJA DAN ALASAN INGIN BERGABUNG DENGAN MANNA KAMPUS <b>*</b></span><textarea name="work_motivation" rows="7" minlength="20" maxlength="5000" required><?= esc(old('work_motivation')) ?></textarea></label>
-                    <label class="field"><span>TARGET/IMPIAN YANG AKAN DICAPAI <b>*</b></span><textarea name="career_goal" rows="7" minlength="20" maxlength="5000" required><?= esc(old('career_goal')) ?></textarea></label>
                 </div>
             </section>
 
             <section class="wizard-panel" data-step="7" aria-labelledby="step-title-7" hidden>
                 <div class="panel-heading"><div><span class="panel-eyebrow">Langkah 7 dari 8</span><h2 id="step-title-7">Dokumen Pendukung</h2><p>Dokumen disimpan di area privat dan tidak dapat diakses langsung dari internet.</p></div></div>
                 <div class="document-grid">
-                    <label class="document-upload"><span>PDF</span><strong>SILAKAN POSTING BERKAS DALAM 1 FILE PDF <b>*</b></strong><em>SURAT LAMARAN, CV, KTP, KK, IJAZAH, TRANSKRIP NILAI, SERTIF VAKSIN, PAS FOTO BERWARNA, SERTIF SECURITY BAGI PELAMAR SECURITY. Maksimal 2 MB.</em><input type="file" name="application_bundle" accept=".pdf,application/pdf" required><small>Pilih Berkas PDF maksimal 2 MB</small></label>
+                    <label class="document-upload"><span>PDF</span><strong>SILAKAN POSTING BERKAS DALAM 1 FILE PDF <b>*</b></strong><em>SURAT LAMARAN, CV, KTP, KK, IJAZAH, TRANSKRIP NILAI, PAS FOTO BERWARNA, SERTIF SECURITY BAGI PELAMAR SECURITY. Maksimal 2 MB.</em><input type="file" name="application_bundle" accept=".pdf,application/pdf" required><small>Pilih Berkas PDF maksimal 2 MB</small></label>
                 </div>
             </section>
 
@@ -393,7 +392,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=15" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=16" defer></script>
     <script src="<?= base_url('assets/js/application-regions.js') ?>?v=1" defer></script>
 </body>
 </html>
