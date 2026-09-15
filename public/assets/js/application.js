@@ -369,15 +369,28 @@
         document.querySelector('.wizard-progress')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    nextButton?.addEventListener('click', () => {
-        const panel = panels[currentStep - 1];
-        if (panel && validatePanel(panel)) showStep(currentStep + 1);
-    });
+    const navigateToStep = (targetStep) => {
+        if (targetStep > currentStep) {
+            synchronizeScreening();
+            synchronizeEducationGrade();
+            const incompleteIndex = panels.findIndex((panel, index) => index < targetStep - 1
+                && [...panel.querySelectorAll('input, select, textarea')].some((field) => !field.disabled && !field.validity.valid));
+            if (incompleteIndex >= 0) {
+                showStep(incompleteIndex + 1);
+                validatePanel(panels[incompleteIndex]);
+                return false;
+            }
+        }
+        showStep(targetStep);
+        return true;
+    };
+
+    nextButton?.addEventListener('click', () => navigateToStep(currentStep + 1));
 
     previousButton?.addEventListener('click', () => showStep(currentStep - 1));
     indicators.forEach((indicator) => {
         indicator.querySelector('[data-step-jump]')?.addEventListener('click', () => {
-            showStep(Number(indicator.dataset.stepIndicator));
+            if (!navigateToStep(Number(indicator.dataset.stepIndicator))) return;
             const heading = panels[currentStep - 1].querySelector('h1, h2');
             heading?.setAttribute('tabindex', '-1');
             heading?.focus({ preventScroll: true });

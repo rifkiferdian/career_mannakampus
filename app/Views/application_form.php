@@ -394,7 +394,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=17" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=18" defer></script>
     <script src="<?= base_url('assets/js/application-regions.js') ?>?v=1" defer></script>
 </body>
 </html>
