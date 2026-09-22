@@ -44,6 +44,15 @@ class RecruitmentScheduleService
         if ($conflict->countAllResults() > 0) {
             throw new InvalidArgumentException('PIC sudah memiliki jadwal lain pada tanggal dan jam yang sama.');
         }
+        $sessionConflict = $this->database->table('recruitment_sessions')
+            ->where('pic_user_id', $picUserId)->where('status', 'scheduled')
+            ->where('starts_at <=', $scheduledAt->format('Y-m-d H:i:s'))
+            ->groupStart()->where('ends_at >', $scheduledAt->format('Y-m-d H:i:s'))
+                ->orGroupStart()->where('ends_at', null)->where('starts_at', $scheduledAt->format('Y-m-d H:i:s'))->groupEnd()
+            ->groupEnd()->countAllResults();
+        if ($sessionConflict > 0) {
+            throw new InvalidArgumentException('PIC memiliki agenda seleksi pada waktu tersebut. Tambahkan peserta melalui menu Agenda Seleksi atau pilih waktu lain.');
+        }
 
         return [
             'scheduled_at' => $scheduledAt->format('Y-m-d H:i:s'),

@@ -12,6 +12,11 @@
 # Tool caches
 **/.cache/
 
+# Local AI agent configuration
+/.kilo
+/.agent
+/.agents
+
 # Test and coverage output
 /.phpunit.cache/
 /.phpunit.result.cache

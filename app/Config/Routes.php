@@ -35,6 +35,17 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('', 'AuthController::authenticate', ['as' => 'hrd.authenticate']);
     $routes->get('dashboard', 'DashboardController::index', ['filter' => 'permission:dashboard.admin.view', 'as' => 'hrd.dashboard']);
     $routes->get('kalender-rekrutmen', 'RecruitmentCalendarController::index', ['filter' => 'permission:schedules.view', 'as' => 'hrd.recruitment.calendar']);
+    $routes->get('agenda', 'RecruitmentSessionController::index', ['filter' => 'permission:schedules.view']);
+    $routes->get('agenda/baru', 'RecruitmentSessionController::create', ['filter' => 'permission:schedules.manage']);
+    $routes->post('agenda', 'RecruitmentSessionController::store', ['filter' => 'permission:schedules.manage']);
+    $routes->get('agenda/(:num)', 'RecruitmentSessionController::show/$1', ['filter' => 'permission:schedules.view']);
+    $routes->get('agenda/(:num)/edit', 'RecruitmentSessionController::edit/$1', ['filter' => 'permission:schedules.manage']);
+    $routes->post('agenda/(:num)', 'RecruitmentSessionController::update/$1', ['filter' => 'permission:schedules.manage']);
+    $routes->get('agenda/(:num)/peserta', 'RecruitmentSessionController::candidates/$1', ['filter' => 'permission:schedules.manage']);
+    $routes->post('agenda/(:num)/peserta', 'RecruitmentSessionController::addParticipants/$1', ['filter' => 'permission:schedules.manage']);
+    $routes->post('agenda/(:num)/status', 'RecruitmentSessionController::status/$1', ['filter' => 'permission:schedules.manage']);
+    $routes->post('agenda/(:num)/peserta/(:num)/kehadiran', 'RecruitmentSessionController::attendance/$1/$2', ['filter' => 'permission:schedules.attendance']);
+    $routes->post('agenda/(:num)/peserta/(:num)/batal', 'RecruitmentSessionController::cancelParticipant/$1/$2', ['filter' => 'permission:schedules.manage']);
     $routes->get('rekap-kehadiran', 'AttendanceRecapController::index', ['filter' => 'permission:schedules.view', 'as' => 'hrd.attendance.recap']);
     $routes->get('rekap-kehadiran/export', 'AttendanceRecapController::export', ['filter' => 'permission:schedules.view', 'as' => 'hrd.attendance.recap.export']);
     $routes->get('profil', 'ProfileController::index', ['filter' => 'hrd-auth', 'as' => 'hrd.profile']);

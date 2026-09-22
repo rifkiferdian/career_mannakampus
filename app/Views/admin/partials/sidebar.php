@@ -104,6 +104,10 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             Dashboard
         </a>
         <?php if ($canViewSchedules): ?>
+            <a<?= $activeClass('recruitment-agenda') ?> href="<?= site_url('adminhrdmannakampus/agenda') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h8M8 17h5"/></svg>
+                Agenda Seleksi
+            </a>
             <a<?= $activeClass('recruitment-calendar') ?> href="<?= site_url('adminhrdmannakampus/kalender-rekrutmen') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M13 14h3M8 17h3"/></svg>
                 Kalender Rekrutmen

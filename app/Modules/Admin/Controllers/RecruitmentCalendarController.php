@@ -20,6 +20,7 @@ class RecruitmentCalendarController extends BaseController
         $gridStart = $monthStart->modify('monday this week');
         $gridEnd = $monthEnd->modify('sunday this week');
         $events = array_merge(
+            $this->sessionEvents($userId, $gridStart, $gridEnd),
             $this->scheduleEvents($userId, $gridStart, $gridEnd),
             $this->vacancyEvents($gridStart, $gridEnd)
         );
@@ -66,7 +67,7 @@ class RecruitmentCalendarController extends BaseController
     private function scheduleEvents(int $userId, DateTimeImmutable $start, DateTimeImmutable $end): array
     {
         $builder = db_connect()->table('recruitment_schedules AS schedules')
-            ->select('schedules.id, schedules.scheduled_at, schedules.confirmation_deadline_at, schedules.status, schedules.venue, applicants.id AS applicant_id, applicants.full_name, applicants.assigned_hrd_team_id, vacancies.title AS vacancy_title, stages.code AS stage_code, stages.name AS stage_name, pic.full_name AS pic_name')
+            ->select('schedules.id, schedules.session_id, schedules.scheduled_at, schedules.confirmation_deadline_at, schedules.status, schedules.venue, applicants.id AS applicant_id, applicants.full_name, applicants.assigned_hrd_team_id, vacancies.title AS vacancy_title, stages.code AS stage_code, stages.name AS stage_name, pic.full_name AS pic_name')
             ->join('applications', 'applications.id = schedules.application_id')
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
@@ -86,7 +87,7 @@ class RecruitmentCalendarController extends BaseController
         $events = [];
         foreach ($builder->get()->getResultArray() as $row) {
             $isInterview = str_contains((string) $row['stage_code'], 'interview') || str_contains(mb_strtolower((string) $row['stage_name']), 'wawancara');
-            if ($this->within((string) $row['scheduled_at'], $start, $end)) {
+            if (empty($row['session_id']) && $this->within((string) $row['scheduled_at'], $start, $end)) {
                 $events[] = $this->event(
                     $isInterview ? 'interview' : 'test',
                     (string) $row['scheduled_at'],
@@ -108,6 +109,27 @@ class RecruitmentCalendarController extends BaseController
                     30
                 );
             }
+        }
+
+        return $events;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function sessionEvents(int $userId, DateTimeImmutable $start, DateTimeImmutable $end): array
+    {
+        $service = new \App\Modules\Recruitment\Services\RecruitmentSessionService(db_connect());
+        $rows = $service->visibleSessions($userId)
+            ->select('sessions.*, stages.name AS stage_name, stages.code AS stage_code, pic.full_name AS pic_name')
+            ->join('recruitment_stages AS stages', 'stages.id = sessions.stage_id')
+            ->join('users AS pic', 'pic.id = sessions.pic_user_id')
+            ->whereIn('sessions.status', ['scheduled', 'completed'])
+            ->where('sessions.starts_at >=', $start->format('Y-m-d H:i:s'))
+            ->where('sessions.starts_at <=', $end->format('Y-m-d H:i:s'))->get()->getResultArray();
+        $events = [];
+        foreach ($rows as $row) {
+            $interview = str_contains($row['stage_code'], 'interview') || str_contains(mb_strtolower($row['stage_name']), 'wawancara');
+            $events[] = $this->event($interview ? 'interview' : 'test', $row['starts_at'], $row['name'], $row['stage_name'],
+                'PIC: ' . $row['pic_name'], site_url('adminhrdmannakampus/agenda/' . $row['id']), $interview ? 10 : 20);
         }
 
         return $events;

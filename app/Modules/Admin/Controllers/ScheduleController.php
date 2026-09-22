@@ -14,6 +14,10 @@ class ScheduleController extends BaseController
         if ($schedule === null) {
             return $this->error('Jadwal tidak ditemukan atau tidak dapat Anda kelola.');
         }
+        if (! empty($schedule['session_id'])) {
+            return redirect()->to(site_url('adminhrdmannakampus/agenda/' . $schedule['session_id']))
+                ->with('agenda_error', 'Jadwal peserta ini mengikuti agenda bersama. Ubah waktu, lokasi, atau PIC melalui Ubah Agenda.');
+        }
         if (in_array((string) $schedule['status'], ['present', 'absent', 'cancelled'], true)) {
             return $this->error('Jadwal yang sudah selesai atau dibatalkan tidak dapat diubah.');
         }
@@ -39,6 +43,9 @@ class ScheduleController extends BaseController
         $schedule = $this->authorizedSchedule($scheduleId);
         if ($schedule === null) {
             return $this->error('Jadwal tidak ditemukan atau tidak dapat Anda kelola.');
+        }
+        if (! empty($schedule['session_id'])) {
+            return $this->sessionParticipantStatus($schedule, 'cancelled');
         }
         if (! in_array((string) $schedule['status'], ['scheduled', 'confirmed', 'reschedule_requested'], true)) {
             return $this->error('Jadwal ini sudah selesai atau dibatalkan.');
@@ -92,6 +99,9 @@ class ScheduleController extends BaseController
         if ($schedule === null || ! in_array($status, ['present', 'absent'], true)) {
             return $this->error('Jadwal atau status kehadiran tidak valid.');
         }
+        if (! empty($schedule['session_id'])) {
+            return $this->sessionParticipantStatus($schedule, $status);
+        }
         if ((string) $schedule['status'] === 'cancelled') {
             return $this->error('Kehadiran tidak dapat dicatat pada jadwal yang dibatalkan.');
         }
@@ -126,6 +136,18 @@ class ScheduleController extends BaseController
     private function userId(): int
     {
         return (int) (session()->get('hrd_auth')['user_id'] ?? 0);
+    }
+
+    private function sessionParticipantStatus(array $schedule, string $status): RedirectResponse
+    {
+        try {
+            $service = new \App\Modules\Recruitment\Services\RecruitmentSessionService(db_connect());
+            $service->participantStatus((int) $schedule['session_id'], (int) $schedule['id'], $status, $this->userId());
+
+            return $this->success('Status peserta agenda berhasil diperbarui.');
+        } catch (\InvalidArgumentException $exception) {
+            return $this->error($exception->getMessage());
+        }
     }
 
     private function success(string $message): RedirectResponse
