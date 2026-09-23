@@ -18,8 +18,8 @@ $datetime = static fn (mixed $value): string => $value ? date('Y-m-d\TH:i', strt
         <label>Status<select name="status"><option value="draft" <?= $value('status', 'scheduled') === 'draft' ? 'selected' : '' ?>>Draf</option><option value="scheduled" <?= $value('status', 'scheduled') === 'scheduled' ? 'selected' : '' ?>>Terjadwal</option></select></label>
         <label class="agenda-wide">Petunjuk peserta<textarea name="instructions" rows="4" maxlength="5000" placeholder="Contoh: Hadir 15 menit sebelum tes dan membawa alat tulis."><?= esc($value('instructions')) ?></textarea></label>
         <?php if ($id): ?>
-            <div class="agenda-note agenda-wide">Perubahan waktu mulai, lokasi, PIC, atau petunjuk akan diterapkan ke peserta aktif dan meminta konfirmasi ulang. Isi batas konfirmasi baru jika mengubah informasi tersebut. Tahap seleksi tidak dapat diganti setelah ada peserta.</div>
-            <label>Batas konfirmasi baru (WIB)<input type="datetime-local" name="confirmation_deadline_at" value="<?= esc($value('confirmation_deadline_at'), 'attr') ?>"></label>
+            <div class="agenda-note agenda-wide">Perubahan waktu mulai, lokasi, PIC, atau petunjuk akan diterapkan ke peserta aktif dan meminta konfirmasi ulang. Isi batas konfirmasi peserta jika mengubah informasi tersebut. Tahap seleksi tidak dapat diganti setelah ada peserta.</div>
+            <label>Batas konfirmasi peserta (WIB)<input type="datetime-local" name="confirmation_deadline_at" value="<?= esc($value('confirmation_deadline_at'), 'attr') ?>"><small>Wajib diisi jika informasi pelaksanaan diubah.</small></label>
         <?php endif ?>
         <div class="agenda-actions agenda-wide"><button class="agenda-button" type="submit">Simpan Agenda</button><a class="agenda-button agenda-button-secondary" href="<?= $base ?><?= $id ? '/' . $id : '' ?>">Batal</a></div>
     </form>

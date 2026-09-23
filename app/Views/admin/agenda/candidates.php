@@ -1,12 +1,13 @@
 <?php
 $base = site_url('adminhrdmannakampus/agenda/' . $agenda['id']);
-$acceptsParticipants = $agenda['status'] === 'scheduled' && $agenda['starts_at'] > date('Y-m-d H:i:s');
+$acceptsParticipants = $agenda['status'] === 'scheduled';
+$hasStarted = $agenda['starts_at'] <= date('Y-m-d H:i:s');
 $selected = old('application_ids', [], false);
 $selected = is_array($selected) ? array_map('intval', $selected) : [];
 ?>
 <section class="dashboard-welcome agenda-heading"><div><span class="login-eyebrow"><?= esc($agenda['name']) ?></span><h1>Tambah Peserta</h1><p><?= esc($agenda['stage_name']) ?> · <?= esc(date('d/m/Y H:i', strtotime($agenda['starts_at']))) ?> WIB</p></div><a class="agenda-button agenda-button-secondary" href="<?= $base ?>">Kembali ke Agenda</a></section>
 <?php if (! $acceptsParticipants): ?>
-<div class="agenda-note">Peserta hanya dapat ditambahkan ke agenda Terjadwal yang belum dimulai.</div>
+<div class="agenda-note">Peserta hanya dapat ditambahkan ke agenda berstatus Terjadwal.</div>
 <?php else: ?>
 <section class="settings-card agenda-card">
     <form method="get" action="<?= $base ?>/peserta" class="agenda-filters">
@@ -26,7 +27,7 @@ $selected = is_array($selected) ? array_map('intval', $selected) : [];
         <?php foreach ($rows as $row): ?><tr><td><input type="checkbox" name="application_ids[]" value="<?= (int) $row['id'] ?>" aria-label="Pilih <?= esc($row['full_name'], 'attr') ?> untuk <?= esc($row['vacancy_title'], 'attr') ?>" <?= in_array((int) $row['id'], $selected, true) ? 'checked' : '' ?>></td><td data-label="Pelamar"><strong><?= esc($row['full_name']) ?></strong></td><td data-label="Lamaran"><?= esc($row['application_number']) ?></td><td data-label="Posisi"><?= esc($row['vacancy_title']) ?></td></tr><?php endforeach ?>
         </tbody></table></div>
         <p class="agenda-muted">Pilihan berlaku untuk halaman ini. Tambahkan peserta sebelum berpindah halaman atau mengganti filter.</p>
-        <div class="agenda-filters agenda-submit-bar"><label>Batas konfirmasi peserta (WIB)<input type="datetime-local" name="confirmation_deadline_at" value="<?= esc(old('confirmation_deadline_at', '', false), 'attr') ?>" max="<?= esc(date('Y-m-d\TH:i', strtotime($agenda['starts_at']) - 60), 'attr') ?>" required></label><button class="agenda-button" type="submit" data-agenda-add>Tambahkan Peserta</button></div>
+        <div class="agenda-filters agenda-submit-bar"><?php if (! $hasStarted): ?><label>Batas konfirmasi peserta (WIB)<input type="datetime-local" name="confirmation_deadline_at" value="<?= esc(old('confirmation_deadline_at', '', false), 'attr') ?>" max="<?= esc(date('Y-m-d\TH:i', strtotime($agenda['starts_at']) - 60), 'attr') ?>" required></label><?php else: ?><p class="agenda-muted">Agenda sudah berlangsung. Peserta yang ditambahkan dapat langsung dicatat kehadirannya.</p><?php endif ?><button class="agenda-button" type="submit" data-agenda-add>Tambahkan Peserta</button></div>
     </form>
     <?= view('admin/agenda/pagination', ['page' => $page, 'total' => $total, 'baseUrl' => $base . '/peserta', 'parameters' => ['keyword' => $keyword, 'vacancy_id' => $vacancyId]]) ?>
 </section>

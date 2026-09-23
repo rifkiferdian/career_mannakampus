@@ -42,9 +42,10 @@ class RecruitmentSessionService
 
     public function find(int $id, int $userId): array
     {
-        $row = $this->visibleSessions($userId)->select('sessions.*, stages.name AS stage_name, stages.code AS stage_code, pic.full_name AS pic_name')
+        $row = $this->visibleSessions($userId)->select('sessions.*, stages.name AS stage_name, stages.code AS stage_code, pic.full_name AS pic_name, creator.full_name AS created_by_name')
             ->join('recruitment_stages AS stages', 'stages.id = sessions.stage_id')
             ->join('users AS pic', 'pic.id = sessions.pic_user_id')
+            ->join('users AS creator', 'creator.id = sessions.created_by')
             ->where('sessions.id', $id)->get()->getRowArray();
         if ($row === null) {
             throw new InvalidArgumentException('Agenda tidak ditemukan atau tidak dapat Anda akses.');
@@ -101,7 +102,7 @@ class RecruitmentSessionService
             if ($id !== null) {
                 $this->lock('recruitment_sessions', $id);
                 $existing = $this->find($id, $userId);
-                $this->requireEditable($existing);
+                $this->requireEditable($existing, true);
             }
             $name = trim((string) ($input['name'] ?? ''));
             $venue = trim((string) ($input['venue'] ?? ''));
@@ -114,7 +115,10 @@ class RecruitmentSessionService
             if ($name === '' || mb_strlen($name) > 200 || $venue === '' || mb_strlen($venue) > 1000) {
                 throw new InvalidArgumentException('Nama agenda (maksimal 200 karakter) dan lokasi (maksimal 1000 karakter) wajib diisi.');
             }
-            if ($start <= date('Y-m-d H:i:s') || ($end !== null && $end <= $start)) {
+            $keepsStartedTime = $existing !== null
+                && $existing['starts_at'] <= date('Y-m-d H:i:s')
+                && $start === $existing['starts_at'];
+            if (($start <= date('Y-m-d H:i:s') && ! $keepsStartedTime) || ($end !== null && $end <= $start)) {
                 throw new InvalidArgumentException('Waktu mulai harus di masa mendatang dan waktu selesai harus setelah waktu mulai.');
             }
             if ($capacity !== '' && (! ctype_digit($capacity) || (int) $capacity < 1 || (int) $capacity > 100000)) {
@@ -184,11 +188,13 @@ class RecruitmentSessionService
         return $this->transaction(function () use ($id, $ids, $deadline, $userId): int {
             $this->lock('recruitment_sessions', $id);
             $session = $this->find($id, $userId);
-            $this->requireEditable($session);
+            $this->requireEditable($session, true);
             if ($session['status'] !== 'scheduled') {
                 throw new InvalidArgumentException('Ubah status agenda menjadi Terjadwal sebelum menambahkan peserta.');
             }
-            $deadline = $this->deadline($deadline, $session['starts_at']);
+            $deadline = $session['starts_at'] <= date('Y-m-d H:i:s')
+                ? $session['starts_at']
+                : $this->deadline($deadline, $session['starts_at']);
             $this->lock('users', (int) $session['pic_user_id']);
             if ($this->db->table('users')->where('id', $session['pic_user_id'])->where('is_active', 1)->where('deleted_at', null)->countAllResults() === 0) {
                 throw new InvalidArgumentException('PIC agenda sudah tidak aktif. Ubah PIC sebelum menambahkan peserta.');
@@ -358,9 +364,10 @@ class RecruitmentSessionService
         }
     }
 
-    private function requireEditable(array $session): void
+    private function requireEditable(array $session, bool $allowStarted = false): void
     {
-        if (! in_array($session['status'], ['draft', 'scheduled'], true) || $session['starts_at'] <= date('Y-m-d H:i:s')) {
+        if (! in_array($session['status'], ['draft', 'scheduled'], true)
+            || (! $allowStarted && $session['starts_at'] <= date('Y-m-d H:i:s'))) {
             throw new InvalidArgumentException('Agenda yang sudah dimulai, selesai, atau dibatalkan tidak dapat diubah atau ditambah peserta.');
         }
     }

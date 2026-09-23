@@ -110,8 +110,12 @@ class RecruitmentSessionController extends BaseController
             $page = min(max(1, (int) $this->request->getGet('page')), max(1, (int) ceil($total / 50)));
             $rows = $query->orderBy('schedules.scheduled_at')->orderBy('applicants.full_name')->get(50, ($page - 1) * 50)->getResultArray();
             $summary = array_column(db_connect()->table('recruitment_schedules')->select('status, COUNT(*) AS total', false)->where('session_id', $id)->groupBy('status')->get()->getResultArray(), 'total', 'status');
+            $deadline = db_connect()->table('recruitment_schedules')
+                ->selectMin('confirmation_deadline_at', 'minimum')
+                ->selectMax('confirmation_deadline_at', 'maximum')
+                ->where('session_id', $id)->where('status !=', 'cancelled')->get()->getRowArray();
 
-            return $this->render('show', compact('agenda', 'rows', 'summary', 'page', 'total') + ['title' => $agenda['name']]);
+            return $this->render('show', compact('agenda', 'rows', 'summary', 'deadline', 'page', 'total') + ['title' => $agenda['name']]);
         } catch (InvalidArgumentException $exception) {
             return $this->failure($exception);
         }
@@ -148,7 +152,7 @@ class RecruitmentSessionController extends BaseController
             $ids = $this->request->getPost('application_ids');
             $count = $this->agenda()->addParticipants($id, is_array($ids) ? $ids : [], (string) $this->request->getPost('confirmation_deadline_at'), $this->userId());
 
-            return $this->success($id, $count . ' peserta berhasil ditambahkan dan menunggu konfirmasi kehadiran.');
+            return $this->success($id, $count . ' peserta berhasil ditambahkan ke agenda.');
         } catch (InvalidArgumentException $exception) {
             return redirect()->to(site_url('adminhrdmannakampus/agenda/' . $id . '/peserta'))->withInput()->with('agenda_error', $exception->getMessage());
         }
