@@ -152,7 +152,7 @@ class RecruitmentSessionController extends BaseController
             $ids = $this->request->getPost('application_ids');
             $count = $this->agenda()->addParticipants($id, is_array($ids) ? $ids : [], (string) $this->request->getPost('confirmation_deadline_at'), $this->userId());
 
-            return $this->success($id, $count . ' peserta berhasil ditambahkan ke agenda.');
+            return $this->success($id, $count . ' pelamar berhasil diloloskan ke tahap agenda dan ditambahkan sebagai peserta.');
         } catch (InvalidArgumentException $exception) {
             return redirect()->to(site_url('adminhrdmannakampus/agenda/' . $id . '/peserta'))->withInput()->with('agenda_error', $exception->getMessage());
         }

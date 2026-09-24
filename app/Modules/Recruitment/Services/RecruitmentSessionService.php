@@ -67,14 +67,28 @@ class RecruitmentSessionService
     public function eligible(array $session, int $userId): BaseBuilder
     {
         $now = $this->db->escape(date('Y-m-d H:i:s'));
+        $targetCode = $this->db->escape((string) $session['stage_code']);
+        $normalizedCurrentStage = "CASE applications.application_status
+            WHEN 'screening_passed' THEN 'document_screening'
+            WHEN 'screening_failed' THEN 'document_screening'
+            WHEN 'reviewed' THEN 'under_review'
+            WHEN 'interview_hr' THEN 'hrd_interview'
+            WHEN 'interview_scheduled' THEN 'hrd_interview'
+            WHEN 'interview_user' THEN 'user_interview'
+            ELSE applications.application_status END";
         $query = $this->db->table('applications AS applications')
-            ->select('applications.id, applications.application_number, applicants.id AS applicant_id, applicants.full_name, vacancies.title AS vacancy_title')
+            ->select('applications.id, applications.application_number, applications.application_status AS current_stage_code, applicants.id AS applicant_id, applicants.full_name, vacancies.title AS vacancy_title, current_stage.name AS current_stage_name')
+            ->select('CASE WHEN applications.application_status = ' . $targetCode . ' THEN 0 ELSE 1 END AS advances_stage', false)
+            ->select('(SELECT previous_schedule.status FROM recruitment_schedules previous_schedule WHERE previous_schedule.application_id = applications.id AND previous_schedule.stage_id = current_stage.id ORDER BY previous_schedule.id DESC LIMIT 1) AS previous_result', false)
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+            ->join('recruitment_process_template_stages AS target_link', 'target_link.template_id = vacancies.recruitment_process_template_id AND target_link.stage_id = ' . (int) $session['stage_id'])
+            ->join('recruitment_stages AS current_stage', 'current_stage.code = ' . $normalizedCurrentStage, 'left', false)
+            ->join('recruitment_process_template_stages AS current_link', 'current_link.template_id = target_link.template_id AND current_link.stage_id = current_stage.id', 'left')
             ->join('recruitment_schedules AS member', 'member.application_id = applications.id AND member.session_id = ' . (int) $session['id'], 'left')
             ->join('applicant_blacklists AS blacklist', 'blacklist.applicant_id = applicants.id AND blacklist.revoked_at IS NULL AND blacklist.starts_at <= ' . $now . ' AND (blacklist.is_permanent = 1 OR blacklist.ends_at >= ' . $now . ')', 'left', false)
             ->where('applications.deleted_at', null)->where('applicants.deleted_at', null)->where('vacancies.deleted_at', null)
-            ->where('applications.application_status', $session['stage_code'])
+            ->where('(applications.application_status = ' . $targetCode . ' OR current_link.display_order + 1 = target_link.display_order)', null, false)
             ->where('member.id', null)->where('blacklist.id', null);
         if (! $this->can($userId, 'schedules.view_all')) {
             $query->whereIn('applicants.assigned_hrd_team_id', $this->teamIds($userId));
@@ -218,7 +232,11 @@ class RecruitmentSessionService
                 ->whereIn('status', RecruitmentScheduleService::ACTIVE_STATUSES)->get()->getResultArray();
             $byApplication = [];
             foreach ($existing as $row) {
-                if ($row['session_id'] !== null || (int) $row['stage_id'] !== (int) $session['stage_id'] || isset($byApplication[$row['application_id']])) {
+                if ((int) $row['stage_id'] !== (int) $session['stage_id']) {
+                    $this->schedules->setStatus((int) $row['id'], 'cancelled', $userId, 'Jadwal tahap sebelumnya ditutup karena kandidat diloloskan ke ' . $session['stage_name'] . '.');
+                    continue;
+                }
+                if ($row['session_id'] !== null || isset($byApplication[$row['application_id']])) {
                     throw new InvalidArgumentException('Ada peserta yang memiliki agenda aktif lain. Batalkan atau selesaikan jadwal tersebut terlebih dahulu.');
                 }
                 $byApplication[$row['application_id']] = $row;
@@ -228,6 +246,21 @@ class RecruitmentSessionService
                 $this->checkApplicantConflict((int) $application['id'], $session['starts_at'], $id, $session['ends_at']);
                 $data = ['session_id' => $id, 'scheduled_at' => $session['starts_at'], 'venue' => $session['venue'],
                     'pic_user_id' => (int) $session['pic_user_id'], 'instructions' => $session['instructions'], 'confirmation_deadline_at' => $deadline];
+                if ((int) $application['advances_stage'] === 1) {
+                    $now = date('Y-m-d H:i:s');
+                    $historyNote = 'Lolos dari tahap ' . ($application['current_stage_name'] ?: $application['current_stage_code'])
+                        . ' ke ' . $session['stage_name'] . ' dan ditambahkan ke agenda ' . $session['name'] . '.';
+                    $this->db->table('applications')->where('id', $application['id'])->update([
+                        'application_status' => $session['stage_code'],
+                        'public_message' => mb_substr('Lamaran Anda saat ini berada pada tahap ' . $session['stage_name'] . '.', 0, 500),
+                        'reviewed_at' => $now, 'reviewed_by' => $userId, 'updated_at' => $now,
+                    ]);
+                    $this->db->table('application_status_histories')->insert([
+                        'application_id' => (int) $application['id'], 'status_type' => 'application',
+                        'previous_status' => $application['current_stage_code'], 'new_status' => $session['stage_code'],
+                        'notes' => $historyNote, 'changed_by' => $userId, 'created_at' => $now,
+                    ]);
+                }
                 if (isset($byApplication[$application['id']])) {
                     $this->schedules->update((int) $byApplication[$application['id']]['id'], $data, $userId);
                 } else {

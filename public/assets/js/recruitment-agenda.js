@@ -9,7 +9,7 @@
     const refresh = () => {
         const selected = boxes.filter(box => box.checked).length;
         count.textContent = `${selected} peserta dipilih`;
-        submit.textContent = `Tambahkan ${selected} Peserta`;
+        submit.textContent = selected > 0 ? `Loloskan & Tambahkan (${selected})` : 'Loloskan & Tambahkan';
         submit.disabled = selected === 0;
         all.checked = boxes.length > 0 && selected === boxes.length;
         all.indeterminate = selected > 0 && selected < boxes.length;

@@ -33,18 +33,18 @@ $activeCount = array_sum($summary) - (int) ($summary['cancelled'] ?? 0);
         <h2>Daftar Peserta</h2>
         <?php if ($canManage && $canAddParticipants && $agenda['status'] === 'scheduled'): ?><a class="agenda-button" href="<?= $base ?>/peserta">+ Tambah Peserta</a><?php endif ?>
     </div>
-    <div class="department-table-wrap"><table class="department-table agenda-table agenda-table--participants"><thead><tr><th>Pelamar</th><th>Posisi</th><th>Jam (WIB)</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
-    <?php if ($rows === []): ?><tr><td colspan="5" class="department-empty">Belum ada peserta. Klik Tambah Peserta untuk memilih pelamar.</td></tr><?php endif ?>
-    <?php foreach ($rows as $row): ?>
-        <tr><td data-label="Pelamar"><strong><?= esc($row['full_name']) ?></strong><small><?= esc($row['application_number']) ?></small></td><td data-label="Posisi"><?= esc($row['vacancy_title']) ?></td><td data-label="Jam"><strong class="agenda-time"><?= esc(date('H:i', strtotime($row['scheduled_at']))) ?></strong></td><td data-label="Status"><span class="agenda-badge agenda-badge-<?= esc($row['status'], 'attr') ?>"><?= esc($participantStatuses[$row['status']] ?? $row['status']) ?></span><?php if ($row['candidate_note']): ?><small><?= esc($row['candidate_note']) ?></small><?php endif ?></td>
+    <div class="department-table-wrap"><table class="department-table agenda-table agenda-table--participants"><thead><tr><th class="agenda-number">No.</th><th>Pelamar</th><th>Posisi</th><th>Jam (WIB)</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+    <?php if ($rows === []): ?><tr><td colspan="6" class="department-empty">Belum ada peserta. Klik Tambah Peserta untuk memilih pelamar.</td></tr><?php endif ?>
+    <?php foreach ($rows as $index => $row): ?>
+        <tr><td class="agenda-number" data-label="No."><?= (($page - 1) * 50) + $index + 1 ?></td><td data-label="Pelamar"><strong><?= esc($row['full_name']) ?></strong><small><?= esc($row['application_number']) ?></small></td><td data-label="Posisi"><?= esc($row['vacancy_title']) ?></td><td data-label="Jam"><strong class="agenda-time"><?= esc(date('H:i', strtotime($row['scheduled_at']))) ?></strong></td><td data-label="Status"><span class="agenda-badge agenda-badge-<?= esc($row['status'], 'attr') ?>"><?= esc($participantStatuses[$row['status']] ?? $row['status']) ?></span><?php if ($row['candidate_note']): ?><small><?= esc($row['candidate_note']) ?></small><?php endif ?></td>
         <td><div class="agenda-actions">
-            <?php if ($canViewApplicant): ?><a class="agenda-action-link" href="<?= site_url('adminhrdmannakampus/pelamar/' . $row['applicant_id']) ?>?source=division&amp;team_id=<?= (int) $row['assigned_hrd_team_id'] ?>">Profil</a><?php endif ?>
+            <?php if ($canViewApplicant): ?><a class="agenda-action-link agenda-action-link-small" href="<?= site_url('adminhrdmannakampus/pelamar/' . $row['applicant_id']) ?>?source=division&amp;team_id=<?= (int) $row['assigned_hrd_team_id'] ?>" target="_blank" rel="noopener noreferrer">Profil</a><?php endif ?>
             <?php if ($canRecordAttendance && $agenda['status'] === 'scheduled' && $row['status'] !== 'cancelled' && $row['scheduled_at'] <= date('Y-m-d H:i:s')): ?>
                 <?php foreach (['present' => 'Hadir', 'absent' => 'Tidak hadir'] as $status => $label): ?>
                 <form method="post" action="<?= $base ?>/peserta/<?= (int) $row['id'] ?>/kehadiran"><?= csrf_field() ?><input type="hidden" name="status" value="<?= $status ?>"><button class="agenda-button agenda-button-small agenda-button-secondary" data-confirm="Catat <?= esc($row['full_name'], 'attr') ?>: <?= esc($label, 'attr') ?>?" type="submit"><?= $label ?></button></form>
                 <?php endforeach ?>
             <?php endif ?>
-            <?php if ($canManage && $agenda['status'] === 'scheduled' && in_array($row['status'], ['scheduled', 'confirmed', 'reschedule_requested'], true)): ?><form method="post" action="<?= $base ?>/peserta/<?= (int) $row['id'] ?>/batal"><?= csrf_field() ?><button class="agenda-button agenda-button-small agenda-button-danger" data-confirm="Batalkan jadwal peserta ini?" type="submit">Batalkan</button></form><?php endif ?>
+            <?php if ($canManage && $agenda['status'] === 'scheduled' && in_array($row['status'], ['scheduled', 'confirmed', 'reschedule_requested'], true)): ?><form method="post" action="<?= $base ?>/peserta/<?= (int) $row['id'] ?>/batal"><?= csrf_field() ?><button class="agenda-button agenda-button-small agenda-button-compact agenda-button-danger" data-confirm="Batalkan jadwal peserta ini?" type="submit">Batalkan</button></form><?php endif ?>
         </div></td></tr>
     <?php endforeach ?>
     </tbody></table></div>

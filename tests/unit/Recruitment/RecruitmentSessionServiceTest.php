@@ -27,8 +27,10 @@ class RecruitmentSessionServiceTest extends CIUnitTestCase
             'hrd_team_users' => 'user_id INTEGER, hrd_team_id INTEGER',
             'recruitment_stages' => 'id INTEGER PRIMARY KEY, name TEXT, code TEXT, is_active INTEGER, is_schedulable INTEGER',
             'applicants' => 'id INTEGER PRIMARY KEY, full_name TEXT, assigned_hrd_team_id INTEGER, deleted_at TEXT',
-            'applications' => 'id INTEGER PRIMARY KEY, applicant_id INTEGER, vacancy_id INTEGER, application_number TEXT, application_status TEXT, deleted_at TEXT',
-            'vacancies' => 'id INTEGER PRIMARY KEY, title TEXT, deleted_at TEXT',
+            'applications' => 'id INTEGER PRIMARY KEY, applicant_id INTEGER, vacancy_id INTEGER, application_number TEXT, application_status TEXT, public_message TEXT, reviewed_at TEXT, reviewed_by INTEGER, updated_at TEXT, deleted_at TEXT',
+            'application_status_histories' => 'id INTEGER PRIMARY KEY AUTOINCREMENT, application_id INTEGER, status_type TEXT, previous_status TEXT, new_status TEXT, notes TEXT, changed_by INTEGER, created_at TEXT',
+            'vacancies' => 'id INTEGER PRIMARY KEY, title TEXT, recruitment_process_template_id INTEGER, deleted_at TEXT',
+            'recruitment_process_template_stages' => 'template_id INTEGER, stage_id INTEGER, display_order INTEGER',
             'applicant_blacklists' => 'id INTEGER PRIMARY KEY, applicant_id INTEGER, revoked_at TEXT, starts_at TEXT, is_permanent INTEGER, ends_at TEXT',
             'recruitment_sessions' => 'id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, stage_id INTEGER, starts_at TEXT, ends_at TEXT, venue TEXT, pic_user_id INTEGER, capacity INTEGER, instructions TEXT, status TEXT, created_by INTEGER, created_at TEXT, updated_at TEXT',
             'recruitment_schedules' => 'id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER, application_id INTEGER, stage_id INTEGER, scheduled_at TEXT, venue TEXT, pic_user_id INTEGER, instructions TEXT, confirmation_deadline_at TEXT, status TEXT, candidate_note TEXT, created_by INTEGER, created_at TEXT, updated_at TEXT, UNIQUE(session_id, application_id)',
@@ -46,7 +48,8 @@ class RecruitmentSessionServiceTest extends CIUnitTestCase
         $this->database->table('role_permissions')->insertBatch([['role_id' => 2, 'permission_id' => 1], ['role_id' => 2, 'permission_id' => 2]]);
         $this->database->table('hrd_team_users')->insertBatch([['user_id' => 2, 'hrd_team_id' => 1], ['user_id' => 3, 'hrd_team_id' => 2]]);
         $this->database->table('recruitment_stages')->insert(['id' => 1, 'name' => 'Tes Tertulis', 'code' => 'written_test', 'is_active' => 1, 'is_schedulable' => 1]);
-        $this->database->table('vacancies')->insert(['id' => 1, 'title' => 'Kasir']);
+        $this->database->table('vacancies')->insert(['id' => 1, 'title' => 'Kasir', 'recruitment_process_template_id' => 1]);
+        $this->database->table('recruitment_process_template_stages')->insert(['template_id' => 1, 'stage_id' => 1, 'display_order' => 1]);
         foreach ([1, 2, 3] as $id) {
             $this->database->table('applicants')->insert(['id' => $id, 'full_name' => 'Candidate ' . $id, 'assigned_hrd_team_id' => $id === 3 ? 2 : 1]);
             $this->database->table('applications')->insert(['id' => $id, 'applicant_id' => $id, 'vacancy_id' => 1, 'application_number' => 'APP-' . $id, 'application_status' => 'written_test']);
@@ -92,6 +95,29 @@ class RecruitmentSessionServiceTest extends CIUnitTestCase
         self::assertSame(2, $this->database->table('recruitment_schedule_histories')->countAllResults());
         $this->rejects(fn () => $this->agenda->addParticipants($id, [1], $this->deadline(), 2), 'sudah terdaftar');
         self::assertSame(2, $this->database->table('recruitment_schedules')->countAllResults());
+    }
+
+    public function testAddParticipantsAdvancesOnlyFromPreviousTemplateStage(): void
+    {
+        $this->database->table('recruitment_stages')->insert(['id' => 2, 'name' => 'Wawancara HRD', 'code' => 'hrd_interview', 'is_active' => 1, 'is_schedulable' => 1]);
+        $this->database->table('recruitment_process_template_stages')->insert(['template_id' => 1, 'stage_id' => 2, 'display_order' => 2]);
+        $this->database->table('recruitment_schedules')->insert([
+            'application_id' => 1, 'stage_id' => 1, 'pic_user_id' => 2, 'status' => 'present',
+            'scheduled_at' => date('Y-m-d', strtotime('-1 day')) . ' 09:00:00',
+        ]);
+        $this->database->table('recruitment_schedules')->insert([
+            'application_id' => 2, 'stage_id' => 1, 'pic_user_id' => 2, 'status' => 'scheduled',
+            'scheduled_at' => date('Y-m-d', strtotime('-2 days')) . ' 09:00:00',
+        ]);
+        $staleScheduleId = (int) $this->database->insertID();
+        $id = $this->agenda->save($this->input(['name' => 'Wawancara Bersama', 'stage_id' => 2]), 2);
+
+        self::assertSame(2, $this->agenda->addParticipants($id, [1, 2], $this->deadline(), 2));
+        self::assertSame('hrd_interview', $this->database->table('applications')->where('id', 1)->get()->getRowArray()['application_status']);
+        self::assertSame('hrd_interview', $this->database->table('applications')->where('id', 2)->get()->getRowArray()['application_status']);
+        self::assertSame(2, $this->database->table('application_status_histories')->where('previous_status', 'written_test')->where('new_status', 'hrd_interview')->countAllResults());
+        self::assertSame(1, $this->database->table('recruitment_schedules')->where('session_id', $id)->where('application_id', 1)->countAllResults());
+        self::assertSame('cancelled', $this->database->table('recruitment_schedules')->where('id', $staleScheduleId)->get()->getRowArray()['status']);
     }
 
     public function testQuotaAndCrossTeamSelectionRejectWholeBatch(): void
