@@ -194,6 +194,7 @@ class RecruitmentSessionController extends BaseController
     {
         $this->response->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         $service = $this->agenda();
+        $canUseWhatsappTemplates = $service->can($this->userId(), 'whatsapp.templates.view');
 
         return view('admin/agenda/layout', $data + ['contentView' => 'admin/agenda/' . $page,
             'auth' => session()->get('hrd_auth'), 'statuses' => RecruitmentSessionService::STATUSES,
@@ -202,6 +203,10 @@ class RecruitmentSessionController extends BaseController
             'canRecordAttendance' => $service->can($this->userId(), 'schedules.attendance'),
             'canViewApplicant' => $service->can($this->userId(), 'candidates.view'),
             'canViewAll' => $service->can($this->userId(), 'schedules.view_all'),
+            'canUseWhatsappTemplates' => $canUseWhatsappTemplates,
+            'whatsappTemplates' => $canUseWhatsappTemplates
+                ? db_connect()->table('whatsapp_message_templates')->where('deleted_at', null)->where('is_active', 1)->orderBy('display_order')->orderBy('id')->get()->getResultArray()
+                : [],
             'stages' => db_connect()->table('recruitment_stages')->where('is_schedulable', 1)->where('is_active', 1)->orderBy('display_order')->get()->getResultArray(),
             'success' => session()->getFlashdata('agenda_success'), 'error' => session()->getFlashdata('agenda_error')]);
     }

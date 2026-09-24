@@ -26,7 +26,7 @@ class RecruitmentSessionServiceTest extends CIUnitTestCase
             'role_permissions' => 'role_id INTEGER, permission_id INTEGER',
             'hrd_team_users' => 'user_id INTEGER, hrd_team_id INTEGER',
             'recruitment_stages' => 'id INTEGER PRIMARY KEY, name TEXT, code TEXT, is_active INTEGER, is_schedulable INTEGER',
-            'applicants' => 'id INTEGER PRIMARY KEY, full_name TEXT, assigned_hrd_team_id INTEGER, deleted_at TEXT',
+            'applicants' => 'id INTEGER PRIMARY KEY, full_name TEXT, phone TEXT, assigned_hrd_team_id INTEGER, deleted_at TEXT',
             'applications' => 'id INTEGER PRIMARY KEY, applicant_id INTEGER, vacancy_id INTEGER, application_number TEXT, application_status TEXT, public_message TEXT, reviewed_at TEXT, reviewed_by INTEGER, updated_at TEXT, deleted_at TEXT',
             'application_status_histories' => 'id INTEGER PRIMARY KEY AUTOINCREMENT, application_id INTEGER, status_type TEXT, previous_status TEXT, new_status TEXT, notes TEXT, changed_by INTEGER, created_at TEXT',
             'vacancies' => 'id INTEGER PRIMARY KEY, title TEXT, recruitment_process_template_id INTEGER, deleted_at TEXT',

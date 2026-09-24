@@ -100,10 +100,19 @@ class RecruitmentSessionService
     public function participants(int $id): BaseBuilder
     {
         return $this->db->table('recruitment_schedules AS schedules')
-            ->select('schedules.*, applicants.id AS applicant_id, applicants.full_name, applicants.assigned_hrd_team_id, applications.application_number, vacancies.title AS vacancy_title')
+            ->select('schedules.*, applicants.id AS applicant_id, applicants.full_name, applicants.phone, applicants.assigned_hrd_team_id, applications.application_number, applications.application_status, current_stage.name AS current_stage_name, vacancies.title AS vacancy_title')
             ->join('applications', 'applications.id = schedules.application_id')
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+            ->join('recruitment_stages AS current_stage', "current_stage.code = CASE applications.application_status
+                WHEN 'screening_passed' THEN 'document_screening'
+                WHEN 'screening_failed' THEN 'document_screening'
+                WHEN 'reviewed' THEN 'under_review'
+                WHEN 'interview_hr' THEN 'hrd_interview'
+                WHEN 'interview_scheduled' THEN 'hrd_interview'
+                WHEN 'interview_user' THEN 'user_interview'
+                WHEN 'hired' THEN 'accepted'
+                ELSE applications.application_status END", 'left', false)
             ->where('schedules.session_id', $id)->where('applications.deleted_at', null)->where('applicants.deleted_at', null);
     }
 
