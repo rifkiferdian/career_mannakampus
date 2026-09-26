@@ -129,8 +129,8 @@ class RecruitmentSessionService
             }
             $name = trim((string) ($input['name'] ?? ''));
             $venue = trim((string) ($input['venue'] ?? ''));
-            $start = self::parseDate((string) ($input['starts_at'] ?? ''));
-            $end = trim((string) ($input['ends_at'] ?? '')) === '' ? null : self::parseDate((string) $input['ends_at']);
+            $start = self::parseDate((string) ($input['starts_at'] ?? ''), 'Mulai (WIB)');
+            $end = trim((string) ($input['ends_at'] ?? '')) === '' ? null : self::parseDate((string) $input['ends_at'], 'Selesai (WIB)');
             $stageId = (int) ($input['stage_id'] ?? 0);
             $pic = (int) ($input['pic_user_id'] ?? 0);
             $capacity = trim((string) ($input['capacity'] ?? ''));
@@ -141,8 +141,11 @@ class RecruitmentSessionService
             $keepsStartedTime = $existing !== null
                 && $existing['starts_at'] <= date('Y-m-d H:i:s')
                 && $start === $existing['starts_at'];
-            if (($start <= date('Y-m-d H:i:s') && ! $keepsStartedTime) || ($end !== null && $end <= $start)) {
-                throw new InvalidArgumentException('Waktu mulai harus di masa mendatang dan waktu selesai harus setelah waktu mulai.');
+            if ($start <= date('Y-m-d H:i:s') && ! $keepsStartedTime) {
+                throw new InvalidArgumentException('Waktu mulai harus di masa mendatang. Pilih tanggal dan jam setelah waktu sekarang pada kolom Mulai (WIB).');
+            }
+            if ($end !== null && $end <= $start) {
+                throw new InvalidArgumentException('Waktu selesai harus setelah waktu mulai. Perbaiki kolom Selesai (WIB), atau kosongkan jika belum ditentukan.');
             }
             if ($capacity !== '' && (! ctype_digit($capacity) || (int) $capacity < 1 || (int) $capacity > 100000)) {
                 throw new InvalidArgumentException('Kuota harus antara 1 dan 100.000 atau dikosongkan.');
@@ -327,22 +330,31 @@ class RecruitmentSessionService
         });
     }
 
-    public static function parseDate(string $value): string
+    public static function parseDate(string $value, string $field = 'Tanggal dan jam'): string
     {
+        if (trim($value) === '') {
+            throw new InvalidArgumentException('Kolom ' . $field . ' belum diisi. Pilih tanggal serta isi jam dan menit secara lengkap.');
+        }
         foreach (['Y-m-d\TH:i', 'Y-m-d H:i:s'] as $format) {
             $date = DateTimeImmutable::createFromFormat('!' . $format, trim($value));
             if ($date !== false && $date->format($format) === trim($value)) {
                 return $date->format('Y-m-d H:i:s');
             }
         }
-        throw new InvalidArgumentException('Tanggal dan jam tidak valid.');
+        throw new InvalidArgumentException('Tanggal dan jam pada kolom ' . $field . ' tidak valid. Pilih ulang tanggal melalui kalender, lalu isi jam dan menit secara lengkap (contoh: 09:00).');
     }
 
     private function deadline(string $value, string $start): string
     {
-        $value = self::parseDate($value);
-        if ($value <= date('Y-m-d H:i:s') || $value >= $start) {
-            throw new InvalidArgumentException('Batas konfirmasi harus di masa mendatang dan sebelum agenda dimulai.');
+        if (trim($value) === '') {
+            throw new InvalidArgumentException('Batas konfirmasi peserta (WIB) belum diisi. Kolom ini wajib diisi saat menambahkan peserta atau mengubah informasi pelaksanaan agenda yang memiliki peserta aktif. Pilih tanggal dan jam setelah waktu sekarang, tetapi sebelum agenda dimulai.');
+        }
+        $value = self::parseDate($value, 'Batas konfirmasi peserta (WIB)');
+        if ($value <= date('Y-m-d H:i:s')) {
+            throw new InvalidArgumentException('Batas konfirmasi peserta harus di masa mendatang. Pilih tanggal dan jam setelah waktu sekarang.');
+        }
+        if ($value >= $start) {
+            throw new InvalidArgumentException('Batas konfirmasi peserta harus sebelum agenda dimulai (' . date('d/m/Y H:i', strtotime($start)) . ' WIB). Pilih tanggal dan jam yang lebih awal dari waktu mulai agenda.');
         }
 
         return $value;
