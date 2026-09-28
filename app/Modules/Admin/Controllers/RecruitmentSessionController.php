@@ -106,16 +106,49 @@ class RecruitmentSessionController extends BaseController
             $service = $this->agenda();
             $agenda = $service->find($id, $this->userId());
             $query = $service->participants($id);
+            $participantCount = (clone $query)->countAllResults();
+            $vacancies = db_connect()->table('recruitment_schedules AS schedules')
+                ->distinct()->select('vacancies.id, vacancies.title')
+                ->join('applications', 'applications.id = schedules.application_id')
+                ->join('applicants', 'applicants.id = applications.applicant_id')
+                ->join('vacancies', 'vacancies.id = applications.vacancy_id')
+                ->where('schedules.session_id', $id)->where('applications.deleted_at', null)->where('applicants.deleted_at', null)
+                ->orderBy('vacancies.title')->orderBy('vacancies.id')->get()->getResultArray();
+            $getString = function (string $key): string {
+                $value = $this->request->getGet($key);
+
+                return is_string($value) ? trim($value) : '';
+            };
+            $filters = [
+                'keyword' => mb_substr($getString('keyword'), 0, 100),
+                'vacancy_id' => max(0, (int) $getString('vacancy_id')),
+                'status' => $getString('status'),
+            ];
+            if (! in_array($filters['vacancy_id'], array_map('intval', array_column($vacancies, 'id')), true)) {
+                $filters['vacancy_id'] = 0;
+            }
+            if (! array_key_exists($filters['status'], RecruitmentSessionService::PARTICIPANT_STATUSES)) {
+                $filters['status'] = '';
+            }
+            if ($filters['keyword'] !== '') {
+                $query->like('applicants.full_name', $filters['keyword']);
+            }
+            if ($filters['vacancy_id'] > 0) {
+                $query->where('applications.vacancy_id', $filters['vacancy_id']);
+            }
+            if ($filters['status'] !== '') {
+                $query->where('schedules.status', $filters['status']);
+            }
             $total = (clone $query)->countAllResults();
             $page = min(max(1, (int) $this->request->getGet('page')), max(1, (int) ceil($total / 50)));
-            $rows = $query->orderBy('schedules.scheduled_at')->orderBy('applicants.full_name')->get(50, ($page - 1) * 50)->getResultArray();
+            $rows = $query->orderBy('schedules.scheduled_at')->orderBy('applicants.full_name')->orderBy('schedules.id')->get(50, ($page - 1) * 50)->getResultArray();
             $summary = array_column(db_connect()->table('recruitment_schedules')->select('status, COUNT(*) AS total', false)->where('session_id', $id)->groupBy('status')->get()->getResultArray(), 'total', 'status');
             $deadline = db_connect()->table('recruitment_schedules')
                 ->selectMin('confirmation_deadline_at', 'minimum')
                 ->selectMax('confirmation_deadline_at', 'maximum')
                 ->where('session_id', $id)->where('status !=', 'cancelled')->get()->getRowArray();
 
-            return $this->render('show', compact('agenda', 'rows', 'summary', 'deadline', 'page', 'total') + ['title' => $agenda['name']]);
+            return $this->render('show', compact('agenda', 'rows', 'summary', 'deadline', 'page', 'total', 'filters', 'vacancies', 'participantCount') + ['title' => $agenda['name']]);
         } catch (InvalidArgumentException $exception) {
             return $this->failure($exception);
         }
@@ -172,6 +205,17 @@ class RecruitmentSessionController extends BaseController
     public function attendance(int $id, int $scheduleId): RedirectResponse
     {
         return $this->participantAction($id, $scheduleId, (string) $this->request->getPost('status'));
+    }
+
+    public function changeParticipantTime(int $id, int $scheduleId): RedirectResponse
+    {
+        try {
+            $this->agenda()->changeParticipantTime($id, $scheduleId, (array) $this->request->getPost(), $this->userId());
+
+            return $this->success($id, 'Waktu peserta berhasil disimpan. Jika jam berubah, peserta perlu melakukan konfirmasi ulang.');
+        } catch (InvalidArgumentException $exception) {
+            return $this->failure($exception, $id);
+        }
     }
 
     public function cancelParticipant(int $id, int $scheduleId): RedirectResponse

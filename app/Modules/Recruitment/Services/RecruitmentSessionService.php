@@ -175,6 +175,16 @@ class RecruitmentSessionService
             $this->checkPicConflict($data, $id, [], $members !== []);
             $scheduleChanged = $existing !== null && ($start !== $existing['starts_at'] || $venue !== $existing['venue']
                 || $pic !== (int) $existing['pic_user_id'] || $data['instructions'] !== $existing['instructions']);
+            $participantTimes = [];
+            foreach ($active as $member) {
+                $offset = strtotime($member['scheduled_at']) - strtotime($existing['starts_at']);
+                $participantTimes[$member['id']] = date('Y-m-d H:i:s', strtotime($start) + $offset);
+                $this->requireParticipantTimeInSession($participantTimes[$member['id']], $data);
+                if ($scheduleChanged) {
+                    $this->checkPicConflict(array_replace($data, ['starts_at' => $participantTimes[$member['id']], 'ends_at' => null]), $id);
+                    $this->checkApplicantConflict((int) $member['application_id'], $participantTimes[$member['id']], $id);
+                }
+            }
             if ($existing !== null && $end !== $existing['ends_at']) {
                 foreach ($active as $member) {
                     $this->checkApplicantConflict((int) $member['application_id'], $start, $id, $end);
@@ -187,7 +197,7 @@ class RecruitmentSessionService
                         throw new InvalidArgumentException('Jadwal agenda tidak dapat diubah karena sudah ada kehadiran yang dicatat.');
                     }
                     $this->checkApplicantConflict((int) $member['application_id'], $start, $id, $end);
-                    $this->schedules->update((int) $member['id'], ['scheduled_at' => $start, 'venue' => $venue, 'pic_user_id' => $pic,
+                    $this->schedules->update((int) $member['id'], ['scheduled_at' => $participantTimes[$member['id']], 'venue' => $venue, 'pic_user_id' => $pic,
                         'instructions' => $data['instructions'], 'confirmation_deadline_at' => $deadline], $userId);
                 }
             }
@@ -307,6 +317,49 @@ class RecruitmentSessionService
         });
     }
 
+    private function requireParticipantTimeInSession(string $time, array $session): void
+    {
+        if ($time < $session['starts_at']
+            || ($session['ends_at'] !== null && $time >= $session['ends_at'])
+            || ($session['ends_at'] === null && substr($time, 0, 10) !== substr($session['starts_at'], 0, 10))) {
+            throw new InvalidArgumentException('Waktu peserta harus mulai dari waktu mulai agenda dan sebelum waktu selesai agenda. Jika waktu selesai belum diisi, pilih jam pada tanggal agenda yang sama. Sesuaikan rentang waktu agenda terlebih dahulu jika diperlukan.');
+        }
+    }
+
+    public function changeParticipantTime(int $sessionId, int $scheduleId, array $input, int $userId): void
+    {
+        $this->requirePermission($userId, 'schedules.manage');
+        $this->transaction(function () use ($sessionId, $scheduleId, $input, $userId): void {
+            $this->lock('recruitment_sessions', $sessionId);
+            $session = $this->find($sessionId, $userId);
+            $this->lock('recruitment_schedules', $scheduleId);
+            $row = $this->participants($sessionId)->where('schedules.id', $scheduleId)->get()->getRowArray();
+            if ($session['status'] !== 'scheduled' || $row === null
+                || ! in_array($row['status'], RecruitmentScheduleService::ACTIVE_STATUSES, true)) {
+                throw new InvalidArgumentException('Jam hanya dapat diubah untuk peserta aktif pada agenda Terjadwal yang belum dicatat kehadirannya.');
+            }
+            $time = self::parseDate((string) ($input['scheduled_at'] ?? ''), 'Waktu peserta (WIB)');
+            if ($time === $row['scheduled_at']) {
+                return;
+            }
+            if ($time <= date('Y-m-d H:i:s')) {
+                throw new InvalidArgumentException('Waktu peserta harus setelah waktu sekarang. Pilih jam pelaksanaan yang masih akan datang.');
+            }
+            $this->requireParticipantTimeInSession($time, $session);
+            $deadline = trim((string) ($input['confirmation_deadline_at'] ?? ''));
+            $deadline = $this->deadline($deadline === '' ? $row['confirmation_deadline_at'] : $deadline, $time, 'jadwal peserta');
+            $this->lock('users', (int) $session['pic_user_id']);
+            $this->checkPicConflict(array_replace($session, ['starts_at' => $time, 'ends_at' => null]), $sessionId);
+            $this->checkApplicantConflict((int) $row['application_id'], $time, $sessionId);
+            $this->schedules->update($scheduleId, ['scheduled_at' => $time, 'confirmation_deadline_at' => $deadline], $userId);
+            $this->db->table('recruitment_schedule_histories')->insert([
+                'schedule_id' => $scheduleId, 'action' => 'participant_time_changed',
+                'notes' => 'Waktu peserta dalam agenda diubah dari ' . $row['scheduled_at'] . ' menjadi ' . $time . ' WIB.',
+                'changed_by' => $userId, 'created_at' => date('Y-m-d H:i:s'),
+            ]);
+        });
+    }
+
     public function participantStatus(int $sessionId, int $scheduleId, string $status, int $userId): void
     {
         $this->requirePermission($userId, $status === 'cancelled' ? 'schedules.manage' : 'schedules.attendance');
@@ -344,7 +397,7 @@ class RecruitmentSessionService
         throw new InvalidArgumentException('Tanggal dan jam pada kolom ' . $field . ' tidak valid. Pilih ulang tanggal melalui kalender, lalu isi jam dan menit secara lengkap (contoh: 09:00).');
     }
 
-    private function deadline(string $value, string $start): string
+    private function deadline(string $value, string $start, string $startLabel = 'agenda'): string
     {
         if (trim($value) === '') {
             throw new InvalidArgumentException('Batas konfirmasi peserta (WIB) belum diisi. Kolom ini wajib diisi saat menambahkan peserta atau mengubah informasi pelaksanaan agenda yang memiliki peserta aktif. Pilih tanggal dan jam setelah waktu sekarang, tetapi sebelum agenda dimulai.');
@@ -354,7 +407,7 @@ class RecruitmentSessionService
             throw new InvalidArgumentException('Batas konfirmasi peserta harus di masa mendatang. Pilih tanggal dan jam setelah waktu sekarang.');
         }
         if ($value >= $start) {
-            throw new InvalidArgumentException('Batas konfirmasi peserta harus sebelum agenda dimulai (' . date('d/m/Y H:i', strtotime($start)) . ' WIB). Pilih tanggal dan jam yang lebih awal dari waktu mulai agenda.');
+            throw new InvalidArgumentException('Batas konfirmasi peserta harus sebelum ' . $startLabel . ' dimulai (' . date('d/m/Y H:i', strtotime($start)) . ' WIB). Pilih tanggal dan jam yang lebih awal dari waktu mulai ' . $startLabel . '.');
         }
 
         return $value;

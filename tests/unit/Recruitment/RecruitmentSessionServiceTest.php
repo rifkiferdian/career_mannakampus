@@ -140,6 +140,63 @@ class RecruitmentSessionServiceTest extends CIUnitTestCase
         self::assertSame(0, $this->database->table('recruitment_schedules')->countAllResults());
     }
 
+    public function testParticipantTimesStayIndependentAndSurviveAgendaEdits(): void
+    {
+        $id = $this->agenda->save($this->input(), 2);
+        $this->agenda->addParticipants($id, [1, 2], $this->deadline(), 2);
+        $this->database->table('recruitment_schedules')->update(['status' => 'confirmed']);
+        $rows = $this->database->table('recruitment_schedules')->orderBy('id')->get()->getResultArray();
+        $time = date('Y-m-d', strtotime('+3 days')) . ' 09:30:00';
+        $this->agenda->changeParticipantTime($id, (int) $rows[1]['id'], ['scheduled_at' => $time], 2);
+        $updated = $this->database->table('recruitment_schedules')->orderBy('id')->get()->getResultArray();
+        self::assertSame($rows[0], $updated[0]);
+        self::assertSame($time, $updated[1]['scheduled_at']);
+        self::assertSame($id, (int) $updated[1]['session_id']);
+        self::assertSame('scheduled', $updated[1]['status']);
+        self::assertSame(1, $this->database->table('recruitment_schedule_histories')->where('action', 'participant_time_changed')->countAllResults());
+        $this->agenda->save($this->input(['venue' => 'Ruang Baru', 'confirmation_deadline_at' => $this->deadline()]), 2, $id);
+        self::assertSame($time, $this->database->table('recruitment_schedules')->where('id', $rows[1]['id'])->get()->getRowArray()['scheduled_at']);
+        $this->agenda->save($this->input(['starts_at' => date('Y-m-d', strtotime('+3 days')) . 'T10:00', 'ends_at' => date('Y-m-d', strtotime('+3 days')) . 'T12:00', 'confirmation_deadline_at' => $this->deadline()]), 2, $id);
+        self::assertSame(date('Y-m-d', strtotime('+3 days')) . ' 10:30:00', $this->database->table('recruitment_schedules')->where('id', $rows[1]['id'])->get()->getRowArray()['scheduled_at']);
+    }
+
+    public function testParticipantTimeValidationAndOwnership(): void
+    {
+        $id = $this->agenda->save($this->input(), 2);
+        $this->agenda->addParticipants($id, [1], $this->deadline(), 2);
+        $row = $this->database->table('recruitment_schedules')->get()->getRowArray();
+        $scheduleId = (int) $row['id'];
+        $day = date('Y-m-d', strtotime('+3 days'));
+        $valid = ['scheduled_at' => $day . 'T09:30'];
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, $scheduleId, $valid, 999), 'hak akses');
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, $scheduleId, $valid, 3), 'akses');
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, 999, $valid, 2), 'peserta aktif');
+        foreach (['08:59', '11:00', '11:30'] as $time) {
+            $this->rejects(fn () => $this->agenda->changeParticipantTime($id, $scheduleId, ['scheduled_at' => $day . 'T' . $time], 2), 'rentang waktu');
+        }
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, $scheduleId, ['scheduled_at' => '2020-01-01T09:30'], 2), 'setelah waktu sekarang');
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, $scheduleId, $valid + ['confirmation_deadline_at' => $day . 'T09:45'], 2), 'sebelum jadwal peserta');
+        self::assertSame($row, $this->database->table('recruitment_schedules')->where('id', $scheduleId)->get()->getRowArray());
+        $this->database->table('recruitment_schedules')->where('id', $scheduleId)->update(['status' => 'present']);
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, $scheduleId, $valid, 2), 'kehadirannya');
+    }
+
+    public function testParticipantTimeConflictsAndShortenedAgendaRollBack(): void
+    {
+        $id = $this->agenda->save($this->input(['ends_at' => '']), 2);
+        $this->agenda->addParticipants($id, [1], $this->deadline(), 2);
+        $row = $this->database->table('recruitment_schedules')->get()->getRowArray();
+        $day = date('Y-m-d', strtotime('+3 days'));
+        $otherId = $this->agenda->save($this->input(['starts_at' => $day . 'T10:00', 'ends_at' => $day . 'T11:00']), 2);
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, (int) $row['id'], ['scheduled_at' => $day . 'T10:30'], 2), 'bertabrakan');
+        self::assertSame($row, $this->database->table('recruitment_schedules')->where('id', $row['id'])->get()->getRowArray());
+        $this->agenda->changeParticipantTime($id, (int) $row['id'], ['scheduled_at' => $day . 'T09:30'], 2);
+        $this->rejects(fn () => $this->agenda->save($this->input(['ends_at' => $day . 'T09:15']), 2, $id), 'rentang waktu');
+        self::assertNull($this->agenda->find($id, 2)['ends_at']);
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($otherId, (int) $row['id'], ['scheduled_at' => $day . 'T10:30'], 2), 'peserta aktif');
+        $this->rejects(fn () => $this->agenda->changeParticipantTime($id, (int) $row['id'], ['scheduled_at' => date('Y-m-d', strtotime('+4 days')) . 'T09:30'], 2), 'tanggal agenda yang sama');
+    }
+
     public function testSessionEditSynchronizesMembersAndResetsConfirmation(): void
     {
         $id = $this->agenda->save($this->input(), 2);
