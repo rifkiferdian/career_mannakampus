@@ -131,7 +131,7 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 Rekap Kehadiran
             </a>
         <?php endif ?>
-        <details class="admin-agenda-menu <?= in_array($activeMenu, ['profile', 'access', 'history-logs'], true) ? 'is-active' : '' ?>" <?= in_array($activeMenu, ['profile', 'access', 'history-logs'], true) ? 'open' : '' ?>>
+        <details class="admin-agenda-menu <?= in_array($activeMenu, ['profile', 'access', 'history-logs', 'hrd-teams'], true) ? 'is-active' : '' ?>" <?= in_array($activeMenu, ['profile', 'access', 'history-logs', 'hrd-teams'], true) ? 'open' : '' ?>>
             <summary>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
                 <span>Akun &amp; Akses</span>
@@ -150,6 +150,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             <a<?= $activeClass('history-logs') ?> href="<?= site_url('adminhrdmannakampus/history-log') ?>" <?= $activeMenu === 'history-logs' ? 'aria-current="page"' : '' ?>>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/><path d="M16 16h3v3"/></svg>
                 History Log
+            </a>
+        <?php endif ?>
+        <?php if ($canViewHrdTeams): ?>
+            <a<?= $activeClass('hrd-teams') ?> href="<?= site_url('adminhrdmannakampus/tim-hrd') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 8h5M18.5 5.5v5M16 15h5"/></svg>
+                Tim HRD
             </a>
         <?php endif ?>
             </div>
@@ -214,12 +220,6 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
         <?php endif ?>
             </div>
         </details>
-        <?php endif ?>
-        <?php if ($canViewHrdTeams): ?>
-            <a<?= $activeClass('hrd-teams') ?> href="<?= site_url('adminhrdmannakampus/tim-hrd') ?>">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 8h5M18.5 5.5v5M16 15h5"/></svg>
-                Tim HRD
-            </a>
         <?php endif ?>
         <?php if ($canViewApplicantBlacklist): ?>
             <a<?= $activeClass('applicant-blacklist') ?> href="<?= site_url('adminhrdmannakampus/blacklist-pelamar') ?>">

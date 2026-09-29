@@ -15,6 +15,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=89">
+    <link rel="stylesheet" href="<?= base_url('assets/css/candidate-filters.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/candidate-filters.css') ?>">
 </head>
 <body class="admin-dashboard-page">
 <div class="dashboard-shell">
@@ -45,16 +46,17 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
             </section>
 
             <section class="settings-card department-toolbar-card">
-                <form class="candidate-filter-form <?= $canManageTeams ? 'candidate-filter-with-team' : '' ?>" action="<?= $candidateBaseUrl ?>" method="get">
-                    <?php if ($canManageTeams): ?><select name="team_id"><option value="">Pilih divisi</option><?php foreach ($teams as $team): ?><option value="<?= (int) $team['id'] ?>" <?= $selectedTeamId === (int) $team['id'] ? 'selected' : '' ?>><?= esc($team['name']) ?></option><?php endforeach ?></select><?php endif ?>
-                    <input type="search" name="keyword" value="<?= esc($filters['keyword'], 'attr') ?>" placeholder="Cari nama, email, WA, atau nomor lamaran">
-                    <input class="candidate-age-filter" type="number" name="age" value="<?= $filters['age'] > 0 ? (int) $filters['age'] : '' ?>" min="15" max="80" inputmode="numeric" placeholder="Umur">
-                    <select name="vacancy_id"><option value="">Semua posisi</option><?php foreach ($vacancies as $vacancy): ?><option value="<?= (int) $vacancy['id'] ?>" <?= $filters['vacancy_id'] === (int) $vacancy['id'] ? 'selected' : '' ?>><?= esc($vacancy['title']) ?></option><?php endforeach ?></select>
-                    <select name="vacancy_period_id"><option value="">Semua sesi</option><?php foreach ($periods as $period): ?><option value="<?= (int) $period['id'] ?>" <?= $filters['vacancy_period_id'] === (int) $period['id'] ? 'selected' : '' ?>><?= esc($period['vacancy_title'] . ' — ' . $period['period_name']) ?></option><?php endforeach ?></select>
-                    <select name="department_id"><option value="">Semua departemen</option><?php foreach ($departments as $department): ?><option value="<?= (int) $department['id'] ?>" <?= $filters['department_id'] === (int) $department['id'] ? 'selected' : '' ?>><?= esc($department['name']) ?></option><?php endforeach ?></select>
-                    <select name="status"><option value="">Semua tahapan</option><?php foreach ($statusOptions as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $filters['status'] === $code ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select>
-                    <select name="rejection_stage_code"><option value="">Semua tahap gugur</option><?php foreach ($rejectionStageOptions as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $filters['rejection_stage_code'] === $code ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select>
-                    <button type="submit">Terapkan</button><a href="<?= $candidateTeamUrl ?>">Reset</a>
+                <form class="candidate-filter-form candidate-division-filter <?= $canManageTeams ? 'candidate-filter-with-team' : '' ?>" action="<?= $candidateBaseUrl ?>" method="get">
+                    <div class="division-filter-primary">
+                    <?php if ($canManageTeams): ?><label class="division-filter-team_id"><span>Divisi</span><select name="team_id"><option value="">Pilih divisi</option><?php foreach ($teams as $team): ?><option value="<?= (int) $team['id'] ?>" <?= $selectedTeamId === (int) $team['id'] ? 'selected' : '' ?>><?= esc($team['name']) ?></option><?php endforeach ?></select></label><?php endif ?>
+                    <label class="division-filter-keyword"><span>Cari pelamar</span><input type="search" name="keyword" value="<?= esc($filters['keyword'], 'attr') ?>" placeholder="Cari nama, email, WA, atau nomor lamaran"></label>
+                    <label class="division-filter-age"><span>Umur</span><input class="candidate-age-filter" type="number" name="age" value="<?= $filters['age'] > 0 ? (int) $filters['age'] : '' ?>" min="15" max="80" inputmode="numeric" placeholder="Umur"></label>
+                    </div><div class="division-filter-secondary"><label class="division-filter-vacancy_id"><span>Posisi</span><select name="vacancy_id"><option value="">Semua posisi</option><?php foreach ($vacancies as $vacancy): ?><option value="<?= (int) $vacancy['id'] ?>" <?= $filters['vacancy_id'] === (int) $vacancy['id'] ? 'selected' : '' ?>><?= esc($vacancy['title']) ?></option><?php endforeach ?></select></label>
+                    <label class="division-filter-vacancy_period_id"><span>Sesi lowongan</span><select name="vacancy_period_id"><option value="">Semua sesi</option><?php foreach ($periods as $period): ?><option value="<?= (int) $period['id'] ?>" <?= $filters['vacancy_period_id'] === (int) $period['id'] ? 'selected' : '' ?>><?= esc($period['vacancy_title'] . ' — ' . $period['period_name']) ?></option><?php endforeach ?></select></label>
+                    <label class="division-filter-department_id"><span>Departemen</span><select name="department_id"><option value="">Semua departemen</option><?php foreach ($departments as $department): ?><option value="<?= (int) $department['id'] ?>" <?= $filters['department_id'] === (int) $department['id'] ? 'selected' : '' ?>><?= esc($department['name']) ?></option><?php endforeach ?></select></label>
+                    <label class="division-filter-status"><span>Tahap saat ini</span><select name="status"><option value="">Semua tahapan</option><?php foreach ($statusOptions as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $filters['status'] === $code ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label>
+                    <label class="division-filter-rejection_stage_code"><span>Tahap gugur</span><select name="rejection_stage_code"><option value="">Semua tahap gugur</option><?php foreach ($rejectionStageOptions as $code => $label): ?><option value="<?= esc($code, 'attr') ?>" <?= $filters['rejection_stage_code'] === $code ? 'selected' : '' ?>><?= esc($label) ?></option><?php endforeach ?></select></label>
+                    </div><div class="division-filter-actions"><a href="<?= $candidateTeamUrl ?>">Reset</a><button type="submit">Terapkan filter</button></div>
                 </form>
             </section>
 

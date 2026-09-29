@@ -1,0 +1,24 @@
+.candidate-filter-form.candidate-division-filter { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.candidate-division-filter label { display: flex; flex-direction: column; gap: 6px; min-width: 0; color: #526578; font-size: 11px; font-weight: 700; }
+.division-filter-primary { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; }
+.division-filter-primary .division-filter-keyword { flex: 0 1 320px; }
+.division-filter-primary .division-filter-team_id { flex: 0 1 230px; }
+.division-filter-primary .division-filter-age { flex: 0 0 100px; }
+.division-filter-secondary { display: grid; grid-template-columns: 1fr 1.3fr 1fr 1fr 1fr; gap: 12px; }
+.candidate-division-filter input, .candidate-division-filter select { box-sizing: border-box; width: 100%; min-width: 0; height: 42px; font-size: 12px; background: #fbfcfd; }
+.candidate-division-filter input:focus-visible, .candidate-division-filter select:focus-visible { outline: 2px solid #ef9e6c; outline-offset: 2px; border-color: #de8b55; }
+.division-filter-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid #edf0f4; }
+.division-filter-actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border: 1px solid #dce3e9; border-radius: 7px; color: #657582; background: white; font-size: 11px; font-weight: 800; text-decoration: none; }
+@media (max-width: 1200px) {
+    .division-filter-secondary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+    .division-filter-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .division-filter-primary .division-filter-team_id { flex: 1 1 100%; }
+    .division-filter-primary .division-filter-keyword { flex-basis: calc(100% - 112px); }
+}
+@media (max-width: 480px) {
+    .candidate-filter-form.candidate-division-filter { padding: 14px; }
+    .division-filter-secondary { grid-template-columns: minmax(0, 1fr); }
+    .division-filter-actions > * { flex: 1; }
+}
