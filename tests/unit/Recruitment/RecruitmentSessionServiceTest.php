@@ -197,6 +197,35 @@ class RecruitmentSessionServiceTest extends CIUnitTestCase
         $this->rejects(fn () => $this->agenda->changeParticipantTime($id, (int) $row['id'], ['scheduled_at' => date('Y-m-d', strtotime('+4 days')) . 'T09:30'], 2), 'tanggal agenda yang sama');
     }
 
+    public function testAgendaRecapCountsFiltersPaginationAndTeamScope(): void
+    {
+        $id = $this->agenda->save($this->input(), 2);
+        $this->agenda->addParticipants($id, [1, 2], $this->deadline(), 2);
+        $this->database->table('recruitment_schedules')->where('application_id', 1)->update(['status' => 'present']);
+        $this->database->table('recruitment_schedules')->where('application_id', 2)->update(['status' => 'cancelled']);
+        $this->agenda->save($this->input(['starts_at' => date('Y-m-d', strtotime('+3 days')) . 'T12:00', 'ends_at' => '', 'status' => 'draft']), 2);
+        $other = $this->agenda->save($this->input(['pic_user_id' => 3]), 3);
+        $this->agenda->addParticipants($other, [3], $this->deadline(), 3);
+        $service = new \App\Modules\Recruitment\Services\AgendaRecapService($this->database);
+        $filters = \App\Modules\Recruitment\Services\AgendaRecapService::filters(['date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d', strtotime('+5 days'))]);
+        $summary = $service->summary(2, $filters);
+        self::assertSame(2, (int) $summary['agendas']);
+        self::assertSame(2, (int) $summary['participants']);
+        self::assertSame(2, (int) $summary['unique_applicants']);
+        self::assertSame(1, (int) $summary['present']);
+        self::assertSame(1, (int) $summary['cancelled']);
+        self::assertSame(0, (int) $summary['pending']);
+        self::assertSame(3, (int) $service->summary(1, $filters)['agendas']);
+        self::assertCount(1, $service->rows(2, $filters, 1, 1));
+        $filtered = array_replace($filters, ['status' => 'scheduled', 'pic_user_id' => 2, 'stage_id' => 1]);
+        $rows = $service->rows(2, $filtered);
+        self::assertCount(1, $rows);
+        self::assertSame($id, (int) $rows[0]['id']);
+        self::assertSame(2, (int) $rows[0]['participants']);
+        self::assertSame(0, (int) $service->summary(2, array_replace($filters, ['pic_user_id' => 3]))['agendas']);
+        self::assertSame([], $service->rows(2, array_replace($filters, ['date_from' => '2020-01-01', 'date_to' => '2020-01-02'])));
+    }
+
     public function testSessionEditSynchronizesMembersAndResetsConfirmation(): void
     {
         $id = $this->agenda->save($this->input(), 2);

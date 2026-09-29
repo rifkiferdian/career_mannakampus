@@ -98,16 +98,30 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
     </a>
     <span class="sidebar-caption">HRD Administration</span>
 
+    <link rel="stylesheet" href="<?= base_url('assets/css/sidebar-agenda.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/sidebar-agenda.css') ?>">
     <nav class="admin-nav" aria-label="Navigasi dashboard HRD">
         <a<?= $activeClass('dashboard') ?> href="<?= site_url('adminhrdmannakampus/dashboard') ?>">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-3H4v3Zm10-13h6V4h-6v3Z"/></svg>
             Dashboard
         </a>
         <?php if ($canViewSchedules): ?>
-            <a<?= $activeClass('recruitment-agenda') ?> href="<?= site_url('adminhrdmannakampus/agenda') ?>">
+            <details class="admin-agenda-menu <?= in_array($activeMenu, ['recruitment-agenda', 'agenda-recap'], true) ? 'is-active' : '' ?>" <?= in_array($activeMenu, ['recruitment-agenda', 'agenda-recap'], true) ? 'open' : '' ?>>
+                <summary>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h8M8 17h5"/></svg>
+                    <span>Agenda Seleksi</span>
+                    <svg class="admin-agenda-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+                </summary>
+                <div class="admin-agenda-submenu">
+            <a<?= $activeClass('recruitment-agenda') ?> href="<?= site_url('adminhrdmannakampus/agenda') ?>" <?= $activeMenu === 'recruitment-agenda' ? 'aria-current="page"' : '' ?>>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h8M8 17h5"/></svg>
-                Agenda Seleksi
+                Daftar Agenda
             </a>
+            <a<?= $activeClass('agenda-recap') ?> href="<?= site_url('adminhrdmannakampus/rekap-agenda') ?>" <?= $activeMenu === 'agenda-recap' ? 'aria-current="page"' : '' ?>>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg>
+                Rekap Agenda
+            </a>
+                </div>
+            </details>
             <a<?= $activeClass('recruitment-calendar') ?> href="<?= site_url('adminhrdmannakampus/kalender-rekrutmen') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M13 14h3M8 17h3"/></svg>
                 Kalender Rekrutmen
@@ -117,20 +131,29 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 Rekap Kehadiran
             </a>
         <?php endif ?>
-        <a<?= $activeClass('profile') ?> href="<?= site_url('adminhrdmannakampus/profil') ?>">
+        <details class="admin-agenda-menu <?= in_array($activeMenu, ['profile', 'access', 'history-logs'], true) ? 'is-active' : '' ?>" <?= in_array($activeMenu, ['profile', 'access', 'history-logs'], true) ? 'open' : '' ?>>
+            <summary>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+                <span>Akun &amp; Akses</span>
+                <svg class="admin-agenda-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+            </summary>
+            <div class="admin-agenda-submenu">
+        <a<?= $activeClass('profile') ?> href="<?= site_url('adminhrdmannakampus/profil') ?>" <?= $activeMenu === 'profile' ? 'aria-current="page"' : '' ?>>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
             Profil &amp; Keamanan
         </a>
         <?php if ($isSuperAdmin): ?>
-            <a<?= $activeClass('access') ?> href="<?= site_url('adminhrdmannakampus/akses') ?>">
+            <a<?= $activeClass('access') ?> href="<?= site_url('adminhrdmannakampus/akses') ?>" <?= $activeMenu === 'access' ? 'aria-current="page"' : '' ?>>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 7h5M18.5 4.5v5M15 15h6M18 12v6"/></svg>
                 User &amp; Akses
             </a>
-            <a<?= $activeClass('history-logs') ?> href="<?= site_url('adminhrdmannakampus/history-log') ?>">
+            <a<?= $activeClass('history-logs') ?> href="<?= site_url('adminhrdmannakampus/history-log') ?>" <?= $activeMenu === 'history-logs' ? 'aria-current="page"' : '' ?>>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/><path d="M16 16h3v3"/></svg>
                 History Log
             </a>
         <?php endif ?>
+            </div>
+        </details>
         <?php if ($canViewDepartments): ?>
             <a<?= $activeClass('departments') ?> href="<?= site_url('adminhrdmannakampus/departemen') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h2M14 10h2"/></svg>
@@ -150,6 +173,15 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 Sesi Lowongan
             </a>
         <?php endif ?>
+        <?php if ($canViewProcessTemplates || $canViewRecruitmentSettings || $canViewWhatsappTemplates || $canViewScreeningQuestions || $canViewRecommendationAspects): ?>
+        <?php $templateMenuActive = in_array($activeMenu, ['process-templates', 'recruitment-settings', 'whatsapp-templates', 'screening-questions', 'recommendation-aspects'], true); ?>
+        <details class="admin-agenda-menu <?= $templateMenuActive ? 'is-active' : '' ?>" <?= $templateMenuActive ? 'open' : '' ?>>
+            <summary>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h12v15H8zM4 7v14h12M11 7h6M11 11h6M11 15h4"/></svg>
+                <span>Template &amp; Penilaian</span>
+                <svg class="admin-agenda-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+            </summary>
+            <div class="admin-agenda-submenu">
         <?php if ($canViewProcessTemplates): ?>
             <a<?= $activeClass('process-templates') ?> href="<?= site_url('adminhrdmannakampus/template-tahapan') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h4v4H5zM15 5h4v4h-4zM10 7h5M5 15h4v4H5zM15 15h4v4h-4zM10 17h5M17 9v6"/></svg>
@@ -180,17 +212,13 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 Pertanyaan Screening
             </a>
         <?php endif ?>
+            </div>
+        </details>
+        <?php endif ?>
         <?php if ($canViewHrdTeams): ?>
             <a<?= $activeClass('hrd-teams') ?> href="<?= site_url('adminhrdmannakampus/tim-hrd') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19a5 5 0 0 1 10 0M16 8h5M18.5 5.5v5M16 15h5"/></svg>
                 Tim HRD
-            </a>
-        <?php endif ?>
-        <?php if ($canViewApplicantPool): ?>
-            <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
-                List Pelamar
-                <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD" aria-label="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?> Baru</span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewApplicantBlacklist): ?>
@@ -203,6 +231,13 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
                 Blacklist Historis
                 <?php if ($activeHistoricalBlacklistCount > 0): ?><span class="sidebar-notification-badge" title="<?= $activeHistoricalBlacklistCount ?> blacklist historis aktif" aria-label="<?= $activeHistoricalBlacklistCount ?> blacklist historis aktif"><?= $activeHistoricalBlacklistCount > 99 ? '99+' : $activeHistoricalBlacklistCount ?></span><?php endif ?>
+            </a>
+        <?php endif ?>
+        <?php if ($canViewApplicantPool): ?>
+            <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
+                List Pelamar
+                <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD" aria-label="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?> Baru</span><?php endif ?>
             </a>
         <?php endif ?>
         <?php if ($canViewCandidates && $candidateTeams !== []): ?>

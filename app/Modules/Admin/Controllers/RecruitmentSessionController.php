@@ -23,14 +23,22 @@ class RecruitmentSessionController extends BaseController
     public function index(): string
     {
         $service = $this->agenda();
+        $isList = $this->request->getGet('view') === 'list';
         $period = new AgendaPeriod(trim((string) ($this->request->getGet('date') ?? date('Y-m-d'))), (string) $this->request->getGet('view'));
         $filters = ['date' => $period->selectedDate(), 'view' => $period->view(), 'stage_id' => max(0, (int) $this->request->getGet('stage_id')),
             'pic_user_id' => max(0, (int) $this->request->getGet('pic_user_id')), 'status' => (string) $this->request->getGet('status')];
+        $filters['view'] = $isList ? 'list' : $period->view();
+        $keyword = $this->request->getGet('keyword');
+        $filters['keyword'] = $isList && is_string($keyword) ? mb_substr(trim($keyword), 0, 100) : '';
         $query = $service->visibleSessions($this->userId())
             ->select('sessions.*, stages.name AS stage_name, pic.full_name AS pic_name')
             ->join('recruitment_stages AS stages', 'stages.id = sessions.stage_id')
-            ->join('users AS pic', 'pic.id = sessions.pic_user_id')
-            ->where('sessions.starts_at >=', $period->from())->where('sessions.starts_at <=', $period->until());
+            ->join('users AS pic', 'pic.id = sessions.pic_user_id');
+        if (! $isList) {
+            $query->where('sessions.starts_at >=', $period->from())->where('sessions.starts_at <=', $period->until());
+        } elseif ($filters['keyword'] !== '') {
+            $query->like('sessions.name', $filters['keyword']);
+        }
         foreach (['stage_id', 'pic_user_id'] as $field) {
             if ($filters[$field] > 0) {
                 $query->where('sessions.' . $field, $filters[$field]);
@@ -40,9 +48,9 @@ class RecruitmentSessionController extends BaseController
             $query->where('sessions.status', $filters['status']);
         }
         $total = (clone $query)->countAllResults();
-        $page = $period->view() === 'day' ? min(max(1, (int) $this->request->getGet('page')), max(1, (int) ceil($total / 50))) : 1;
-        $query->orderBy('sessions.starts_at')->orderBy('sessions.id');
-        $rows = $period->view() === 'day'
+        $page = $isList || $period->view() === 'day' ? min(max(1, (int) $this->request->getGet('page')), max(1, (int) ceil($total / 50))) : 1;
+        $query->orderBy('sessions.starts_at', $isList ? 'DESC' : 'ASC')->orderBy('sessions.id', $isList ? 'DESC' : 'ASC');
+        $rows = $isList || $period->view() === 'day'
             ? $query->get(50, ($page - 1) * 50)->getResultArray()
             : $query->get()->getResultArray();
         $counts = [];
@@ -56,7 +64,7 @@ class RecruitmentSessionController extends BaseController
             $rowsByDate[substr($row['starts_at'], 0, 10)][] = $row;
         }
 
-        return $this->render('index', compact('rows', 'rowsByDate', 'counts', 'filters', 'page', 'total', 'period') + ['title' => 'Agenda Seleksi', 'pics' => $service->pics($this->userId())]);
+        return $this->render('index', compact('rows', 'rowsByDate', 'counts', 'filters', 'page', 'total', 'period', 'isList') + ['title' => 'Agenda Seleksi', 'pics' => $service->pics($this->userId())]);
     }
 
     public function create(): string

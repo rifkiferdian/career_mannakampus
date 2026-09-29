@@ -12,7 +12,7 @@
 </head>
 <body class="admin-dashboard-page agenda-page">
 <div class="dashboard-shell">
-    <?= view('admin/partials/sidebar', ['auth' => $auth, 'activeMenu' => 'recruitment-agenda']) ?>
+    <?= view('admin/partials/sidebar', ['auth' => $auth, 'activeMenu' => $activeMenu ?? 'recruitment-agenda']) ?>
     <main class="admin-main">
         <header class="admin-topbar">
             <button class="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka navigasi"><span></span><span></span><span></span></button>

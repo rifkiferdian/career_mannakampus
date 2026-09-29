@@ -18,7 +18,16 @@
 .agenda-primary-filter label { width: min(310px, 100%); }
 .agenda-primary-filter .agenda-button { flex: 0 0 auto; }
 .agenda-filter-form { display: grid; gap: 0; }
-.agenda-view-switch { display: inline-flex; width: fit-content; gap: 4px; margin-bottom: 22px; padding: 4px; border: 1px solid #e3e9ef; border-radius: 12px; background: #f4f7fa; }
+.candidate-filter-form.agenda-list-filter { grid-template-columns: minmax(150px, 1fr) repeat(3, minmax(140px, 1fr)) auto auto; padding: 0; gap: 9px; }
+.agenda-list-filter input:focus-visible, .agenda-list-filter select:focus-visible,
+.agenda-list-filter button:focus-visible, .agenda-list-filter > a:focus-visible { outline: 2px solid #ef8b51; outline-offset: 2px; }
+@media (max-width: 1100px) {
+    .candidate-filter-form.agenda-list-filter { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+    .candidate-filter-form.agenda-list-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.agenda-view-switch { display: inline-flex; flex-wrap: wrap; max-width: 100%; width: fit-content; gap: 4px; margin-bottom: 22px; padding: 4px; border: 1px solid #e3e9ef; border-radius: 12px; background: #f4f7fa; }
 .agenda-view-switch a { min-width: 90px; padding: 9px 14px; border-radius: 9px; color: #54687b; font-size: 13px; font-weight: 800; text-align: center; text-decoration: none; }
 .agenda-view-switch a:hover { color: var(--admin-orange-dark); background: #fff; }
 .agenda-view-switch a.is-active { color: var(--admin-navy); background: #fff; box-shadow: 0 2px 7px rgba(16, 42, 67, .09); }
@@ -332,4 +341,34 @@ button.agenda-whatsapp-link { padding: 0; border: 0; background: transparent; fo
 }
 @media (max-width: 540px) {
     .agenda-participant-filters .agenda-filters { grid-template-columns: minmax(0, 1fr); }
+}
+
+.agenda-recap-filter { display: grid; gap: 14px; }
+.agenda-recap-filter .agenda-filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.agenda-recap-filter .agenda-filters label { min-width: 0; }
+.agenda-recap-filter-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.agenda-recap-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.agenda-recap-summary article { display: grid; gap: 10px; margin: 0; padding: 18px; }
+.agenda-recap-summary span { color: #657b8d; font-size: 12px; }
+.agenda-recap-summary strong { color: var(--admin-navy); font-size: 25px; }
+.agenda-recap-metric-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.agenda-recap-summary .agenda-recap-metric-icon { display: grid; place-items: center; flex: 0 0 34px; height: 34px; border-radius: 10px; }
+.agenda-recap-metric-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.agenda-recap-summary .agenda-recap-metric-icon.is-orange { color: #be591e; background: #fff0e3; }
+.agenda-recap-summary .agenda-recap-metric-icon.is-blue { color: #356baf; background: #eaf2fc; }
+.agenda-recap-summary .agenda-recap-metric-icon.is-purple { color: #7755ad; background: #f1ecfa; }
+.agenda-recap-summary .agenda-recap-metric-icon.is-green { color: #2c835b; background: #e7f5ed; }
+.agenda-recap-summary .agenda-recap-metric-icon.is-red { color: #bc4f50; background: #fdecec; }
+.agenda-recap-summary .agenda-recap-metric-icon.is-teal { color: #25817e; background: #e6f5f3; }
+.agenda-card .agenda-recap-help { margin: 0 0 16px; font-size: 12px; }
+.agenda-recap-table { min-width: 920px; }
+.agenda-recap-number { text-align: center; font-variant-numeric: tabular-nums; }
+@media (max-width: 1100px) {
+    .agenda-recap-filter .agenda-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .agenda-recap-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 540px) {
+    .agenda-recap-filter .agenda-filters, .agenda-recap-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .agenda-recap-filter .agenda-filters label:last-child { grid-column: 1 / -1; }
+    .agenda-recap-summary article { padding: 14px; }
 }
