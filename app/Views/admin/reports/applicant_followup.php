@@ -4,6 +4,9 @@ $metrics = $screening
     ? [['Belum screening', $summary['total'], 'blue'], ['Belum dibagikan', $summary['unassigned'], 'orange'], ['Sudah di divisi', $summary['total'] - $summary['unassigned'], 'green'], ['Menunggu terlama', $summary['longest'] . ' hari', 'purple']]
     : [['Perlu tindak lanjut', $summary['total'], 'blue'], ['Menunggu keputusan', $summary['decision'], 'orange'], ['Menunggu jadwal', $summary['schedule'], 'green'], ['Menunggu terlama', $summary['longest'] . ' hari', 'purple']];
 $icons = ['blue' => '<path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/>', 'orange' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', 'green' => '<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16m4 5 2 2 5-5"/>', 'purple' => '<path d="M4 5v15h16M8 16v-4M12 16V9M16 16V5"/>'];
+$sortUrl = static fn (string $sort): string => $base . '?' . http_build_query(array_replace($filters, ['sort' => $sort, 'page' => 1]));
+$nextSort = $filters['sort'] === 'oldest' ? 'newest' : 'oldest';
+$sortLabel = $filters['sort'] === 'oldest' ? 'Urutkan: paling baru menunggu' : 'Urutkan: paling lama menunggu';
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/css/applicant-reports.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/applicant-reports.css') ?>">
 <section class="dashboard-welcome agenda-heading">
@@ -34,7 +37,7 @@ $icons = ['blue' => '<path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/>', 'orange' =>
         <p>Lama menunggu dihitung dalam hari penuh (24 jam). <?php if (! $screening): ?>Filter tanggal memakai tanggal acuan pada tabel.<?php endif ?> Angka ringkasan dan Excel mengikuti filter serta hak akses divisi.</p>
     </details>
     <div class="department-table-wrap"><table class="department-table followup-table">
-        <thead><tr><th>Pelamar / posisi</th><th>Divisi<?= $screening ? '' : ' / PIC terakhir' ?></th><th>Tahap terakhir</th><th>Kondisi / tindak lanjut</th><th>Tanggal acuan (WIB)</th><th>Menunggu</th><th></th></tr></thead>
+        <thead><tr><th>Pelamar / posisi</th><th>Divisi<?= $screening ? '' : ' / PIC terakhir' ?></th><th>Tahap terakhir</th><th>Kondisi / tindak lanjut</th><th>Tanggal acuan (WIB)</th><th aria-sort="<?= $filters['sort'] === 'oldest' ? 'ascending' : 'descending' ?>"><a class="followup-sort-link" href="<?= esc($sortUrl($nextSort), 'attr') ?>" title="<?= esc($sortLabel, 'attr') ?>">Menunggu <?= $filters['sort'] === 'oldest' ? '↑' : '↓' ?></a></th><th></th></tr></thead>
         <tbody>
         <?php if ($rows === []): ?><tr><td colspan="7" class="department-empty">Tidak ada lamaran tertunda sesuai filter. Coba reset filter untuk melihat seluruh data yang dapat Anda akses.</td></tr><?php endif ?>
         <?php foreach ($rows as $row): ?>

@@ -29,6 +29,7 @@ class ApplicantFollowupReportService
         return $dates + ['keyword' => mb_substr($text('keyword'), 0, 100), 'vacancy_id' => max(0, (int) $text('vacancy_id')),
             'team_id' => max(0, (int) $text('team_id')), 'stage_id' => max(0, (int) $text('stage_id')),
             'min_days' => min(36500, max(0, (int) $text('min_days'))),
+            'sort' => in_array($text('sort'), ['oldest', 'newest'], true) ? $text('sort') : 'oldest',
             'condition' => array_key_exists($text('condition'), self::CONDITIONS) ? $text('condition') : '',
             'unassigned' => $text('unassigned') === '1' ? '1' : ''];
     }
@@ -194,7 +195,13 @@ class ApplicantFollowupReportService
                 $rows[] = $application + $result + ['wait_days' => $days];
             }
         }
-        usort($rows, static fn (array $a, array $b): int => strcmp($a['reference_at'], $b['reference_at']) ?: $a['id'] <=> $b['id']);
+        usort($rows, static function (array $a, array $b) use ($filters): int {
+            $order = strcmp($a['reference_at'], $b['reference_at']);
+            if ($filters['sort'] === 'newest') {
+                $order *= -1;
+            }
+            return $order ?: ($filters['sort'] === 'oldest' ? $a['id'] <=> $b['id'] : $b['id'] <=> $a['id']);
+        });
         $summary = ['total' => count($rows), 'decision' => 0, 'schedule' => 0, 'unassigned' => 0, 'longest' => 0];
         foreach ($rows as $row) {
             if (isset($summary[$row['condition']])) {
