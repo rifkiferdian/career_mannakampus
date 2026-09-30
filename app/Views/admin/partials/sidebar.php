@@ -233,6 +233,19 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
                 <?php if ($activeHistoricalBlacklistCount > 0): ?><span class="sidebar-notification-badge" title="<?= $activeHistoricalBlacklistCount ?> blacklist historis aktif" aria-label="<?= $activeHistoricalBlacklistCount ?> blacklist historis aktif"><?= $activeHistoricalBlacklistCount > 99 ? '99+' : $activeHistoricalBlacklistCount ?></span><?php endif ?>
             </a>
         <?php endif ?>
+        <?php if ($canViewCandidates): ?>
+        <?php $reportActive = in_array($activeMenu, ['report-screening', 'report-followup'], true); ?>
+        <details class="admin-agenda-menu <?= $reportActive ? 'is-active' : '' ?>" <?= $reportActive ? 'open' : '' ?>>
+            <summary>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 8h8M8 12h5M8 16h7"/></svg><span>Report</span>
+                <svg class="admin-agenda-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+            </summary>
+            <div class="admin-agenda-submenu">
+                <a<?= $activeClass('report-screening') ?> href="<?= site_url('adminhrdmannakampus/report/belum-screening') ?>" <?= $activeMenu === 'report-screening' ? 'aria-current="page"' : '' ?>><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 8h8M8 12h5M8 16h4"/></svg>Pelamar Belum Screening</a>
+                <a<?= $activeClass('report-followup') ?> href="<?= site_url('adminhrdmannakampus/report/tindak-lanjut') ?>" <?= $activeMenu === 'report-followup' ? 'aria-current="page"' : '' ?>><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Tindak Lanjut Seleksi</a>
+            </div>
+        </details>
+        <?php endif ?>
         <?php if ($canViewApplicantPool): ?>
             <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>

@@ -36,6 +36,10 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('dashboard', 'DashboardController::index', ['filter' => 'permission:dashboard.admin.view', 'as' => 'hrd.dashboard']);
     $routes->get('kalender-rekrutmen', 'RecruitmentCalendarController::index', ['filter' => 'permission:schedules.view', 'as' => 'hrd.recruitment.calendar']);
     $routes->get('agenda', 'RecruitmentSessionController::index', ['filter' => 'permission:schedules.view']);
+    $routes->get('report/belum-screening', 'ApplicantFollowupReportController::screening', ['filter' => 'permission:candidates.view']);
+    $routes->get('report/belum-screening/export', 'ApplicantFollowupReportController::exportScreening', ['filter' => 'permission:candidates.view']);
+    $routes->get('report/tindak-lanjut', 'ApplicantFollowupReportController::followup', ['filter' => 'permission:candidates.view']);
+    $routes->get('report/tindak-lanjut/export', 'ApplicantFollowupReportController::exportFollowup', ['filter' => 'permission:candidates.view']);
     $routes->get('rekap-agenda', 'AgendaRecapController::index', ['filter' => 'permission:schedules.view']);
     $routes->get('rekap-agenda/export', 'AgendaRecapController::export', ['filter' => 'permission:schedules.view']);
     $routes->get('agenda/baru', 'RecruitmentSessionController::create', ['filter' => 'permission:schedules.manage']);

@@ -4,6 +4,7 @@
 .division-filter-primary .division-filter-keyword { flex: 0 1 320px; }
 .division-filter-primary .division-filter-team_id { flex: 0 1 230px; }
 .division-filter-primary .division-filter-age { flex: 0 0 100px; }
+.applicant-pool-filter .pool-filter-date { flex: 0 1 180px; }
 .division-filter-secondary { display: grid; grid-template-columns: 1fr 1.3fr 1fr 1fr 1fr; gap: 12px; }
 .candidate-division-filter input, .candidate-division-filter select { box-sizing: border-box; width: 100%; min-width: 0; height: 42px; font-size: 12px; background: #fbfcfd; }
 .candidate-division-filter input:focus-visible, .candidate-division-filter select:focus-visible { outline: 2px solid #ef9e6c; outline-offset: 2px; border-color: #de8b55; }
@@ -13,6 +14,8 @@
     .division-filter-secondary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
+    .applicant-pool-filter .division-filter-primary .division-filter-keyword { flex: 0 1 320px; max-width: 100%; }
+    .applicant-pool-filter .pool-filter-date { flex: 1 1 150px; }
     .division-filter-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .division-filter-primary .division-filter-team_id { flex: 1 1 100%; }
     .division-filter-primary .division-filter-keyword { flex-basis: calc(100% - 112px); }

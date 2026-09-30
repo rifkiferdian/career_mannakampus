@@ -226,6 +226,28 @@ class RecruitmentSessionServiceTest extends CIUnitTestCase
         self::assertSame([], $service->rows(2, array_replace($filters, ['date_from' => '2020-01-01', 'date_to' => '2020-01-02'])));
     }
 
+    public function testFollowupReportRestrictsTeamsAndCalculatesWaitingDays(): void
+    {
+        $this->database->query('CREATE TABLE hrd_teams (id INTEGER PRIMARY KEY, name TEXT)');
+        $this->database->table('hrd_teams')->insertBatch([['id' => 1, 'name' => 'Tim Satu'], ['id' => 2, 'name' => 'Tim Dua']]);
+        $this->database->query('ALTER TABLE applications ADD COLUMN submitted_at TEXT');
+        $this->database->query('ALTER TABLE applications ADD COLUMN screening_status TEXT');
+        $this->database->table('applications')->update(['submitted_at' => date('Y-m-d H:i:s', strtotime('-8 days')), 'screening_status' => 'pending', 'application_status' => 'document_screening']);
+        $service = new \App\Modules\Recruitment\Services\ApplicantFollowupReportService($this->database);
+        $filters = \App\Modules\Recruitment\Services\ApplicantFollowupReportService::filters([]);
+        $report = $service->report(2, 'screening', $filters);
+        self::assertSame(2, $report['summary']['total']);
+        self::assertSame(8, $report['summary']['longest']);
+        self::assertCount(1, $report['teams']);
+        self::assertSame(0, $service->report(2, 'screening', array_replace($filters, ['team_id' => 2]))['summary']['total']);
+        self::assertSame(3, $service->report(1, 'screening', $filters)['summary']['total']);
+        self::assertSame(0, $service->report(2, 'screening', array_replace($filters, ['min_days' => 9]))['summary']['total']);
+        self::assertSame(1, $service->report(2, 'screening', array_replace($filters, ['keyword' => 'Candidate 1']))['summary']['total']);
+        $this->database->table('applicants')->where('id', 2)->update(['assigned_hrd_team_id' => null]);
+        self::assertSame(1, $service->report(2, 'screening', $filters)['summary']['total']);
+        self::assertSame(1, $service->report(1, 'screening', $filters)['summary']['unassigned']);
+    }
+
     public function testSessionEditSynchronizesMembersAndResetsConfirmation(): void
     {
         $id = $this->agenda->save($this->input(), 2);
