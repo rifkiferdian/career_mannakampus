@@ -19,6 +19,14 @@ class ApplicationController extends BaseController
         return view('application_form', $this->formData($vacancyCode));
     }
 
+    public function createV2(string $vacancyCode): string
+    {
+        return view('application_form', [
+            ...$this->formData($vacancyCode),
+            'formVersion' => 'v2',
+        ]);
+    }
+
     public function csrf(): ResponseInterface
     {
         return $this->response
@@ -77,6 +85,7 @@ class ApplicationController extends BaseController
             session()->setTempdata('application_receipt_' . $receiptToken, [
                 'batch_number' => $result['batch_number'],
                 'submitted_at' => date('d/m/Y H:i'),
+                'status_url' => site_url('lamaran/status'),
                 'profile' => [
                     'full_name'      => trim((string) $this->request->getPost('full_name')),
                     'email'          => trim((string) $this->request->getPost('email')),

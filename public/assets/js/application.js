@@ -43,6 +43,7 @@
         .map((choice) => choice.value);
     let currentStep = 1;
     const visitedSteps = new Set();
+    let hasRenderedStep = false;
 
     const ageFromDate = (dateValue) => {
         if (!dateValue) return '';
@@ -366,7 +367,13 @@
         submitButton.hidden = currentStep !== panels.length;
 
         if (currentStep === panels.length) buildReview();
-        document.querySelector('.wizard-progress')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const isV2FirstRender = document.body.classList.contains('application-page-v2')
+            && !hasRenderedStep
+            && Object.keys(serverValidationErrors).length === 0;
+        if (!isV2FirstRender) {
+            document.querySelector('.wizard-progress')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        hasRenderedStep = true;
     };
 
     const navigateToStep = (targetStep) => {

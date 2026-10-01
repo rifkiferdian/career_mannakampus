@@ -4,12 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Formulir lamaran <?= esc($vacancy['title'], 'attr') ?> di Manna Kampus.">
-    <meta name="theme-color" content="#f5f7f8">
-    <title>Lamar <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
+    <?php $isFormV2 = ($formVersion ?? '') === 'v2'; ?>
+    <meta name="theme-color" content="<?= $isFormV2 ? '#f5f3ee' : '#f5f7f8' ?>">
+    <title><?= $isFormV2 ? 'Form Lamaran V2' : 'Lamar' ?> <?= esc($vacancy['title']) ?> | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/application.css') ?>?v=18">
+    <?php if ($isFormV2): ?>
+        <link rel="stylesheet" href="<?= base_url('assets/css/application-v2.css') ?>?v=2">
+    <?php endif ?>
 </head>
-<body class="application-page">
+<body class="application-page<?= $isFormV2 ? ' application-page-v2' : '' ?>">
     <header class="application-header">
         <div class="application-header-inner">
             <a href="<?= site_url('lowongan') ?>#vacancy-<?= esc($vacancy['code'], 'attr') ?>" class="application-brand" aria-label="Kembali ke lowongan">
@@ -19,6 +23,9 @@
                 <span>Posisi yang dilamar · <?= esc($vacancy['recruitment_period_name'] ?? 'Sesi aktif') ?></span>
                 <strong><?= esc($vacancy['title']) ?></strong>
             </div>
+            <?php if ($isFormV2): ?>
+                <a class="version-switch" href="<?= site_url('lowongan/' . $vacancy['code'] . '/lamar') ?>">Lihat versi lama</a>
+            <?php endif ?>
             <a class="application-close" href="<?= site_url('lowongan') ?>" aria-label="Tutup formulir">×</a>
         </div>
     </header>
@@ -49,6 +56,22 @@
             ? array_map(static fn (mixed $experience): array => is_array($experience) ? $experience : [], array_values($oldWorkExperiences))
             : [['company_name' => '', 'position_title' => '', 'start_year' => '', 'end_year' => '', 'responsibilities' => '']];
         ?>
+
+        <?php if ($isFormV2): ?>
+            <section class="v2-introduction" aria-labelledby="v2-form-title">
+                <div class="v2-introduction-accent"></div>
+                <div class="v2-introduction-content">
+                    <span class="v2-version-label">Alternatif tampilan · Versi 2</span>
+                    <h1 id="v2-form-title">Formulir Lamaran Kerja</h1>
+                    <p>Lengkapi data berikut untuk melamar posisi <strong><?= esc($vacancy['title']) ?></strong>. Siapkan satu berkas PDF sebelum mulai agar proses pengisian lebih lancar.</p>
+                    <div class="v2-form-meta">
+                        <span><b>8</b> bagian singkat</span>
+                        <span><b>2 MB</b> maksimal PDF</span>
+                    </div>
+                    <p class="v2-required-note"><b>*</b> Menandakan pertanyaan yang wajib diisi</p>
+                </div>
+            </section>
+        <?php endif ?>
 
         <nav class="wizard-progress" aria-label="Tahapan formulir lamaran">
             <ol>
@@ -409,7 +432,7 @@
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/application.js') ?>?v=19" defer></script>
+    <script src="<?= base_url('assets/js/application.js') ?>?v=20" defer></script>
     <script src="<?= base_url('assets/js/application-regions.js') ?>?v=1" defer></script>
 </body>
 </html>

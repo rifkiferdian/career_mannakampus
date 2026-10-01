@@ -790,12 +790,10 @@ class CandidateController extends BaseController
         }
 
         if ($currentStatus === 'lamaran_baru') {
-            foreach ($sequence as $stage) {
-                if ((string) $stage['code'] === 'document_screening') {
-                    $stage['name'] = 'Mulai Screening';
-                    return [$stage];
-                }
-            }
+            return [
+                $this->manualScreeningStage('screening_passed', 'Lolos Screening', '#16A34A'),
+                $this->manualScreeningStage('screening_failed', 'Tidak Lolos Screening', '#DC2626', true),
+            ];
         }
 
         if ($currentStatus === 'document_screening') {
@@ -941,7 +939,7 @@ class CandidateController extends BaseController
     private function rejectionStageSnapshot(int $templateId, string $currentStatus, array $templateStages, array $allStages): array
     {
         $normalizedStatus = match ($currentStatus) {
-            'screening_passed', 'screening_failed' => 'document_screening',
+            'lamaran_baru', 'screening_passed', 'screening_failed' => 'document_screening',
             default => $currentStatus,
         };
         foreach ($templateStages[$templateId] ?? [] as $stage) {

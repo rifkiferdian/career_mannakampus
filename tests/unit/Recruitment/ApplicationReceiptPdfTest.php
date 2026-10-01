@@ -12,6 +12,7 @@ class ApplicationReceiptPdfTest extends TestCase
         $pdf = (new ApplicationReceiptPdf())->generate([
             'batch_number' => 'MKB-260819-ABC12345',
             'submitted_at' => '19/08/2026 10:00',
+            'status_url' => 'https://karier.example.test/lamaran/status',
             'profile' => [
                 'full_name' => 'Budi Santoso',
                 'email' => 'budi@example.test',
@@ -33,6 +34,19 @@ class ApplicationReceiptPdfTest extends TestCase
         $this->assertStringContainsString('MKB-260819-ABC12345', $pdf);
         $this->assertStringContainsString('Budi Santoso', $pdf);
         $this->assertStringContainsString('MK-260819-12345678', $pdf);
+        $this->assertStringContainsString('TERKIRIM', $pdf);
+        $this->assertStringContainsString('LANGKAH BERIKUTNYA', $pdf);
+        $this->assertStringContainsString('Pantau status lamaran', $pdf);
+        $this->assertStringContainsString('19 Agustus 2026', $pdf);
+        $this->assertStringContainsString('15 Mei 1998', $pdf);
+        $this->assertStringContainsString('SCAN CEK STATUS', $pdf);
+        if (function_exists('imagecreatefrompng') && function_exists('imagejpeg')) {
+            $this->assertStringContainsString('/Subtype /Image', $pdf);
+            $this->assertStringContainsString('/Logo 7 0 R', $pdf);
+            $this->assertStringContainsString('/Logo Do', $pdf);
+            $this->assertStringContainsString('/Qr 8 0 R', $pdf);
+            $this->assertStringContainsString('/Qr Do', $pdf);
+        }
         $this->assertStringNotContainsString('screening', strtolower($pdf));
         $this->assertStringContainsString('%%EOF', $pdf);
     }
