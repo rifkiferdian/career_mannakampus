@@ -24,7 +24,7 @@
                 <strong><?= esc($vacancy['title']) ?></strong>
             </div>
             <?php if ($isFormV2): ?>
-                <a class="version-switch" href="<?= site_url('lowongan/' . $vacancy['code'] . '/lamar') ?>">Lihat versi lama</a>
+                <a class="version-switch" href="<?= site_url('lowongan/' . $vacancy['code'] . '/lamar-versi-lama') ?>">Lihat versi lama</a>
             <?php endif ?>
             <a class="application-close" href="<?= site_url('lowongan') ?>" aria-label="Tutup formulir">×</a>
         </div>

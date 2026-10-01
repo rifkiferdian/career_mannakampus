@@ -9,7 +9,7 @@
     <title>Cek Status Lamaran | Karier Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/career.css') ?>?v=25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=9">
+    <link rel="stylesheet" href="<?= base_url('assets/css/application-status.css') ?>?v=12">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -85,64 +85,86 @@
             <dialog class="status-result-modal" data-status-result-modal aria-labelledby="result-title">
                 <div class="status-result-modal-panel">
                     <div class="status-result-modal-toolbar">
-                        <span>Hasil status lamaran</span>
+                        <div class="status-modal-title">
+                            <span aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v16l-7-3-7 3V5a2 2 0 0 1 2-2Z"/><path d="m9 10 2 2 4-4"/></svg>
+                            </span>
+                            <div><strong>Hasil pengecekan</strong><small>Informasi terbaru proses rekrutmen Anda</small></div>
+                        </div>
                         <button class="status-result-close" type="button" data-status-result-close aria-label="Tutup hasil pengecekan">&times;</button>
                     </div>
                     <section class="status-result-section">
                         <div class="container status-result">
                     <div class="status-result-heading">
+                        <span class="status-result-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="m6.5 12 3.5 3.5L18 7.5"/><circle cx="12" cy="12" r="9"/></svg>
+                        </span>
                         <div>
-                            <span class="status-eyebrow"><span></span> Hasil Pencarian</span>
-                            <h2 id="result-title">Riwayat lamaran ditemukan</h2>
+                            <span class="status-result-kicker">Status berhasil ditemukan</span>
+                            <h2 id="result-title">Halo, <?= esc($result['applicant_name']) ?></h2>
+                            <p>Kami menemukan <?= (int) $result['position_count'] ?> posisi dari <?= (int) $result['batch_count'] ?> pengajuan. Berikut perkembangan terbarunya.</p>
                         </div>
-                        <span class="status-found-badge">Data terverifikasi</span>
+                        <span class="status-found-badge"><i></i> Data terverifikasi</span>
                     </div>
 
                     <dl class="status-summary">
                         <div>
-                            <dt>Total Pengajuan</dt>
-                            <dd><?= (int) $result['batch_count'] ?> pengajuan</dd>
+                            <dt>Pengajuan terbaru</dt>
+                            <dd><?= esc($result['batch_number']) ?></dd>
                         </div>
                         <div>
-                            <dt>Nama Pelamar</dt>
-                            <dd><?= esc($result['applicant_name']) ?></dd>
+                            <dt>Terakhir melamar</dt>
+                            <dd><?= esc($result['submitted_at']) ?></dd>
+                        </div>
+                        <div>
+                            <dt>Total posisi</dt>
+                            <dd><?= (int) $result['position_count'] ?> posisi</dd>
                         </div>
                         <?php if ($result['applicant_email'] !== ''): ?>
                             <div>
-                                <dt>Email</dt>
+                                <dt>Email terdaftar</dt>
                                 <dd><?= esc($result['applicant_email']) ?></dd>
                             </div>
                         <?php endif ?>
                         <?php if ($result['applicant_phone'] !== ''): ?>
                             <div>
-                                <dt>Nomor WhatsApp</dt>
+                                <dt>WhatsApp terdaftar</dt>
                                 <dd><?= esc($result['applicant_phone']) ?></dd>
                             </div>
                         <?php endif ?>
-                        <div>
-                            <dt>Terakhir Melamar</dt>
-                            <dd><?= esc($result['submitted_at']) ?></dd>
-                        </div>
                     </dl>
 
                     <div class="status-position-heading">
-                        <h3>Status setiap posisi</h3>
-                        <span><?= (int) $result['position_count'] ?> posisi dilamar</span>
+                        <div><span>Riwayat proses</span><h3>Status setiap posisi</h3></div>
+                        <span><?= (int) $result['position_count'] ?> posisi</span>
                     </div>
 
                     <div class="status-applications">
                         <?php foreach ($result['applications'] as $application): ?>
                             <article class="status-application-card">
-                                <div class="status-priority">
-                                    <span><?= (int) $application['preference_order'] ?></span>
-                                    <small>Prioritas</small>
+                                <header class="status-application-header">
+                                    <div class="status-application-title">
+                                        <div class="status-application-eyebrow">
+                                            <span class="status-priority-label">Pilihan <?= (int) $application['preference_order'] ?></span>
+                                            <?php if ($application['department_name'] !== ''): ?><span class="status-department"><?= esc($application['department_name']) ?></span><?php endif ?>
+                                        </div>
+                                        <h3><?= esc($application['vacancy_title']) ?></h3>
+                                    </div>
+                                    <span class="status-badge status-badge-<?= esc($application['status_tone'], 'attr') ?>">
+                                        <i></i><?= esc($application['status_label']) ?>
+                                    </span>
+                                </header>
+                                <div class="status-application-reference">
+                                    <span><small>Nomor lamaran</small><strong><?= esc($application['application_number']) ?></strong></span>
+                                    <span><small>Terakhir diperbarui</small><strong><?= esc($application['updated_at']) ?></strong></span>
                                 </div>
                                 <div class="status-application-main">
-                                    <span class="status-department"><?= esc($application['department_name']) ?></span>
-                                    <h3><?= esc($application['vacancy_title']) ?></h3>
-                                    <p><?= esc($application['status_description']) ?></p>
+                                    <div class="status-description">
+                                        <span aria-hidden="true">i</span>
+                                        <p><?= esc($application['status_description']) ?></p>
+                                    </div>
                                     <?php if ($application['public_message'] !== ''): ?>
-                                        <div class="status-public-message"><?= esc($application['public_message']) ?></div>
+                                        <div class="status-public-message"><strong>Informasi dari HRD</strong><span><?= esc($application['public_message']) ?></span></div>
                                     <?php endif ?>
                                     <?php if (is_array($application['schedule'] ?? null)): $schedule = $application['schedule']; $canRespond = $schedule['status'] === 'scheduled' && strtotime($schedule['confirmation_deadline_raw']) >= time(); ?>
                                         <section class="public-schedule-card">
@@ -155,17 +177,14 @@
                                         </section>
                                     <?php endif ?>
                                 </div>
-                                <div class="status-application-meta">
-                                    <span class="status-badge status-badge-<?= esc($application['status_tone'], 'attr') ?>">
-                                        <?= esc($application['status_label']) ?>
-                                    </span>
-                                    <small>Diperbarui <?= esc($application['updated_at']) ?></small>
-                                </div>
                             </article>
                         <?php endforeach ?>
                     </div>
 
-                    <p class="status-result-note">Perkembangan berikutnya akan disampaikan melalui email atau WhatsApp yang dicantumkan saat melamar.</p>
+                    <div class="status-result-note">
+                        <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="m4 7 8 6 8-6"/></svg></span>
+                        <div><strong>Tetap pantau informasi dari kami</strong><p>Perkembangan berikutnya akan disampaikan melalui email atau WhatsApp yang Anda cantumkan saat melamar.</p></div>
+                    </div>
                         </div>
                     </section>
                 </div>
@@ -193,6 +212,6 @@
     </footer>
 
     <script src="<?= base_url('assets/js/career.js') ?>?v=11" defer></script>
-    <script src="<?= base_url('assets/js/application-status.js') ?>?v=3" defer></script>
+    <script src="<?= base_url('assets/js/application-status.js') ?>?v=4" defer></script>
 </body>
 </html>

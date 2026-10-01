@@ -8,6 +8,7 @@ $routes->set404Override('\\App\\Controllers\\NotFound::index');
 $routes->get('/', 'Home::index');
 $routes->get('lowongan', '\App\Modules\Recruitment\Controllers\VacancyController::index');
 $routes->get('lowongan/cari', '\App\Modules\Recruitment\Controllers\VacancyController::search');
+$routes->get('lowongan/(:segment)/lamar-versi-lama', '\App\Modules\Recruitment\Controllers\ApplicationController::createLegacy/$1');
 $routes->get('lowongan/(:segment)/lamar-v2', '\App\Modules\Recruitment\Controllers\ApplicationController::createV2/$1');
 $routes->get('lowongan/(:segment)/lamar', '\App\Modules\Recruitment\Controllers\ApplicationController::create/$1');
 $routes->post('lowongan/(:segment)/lamar', '\App\Modules\Recruitment\Controllers\ApplicationController::store/$1');
@@ -18,6 +19,7 @@ $routes->get('lamaran/tidak-dapat-diproses', '\App\Modules\Recruitment\Controlle
 $routes->get('lamaran/bukti/(:segment)', '\App\Modules\Recruitment\Controllers\ApplicationController::receipt/$1');
 $routes->get('lamaran/status', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::index');
 $routes->post('lamaran/status', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::lookup');
+$routes->get('lamaran/status/hasil/(:segment)', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::result/$1');
 $routes->post('lamaran/status/jadwal/(:num)', '\App\Modules\Recruitment\Controllers\ApplicationStatusController::respond/$1');
 $routes->get('tahapan-seleksi', 'Home::selectionProcess');
 

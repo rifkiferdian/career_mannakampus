@@ -13,20 +13,4 @@
         if (submitLabel) submitLabel.textContent = 'Memeriksa...';
     });
 
-    const modal = document.querySelector('[data-status-result-modal]');
-    if (!(modal instanceof HTMLDialogElement)) return;
-
-    const closeModal = () => {
-        modal.close();
-        document.body.classList.remove('status-modal-open');
-    };
-
-    modal.querySelector('[data-status-result-close]')?.addEventListener('click', closeModal);
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) closeModal();
-    });
-    modal.addEventListener('close', () => document.body.classList.remove('status-modal-open'));
-
-    modal.showModal();
-    document.body.classList.add('status-modal-open');
 })();

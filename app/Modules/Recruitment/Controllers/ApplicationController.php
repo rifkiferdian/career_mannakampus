@@ -16,10 +16,20 @@ class ApplicationController extends BaseController
 {
     public function create(string $vacancyCode): string
     {
-        return view('application_form', $this->formData($vacancyCode));
+        return $this->renderV2($vacancyCode);
     }
 
     public function createV2(string $vacancyCode): string
+    {
+        return $this->renderV2($vacancyCode);
+    }
+
+    public function createLegacy(string $vacancyCode): string
+    {
+        return view('application_form', $this->formData($vacancyCode));
+    }
+
+    private function renderV2(string $vacancyCode): string
     {
         return view('application_form', [
             ...$this->formData($vacancyCode),
