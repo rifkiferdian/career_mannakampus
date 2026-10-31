@@ -62,6 +62,39 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .admin-primary-button span { font-size: 18px; }
 .login-help { margin: 26px 0 0; color: #929ca5; font-size: 11px; text-align: center; }
 
+/* Refined HRD login */
+.admin-login-page { min-height: 100vh; min-height: 100dvh; background: #f7f3ee; }
+.admin-login-page .login-shell { min-height: 100vh; min-height: 100dvh; grid-template-columns: minmax(470px, 1.04fr) minmax(500px, .96fr); }
+.admin-login-page .login-brand-panel { padding: clamp(48px, 6vw, 86px) clamp(48px, 7vw, 108px); background: linear-gradient(145deg, #102f42 0%, #0c2638 56%, #102a43 100%); }
+.admin-login-page .login-brand-panel::before { width: 500px; height: 500px; right: -260px; top: -270px; border: 72px solid rgba(255,255,255,.045); }
+.admin-login-page .login-brand-panel::after { background-size: 25px 25px; opacity: .45; }
+.admin-login-page .login-brand-content { width: min(100%, 590px); }
+.admin-login-page .admin-brand-light { padding: 10px 14px; border-radius: 12px; box-shadow: 0 15px 40px rgba(1,15,24,.2); }
+.admin-login-page .admin-brand img { width: 190px; }
+.admin-login-page .internal-badge { margin-top: clamp(55px, 9vh, 92px); color: #ffd2bb; background: rgba(248,118,56,.12); }
+.admin-login-page .login-brand-content h1 { max-width: 580px; margin: 20px 0 18px; font-size: clamp(38px, 4.1vw, 58px); line-height: 1.06; }
+.admin-login-page .login-brand-content > p { max-width: 520px; color: rgba(255,255,255,.7); }
+.login-highlights { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 30px; }
+.login-highlights span { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; color: rgba(255,255,255,.78); background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.09); border-radius: 999px; font-size: 10px; font-weight: 700; }
+.login-highlights i { width: 5px; height: 5px; background: var(--admin-orange); border-radius: 50%; box-shadow: 0 0 0 3px rgba(248,118,56,.12); }
+.admin-login-page .login-security-note { margin-top: clamp(40px, 7vh, 66px); }
+.admin-login-page .login-form-panel { position: relative; overflow: hidden; padding: 40px clamp(34px, 6vw, 92px); background: radial-gradient(circle at 100% 0, rgba(248,118,56,.12), transparent 32%), #f7f3ee; }
+.admin-login-page .login-form-panel::before { position: absolute; right: -90px; bottom: -110px; width: 260px; height: 260px; border: 1px solid rgba(248,118,56,.12); border-radius: 50%; box-shadow: 0 0 0 45px rgba(248,118,56,.035), 0 0 0 90px rgba(248,118,56,.02); content: ''; pointer-events: none; }
+.admin-login-page .login-card { position: relative; z-index: 1; width: min(100%, 470px); padding: clamp(30px, 4vw, 44px); background: rgba(255,255,255,.96); border: 1px solid #e9e2da; border-radius: 20px; box-shadow: 0 28px 75px rgba(35,43,40,.11); }
+.admin-login-page .login-eyebrow { color: var(--admin-orange-dark); font-size: 10px; }
+.admin-login-page .login-card h2 { margin: 10px 0 8px; font-size: clamp(29px, 3vw, 38px); }
+.admin-login-page .login-intro { max-width: 370px; margin-bottom: 27px; }
+.admin-login-page .admin-login-form label { margin-top: 17px; }
+.admin-login-page .admin-input { min-height: 54px; background: #f8faf9; border-color: #dfe5e2; border-radius: 11px; }
+.admin-login-page .admin-input:focus-within { border-color: var(--admin-orange); box-shadow: 0 0 0 4px rgba(248,118,56,.1); }
+.admin-login-page .admin-input input { height: 52px; }
+.admin-login-page .admin-primary-button { min-height: 54px; margin-top: 24px; border-radius: 11px; }
+.login-form-security { display: flex; align-items: center; gap: 10px; margin-top: 22px; padding: 12px 13px; color: #6e7d75; background: #f3f7f5; border: 1px solid #e1e9e5; border-radius: 10px; }
+.login-form-security svg { width: 22px; height: 22px; flex: 0 0 22px; fill: none; stroke: #267052; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.login-form-security span { font-size: 9px; line-height: 1.45; }
+.login-form-security strong { display: block; color: #315746; font-size: 10px; }
+.admin-login-page .login-help { margin-top: 18px; line-height: 1.55; }
+
 .dashboard-shell { position: relative; min-height: 100vh; display: grid; grid-template-columns: 260px minmax(0, 1fr); }
 .admin-sidebar { position: relative; z-index: 30; min-height: 100vh; display: flex; flex-direction: column; align-self: stretch; padding: 28px 12px 22px; color: var(--admin-ink); background: #fff; border-right: 1px solid #edf0f4; }
 .sidebar-brand { align-self: flex-start; margin-inline: 8px; padding: 9px 11px; background: white; border-radius: 10px; }
@@ -1968,3 +2001,34 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .attendance-recap-content{display:grid;gap:20px}.attendance-recap-heading{margin-bottom:0}.attendance-recap-summary{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:0}.attendance-unrecorded-alert{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:15px;color:#8f4b23;background:#fff4e9;border:1px solid #f3d5b9;border-radius:11px;text-decoration:none;font-size:10px}.attendance-unrecorded-alert strong{font-size:11px}.attendance-unrecorded-alert span{font-weight:800;white-space:nowrap}.attendance-filter-card,.attendance-table-card{overflow:hidden}.attendance-filter-form{display:grid;grid-template-columns:minmax(210px,1.4fr) repeat(4,minmax(135px,1fr)) 125px 125px auto auto;align-items:end;gap:9px;padding:15px 18px}.attendance-filter-form>input,.attendance-filter-form select,.attendance-filter-form label input{width:100%;min-width:0;height:42px;padding:0 11px;color:#3d5062;background:#fbfcfd;border:1px solid #dce3e9;border-radius:8px;font-size:11px;outline:0}.attendance-filter-form label{color:#6c7b87;font-size:9px;font-weight:800}.attendance-filter-form label span{display:block;margin-bottom:4px}.attendance-filter-form button,.attendance-filter-form>a{min-height:42px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;font-size:10px;font-weight:800;text-decoration:none;white-space:nowrap}.attendance-filter-form button{color:#fff;background:var(--admin-navy);border:0;cursor:pointer}.attendance-filter-form>a{color:#657582;background:#fff;border:1px solid #dce3e9}.attendance-table{min-width:1220px}.attendance-date strong,.attendance-date span{display:block;white-space:nowrap}.attendance-date strong{color:#30495e;font-size:10px}.attendance-date span{margin-top:4px;color:#788895;font-size:9px}.attendance-venue{max-width:230px;color:#627484;font-size:9px;line-height:1.45;overflow-wrap:anywhere}.attendance-status{display:inline-flex;padding:6px 9px;border-radius:8px;font-size:8px;font-weight:850;white-space:nowrap}.attendance-status-present{color:#247152;background:#e5f5ed}.attendance-status-absent{color:#a14545;background:#fce9e9}.attendance-status-unrecorded{color:#a65d24;background:#fff0e1}.attendance-status-upcoming{color:#356699;background:#eaf2fa}.attendance-status-reschedule_requested{color:#7556a3;background:#f0ebf8}.attendance-status-cancelled{color:#6f7b84;background:#eef1f3}.attendance-actions{display:flex;align-items:center;flex-wrap:wrap;gap:5px}.attendance-actions form{margin:0}.attendance-actions button,.attendance-actions>a{min-height:31px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;font-size:8px;font-weight:850;text-decoration:none;cursor:pointer}.attendance-actions button{background:#fff;border:1px solid}.attendance-mark-present{color:#267152;border-color:#acd7c2!important}.attendance-mark-absent{color:#a14545;border-color:#e2b4b4!important}.attendance-actions>a{color:#35688f;background:#edf4fa;border:1px solid #cbdde9}
 @media(max-width:1280px){.attendance-filter-form{grid-template-columns:repeat(3,minmax(0,1fr))}.attendance-filter-form>input{grid-column:span 2}.attendance-recap-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:720px){.attendance-recap-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-filter-form{grid-template-columns:1fr;padding-inline:14px}.attendance-filter-form>input{grid-column:auto}.attendance-unrecorded-alert{align-items:flex-start;flex-direction:column}.attendance-unrecorded-alert span{white-space:normal}}
+
+/* Login responsive refinements */
+@media (max-width: 900px) {
+    .admin-login-page .login-shell { display: block; }
+    .admin-login-page .login-brand-panel { display: none; }
+    .admin-login-page .login-form-panel { min-height: 100vh; min-height: 100dvh; padding: 32px 24px; background: radial-gradient(circle at 100% 0, rgba(248,118,56,.15), transparent 30%), linear-gradient(160deg, #fffaf6, #f5f4f0); }
+    .admin-login-page .login-card { width: min(100%, 500px); padding: 34px; }
+    .admin-login-page .mobile-login-logo { display: inline-flex; margin: 0 0 34px; text-decoration: none; }
+    .admin-login-page .mobile-login-logo img { width: 180px; height: auto; }
+}
+
+@media (max-width: 540px) {
+    .admin-login-page .login-form-panel { place-items: start center; padding: max(18px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom)); }
+    .admin-login-page .login-card { margin: auto 0; padding: 25px 20px 22px; border-radius: 17px; box-shadow: 0 18px 50px rgba(35,43,40,.1); }
+    .admin-login-page .mobile-login-logo { margin-bottom: 27px; }
+    .admin-login-page .mobile-login-logo img { width: 165px; }
+    .admin-login-page .login-card h2 { font-size: clamp(27px, 8vw, 34px); line-height: 1.12; }
+    .admin-login-page .login-intro { margin-bottom: 23px; font-size: 12px; }
+    .admin-login-page .admin-login-form label { margin-top: 15px; }
+    .admin-login-page .admin-input { min-height: 52px; }
+    .admin-login-page .admin-input input { height: 50px; font-size: 16px; }
+    .admin-login-page .admin-primary-button { min-height: 52px; }
+    .login-form-security { margin-top: 18px; }
+    .admin-login-page .login-help { margin-bottom: 0; font-size: 10px; }
+}
+
+@media (max-height: 700px) and (min-width: 901px) {
+    .admin-login-page .internal-badge { margin-top: 35px; }
+    .admin-login-page .login-security-note { margin-top: 32px; }
+    .admin-login-page .login-card { padding-block: 27px; }
+}

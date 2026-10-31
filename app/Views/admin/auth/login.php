@@ -9,7 +9,7 @@
     <title>Login HRD | Manna Kampus</title>
     <link rel="icon" href="<?= base_url('favicon.ico?v=2') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>?v=11.26.25">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=66">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-hrd.css') ?>?v=67">
 </head>
 <body class="admin-login-page">
     <main class="login-shell">
@@ -21,6 +21,11 @@
                 <span class="internal-badge">Portal Internal</span>
                 <h1>Kelola proses rekrutmen dalam satu ruang kerja.</h1>
                 <p>Akses khusus tim HRD untuk memantau kandidat, lowongan, dan perjalanan seleksi.</p>
+                <div class="login-highlights" aria-label="Fitur utama portal">
+                    <span><i aria-hidden="true"></i>Kandidat</span>
+                    <span><i aria-hidden="true"></i>Jadwal seleksi</span>
+                    <span><i aria-hidden="true"></i>Laporan</span>
+                </div>
                 <div class="login-security-note">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v6c0 5-3.4 8.2-8 9.8C7.4 20.2 4 17 4 12V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
                     <span><strong>Akses terlindungi</strong>Hanya akun HRD aktif yang dapat masuk.</span>
@@ -30,12 +35,14 @@
 
         <section class="login-form-panel" aria-labelledby="login-title">
             <div class="login-card">
-                <div class="mobile-login-logo">
+                <a class="mobile-login-logo" href="<?= base_url() ?>" aria-label="Kembali ke halaman karier">
                     <img src="<?= base_url('assets/img/Logo_Manna_Kampus.png') ?>" alt="Manna Kampus">
+                </a>
+                <div class="login-card-heading">
+                    <span class="login-eyebrow">Portal HRD Manna Kampus</span>
+                    <h2 id="login-title">Selamat datang kembali</h2>
+                    <p class="login-intro">Masuk menggunakan akun internal untuk melanjutkan pekerjaan Anda.</p>
                 </div>
-                <span class="login-eyebrow">HRD Administration</span>
-                <h2 id="login-title">Selamat datang kembali</h2>
-                <p class="login-intro">Masukkan akun HRD Anda untuk melanjutkan ke dashboard.</p>
 
                 <?php if ($message = session()->getFlashdata('auth_success')): ?>
                     <div class="admin-alert admin-alert-success" data-swal-toast="success" role="status"><?= esc($message) ?></div>
@@ -68,6 +75,10 @@
                     <button class="admin-primary-button" type="submit">Masuk ke Dashboard <span aria-hidden="true">→</span></button>
                 </form>
 
+                <div class="login-form-security">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
+                    <span><strong>Login aman</strong>Aktivitas masuk dicatat untuk menjaga keamanan akun.</span>
+                </div>
                 <p class="login-help">Kesulitan mengakses akun? Hubungi administrator sistem internal.</p>
             </div>
         </section>
