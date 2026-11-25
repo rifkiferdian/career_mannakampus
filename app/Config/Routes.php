@@ -103,6 +103,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('pertanyaan-screening/lowongan/(:num)/(:num)/hapus', 'ScreeningQuestionController::deleteVacancyQuestion/$1/$2', ['filter' => 'permission:screening.vacancies.manage', 'as' => 'hrd.screening.vacancies.delete']);
     $routes->get('list-pelamar', 'ApplicantReportController::index', ['filter' => 'permission:applicants.pool.view', 'as' => 'hrd.applicant.pool']);
     $routes->post('list-pelamar/(:num)/pilih', 'ApplicantReportController::assign/$1', ['filter' => 'permission:applicants.assign', 'as' => 'hrd.applicant.assign']);
+    $routes->post('list-pelamar/(:num)/hapus', 'ApplicantReportController::delete/$1', ['filter' => 'super-admin', 'as' => 'hrd.applicant.delete']);
     $routes->get('list-pelamar/export', 'ApplicantReportController::export', ['filter' => 'permission:applicants.pool.view', 'as' => 'hrd.applicant.pool.export']);
     $routes->get('laporan-pelamar', 'ApplicantReportController::index', ['filter' => 'permission:applicants.pool.view']);
     $routes->get('laporan-pelamar/export', 'ApplicantReportController::export', ['filter' => 'permission:applicants.pool.view']);

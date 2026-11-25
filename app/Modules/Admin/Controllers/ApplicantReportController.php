@@ -4,6 +4,7 @@ namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\Admin\Services\ExcelWorkbookBuilder;
+use App\Modules\Admin\Services\ApplicantDeletionService;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\HTTP\DownloadResponse;
 use Config\Services;
@@ -94,6 +95,7 @@ class ApplicantReportController extends BaseController
             'hrdTeams' => $hrdTeams,
             'statusLabels' => $statusLabels,
             'canViewCandidate' => Services::authorization()->can($userId, 'candidates.view'),
+            'canDeleteApplicant' => Services::authorization()->isSuperAdmin($userId),
             'canAssignPermission' => Services::authorization()->can($userId, 'applicants.assign'),
             'canAssign' => Services::authorization()->can($userId, 'applicants.assign') && $currentTeam !== null,
             'canUseWhatsappTemplates' => $canUseWhatsappTemplates,
@@ -134,6 +136,32 @@ class ApplicantReportController extends BaseController
         );
 
         return $this->response->download('list-pelamar-' . date('Ymd-His') . '.xlsx', $workbook, true);
+    }
+
+    public function delete(int $applicantId): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
+        if (! Services::authorization()->isSuperAdmin($userId)) {
+            return $this->poolError('Hanya Super Admin yang dapat menghapus pelamar.');
+        }
+
+        try {
+            $filesRemoved = (new ApplicantDeletionService(db_connect()))->delete($applicantId);
+        } catch (\Throwable $exception) {
+            log_message('error', 'Gagal menghapus pelamar {id}: {error}', ['id' => $applicantId, 'error' => $exception->getMessage()]);
+
+            return $this->poolError('Penghapusan pelamar gagal. Periksa log aplikasi.');
+        }
+
+        if ($filesRemoved === null) {
+            return $this->poolError('Pelamar tidak ditemukan.');
+        }
+        if (! $filesRemoved) {
+            return $this->poolError('Data pelamar sudah dihapus, tetapi sebagian berkas gagal dibersihkan. Periksa log aplikasi.');
+        }
+
+        return redirect()->to(site_url('adminhrdmannakampus/list-pelamar'))
+            ->with('applicant_pool_success', 'Pelamar dan seluruh data terkait berhasil dihapus permanen.');
     }
 
     public function assign(int $applicantId): \CodeIgniter\HTTP\RedirectResponse
