@@ -472,6 +472,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .department-table-actions .settings-edit-trigger { color: white; background: var(--admin-navy); border-color: var(--admin-navy); }
 .department-table-actions button:hover { color: #9b4930; background: #fff6f1; border-color: #efd2c3; }
 .department-table-actions .department-delete-button { color: #9d4139; background: #fff4f2; border-color: #f3d8d4; }
+.hrd-team-default-badge { display: inline-flex; margin-left: 5px; padding: 3px 7px; color: #8a5b13; background: #fff4cc; border-radius: 999px; font-size: 7px; font-weight: 850; vertical-align: middle; }
+.department-table-actions .hrd-team-default-button { color: #8a5b13; background: #fff9e8; border-color: #eddca7; }
 .department-table-actions button:disabled { color: #a3aab0; background: #f5f6f7; border-color: #e5e8ea; cursor: not-allowed; }
 .department-edit-table-row { display: none; }
 .department-edit-table-row:target { display: table-row; }

@@ -91,6 +91,16 @@ class ApplicationSubmissionService
                 }
             }
 
+            $defaultTeam = $this->database->table('hrd_teams')
+                ->select('id, name')
+                ->where('is_default', 1)
+                ->where('is_active', 1)
+                ->get()->getRowArray();
+            if ($defaultTeam === null) {
+                throw new RuntimeException('Divisi HRD default belum dikonfigurasi.');
+            }
+            $assignToDefault = $applicant === null || empty($applicant['assigned_hrd_team_id']);
+
             $photoPath = $applicant['profile_photo_path'] ?? null;
             if (config('ApplicationForm')->profilePhotoEnabled && ($files['profile_photo'] ?? null)?->isValid()) {
                 $photoPath = $this->storeFile($files['profile_photo'], $batchUuid);
@@ -129,6 +139,11 @@ class ApplicationSubmissionService
                 'is_active'             => 1,
                 'deleted_at'            => null,
             ];
+            if ($assignToDefault) {
+                $applicantData['assigned_hrd_team_id'] = (int) $defaultTeam['id'];
+                $applicantData['assigned_by_user_id'] = null;
+                $applicantData['assigned_at'] = $now;
+            }
 
             if ($applicant === null) {
                 $applicantData['uuid'] = $this->uuid();
@@ -136,6 +151,18 @@ class ApplicationSubmissionService
             } else {
                 $applicantId = (int) $applicant['id'];
                 $this->applicantModel->update($applicantId, $applicantData);
+            }
+
+            if ($assignToDefault) {
+                $this->database->table('applicant_assignment_histories')->insert([
+                    'applicant_id' => $applicantId,
+                    'from_hrd_team_id' => null,
+                    'to_hrd_team_id' => (int) $defaultTeam['id'],
+                    'action' => 'assigned',
+                    'notes' => 'Pelamar otomatis ditempatkan ke divisi default ' . $defaultTeam['name'] . '.',
+                    'changed_by' => null,
+                    'created_at' => $now,
+                ]);
             }
 
             $selectedPeriodIds = array_map(

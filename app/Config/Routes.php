@@ -136,6 +136,8 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->get('tim-hrd', 'HrdTeamController::index', ['filter' => 'permission:hrd.teams.view', 'as' => 'hrd.teams']);
     $routes->post('tim-hrd', 'HrdTeamController::create', ['filter' => 'permission:hrd.teams.manage', 'as' => 'hrd.teams.create']);
     $routes->post('tim-hrd/(:num)', 'HrdTeamController::update/$1', ['filter' => 'permission:hrd.teams.manage', 'as' => 'hrd.teams.update']);
+    $routes->post('tim-hrd/(:num)/default', 'HrdTeamController::setDefault/$1', ['filter' => 'super-admin', 'as' => 'hrd.teams.default']);
+    $routes->post('tim-hrd/(:num)/hapus', 'HrdTeamController::delete/$1', ['filter' => 'super-admin', 'as' => 'hrd.teams.delete']);
     $routes->post('tim-hrd/user/(:num)', 'HrdTeamController::assignUser/$1', ['filter' => 'permission:hrd.teams.manage', 'as' => 'hrd.teams.users.assign']);
     $routes->get('pengaturan-rekrutmen', 'RecruitmentSettingsController::index', ['filter' => 'permission:recruitment.settings.view', 'as' => 'hrd.recruitment.settings']);
     $routes->post('pengaturan-rekrutmen/penolakan', 'RecruitmentSettingsController::createRejectionTemplate', ['filter' => 'permission:recruitment.settings.manage', 'as' => 'hrd.recruitment.rejections.create']);
