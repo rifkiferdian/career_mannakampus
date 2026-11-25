@@ -533,13 +533,25 @@ class CandidateController extends BaseController
             if (! Services::authorization()->can($userId, 'schedules.manage')) {
                 throw new \InvalidArgumentException('Anda tidak memiliki akses untuk membuat jadwal seleksi.');
             }
+            $requestedAt = str_replace('T', ' ', (string) $this->request->getPost('scheduled_at'));
+            $requestedAt = strlen($requestedAt) === 16 ? $requestedAt . ':00' : $requestedAt;
+            $venue = trim((string) $this->request->getPost('venue'));
+            $picId = (int) $this->request->getPost('pic_user_id');
+            $existingSession = $database->table('recruitment_sessions')
+                ->select('id')->where('stage_id', (int) $stage['id'])
+                ->where('starts_at', $requestedAt)->where('venue', $venue)
+                ->where('pic_user_id', $picId)->where('status', 'scheduled')
+                ->where('ends_at', null)->orderBy('id')->get()->getRowArray();
+            if ($existingSession !== null) {
+                $sessionId = (int) $existingSession['id'];
+            }
             $scheduleData = Services::recruitmentSchedule()->validateInput([
                     'scheduled_at' => $this->request->getPost('scheduled_at'),
                     'venue' => $this->request->getPost('venue'),
                     'pic_user_id' => $this->request->getPost('pic_user_id'),
                     'instructions' => $this->request->getPost('instructions'),
                     'confirmation_deadline_at' => $this->request->getPost('confirmation_deadline_at'),
-            ]);
+            ], null, $sessionId);
         }
 
         $internalNotes = mb_substr(trim((string) $this->request->getPost('notes')), 0, 2000);
@@ -616,7 +628,7 @@ class CandidateController extends BaseController
             'created_at' => $now,
         ]);
         if ($requiresSchedule && $scheduleData !== null) {
-            if ($shared && $sessionId === null) {
+            if ($sessionId === null) {
                 $database->table('recruitment_sessions')->insert([
                     'name' => $stage['name'],
                     'stage_id' => (int) $stage['id'],

@@ -16,7 +16,7 @@ class RecruitmentScheduleService
     }
 
     /** @param array<string, mixed> $input */
-    public function validateInput(array $input, ?int $ignoreScheduleId = null): array
+    public function validateInput(array $input, ?int $ignoreScheduleId = null, ?int $joiningSessionId = null): array
     {
         $scheduledAt = $this->dateTime((string) ($input['scheduled_at'] ?? ''));
         $deadline = $this->dateTime((string) ($input['confirmation_deadline_at'] ?? ''));
@@ -41,6 +41,9 @@ class RecruitmentScheduleService
         if ($ignoreScheduleId !== null) {
             $conflict->where('id !=', $ignoreScheduleId);
         }
+        if ($joiningSessionId !== null) {
+            $conflict->groupStart()->where('session_id', null)->orWhere('session_id !=', $joiningSessionId)->groupEnd();
+        }
         if ($conflict->countAllResults() > 0) {
             throw new InvalidArgumentException('PIC sudah memiliki jadwal lain pada tanggal dan jam yang sama.');
         }
@@ -49,7 +52,11 @@ class RecruitmentScheduleService
             ->where('starts_at <=', $scheduledAt->format('Y-m-d H:i:s'))
             ->groupStart()->where('ends_at >', $scheduledAt->format('Y-m-d H:i:s'))
                 ->orGroupStart()->where('ends_at', null)->where('starts_at', $scheduledAt->format('Y-m-d H:i:s'))->groupEnd()
-            ->groupEnd()->countAllResults();
+            ->groupEnd();
+        if ($joiningSessionId !== null) {
+            $sessionConflict->where('id !=', $joiningSessionId);
+        }
+        $sessionConflict = $sessionConflict->countAllResults();
         if ($sessionConflict > 0) {
             throw new InvalidArgumentException('PIC memiliki agenda seleksi pada waktu tersebut. Tambahkan peserta melalui menu Agenda Seleksi atau pilih waktu lain.');
         }
