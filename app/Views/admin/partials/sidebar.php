@@ -241,12 +241,19 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             </div>
         </details>
         <?php endif ?>
-        <?php if ($canViewApplicantPool || $canViewCandidates): ?>
-            <a<?= in_array($activeMenu, ['applicant-pool', 'candidates'], true) ? ' class="active"' : '' ?> href="<?= site_url($canViewCandidates ? 'adminhrdmannakampus/kandidat' : 'adminhrdmannakampus/list-pelamar') ?>">
+        <?php if ($canViewApplicantPool): ?>
+            <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
-                Pelamar
-                <?php $newApplicants = $unassignedApplicantCount + array_sum($newCandidateCounts); ?>
-                <?php if ($newApplicants > 0): ?><span class="sidebar-notification-badge"><?= $newApplicants > 99 ? '99+' : $newApplicants ?> Baru</span><?php endif ?>
+                List Pelamar
+                <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?> Baru</span><?php endif ?>
+            </a>
+        <?php endif ?>
+        <?php if ($canViewCandidates): ?>
+            <a<?= $activeClass('candidates') ?> href="<?= site_url('adminhrdmannakampus/kandidat') ?>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
+                Pelamar Divisi
+                <?php $newCandidates = array_sum($newCandidateCounts); ?>
+                <?php if ($newCandidates > 0): ?><span class="sidebar-notification-badge"><?= $newCandidates > 99 ? '99+' : $newCandidates ?> Baru</span><?php endif ?>
             </a>
         <?php endif ?>
     </nav>
