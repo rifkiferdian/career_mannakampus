@@ -208,6 +208,53 @@
         updateCheckAll();
     });
 
+    const stagePreviews = new Map();
+    document.querySelectorAll('.candidate-stage-modal').forEach((modal) => {
+        stagePreviews.set(modal.id, ['.candidate-current-stage', '.candidate-process-progress']
+            .map((selector) => modal.querySelector(selector)?.cloneNode(true)));
+    });
+    document.querySelectorAll('[data-stage-applications]').forEach((picker) => {
+        const form = picker.closest('form');
+        const stage = form.querySelector('[data-candidate-stage-select]');
+        const preview = document.createElement('div');
+        preview.className = 'candidate-stage-previews';
+        picker.after(preview);
+        ['.candidate-current-stage', '.candidate-process-progress']
+            .forEach((selector) => {
+                const element = form.querySelector(selector);
+                if (element) preview.append(element);
+            });
+        const updateSelection = () => {
+            const selected = [...picker.querySelectorAll('input:checked')];
+            const choices = selected.map((input) => JSON.parse(input.dataset.stages));
+            const common = (choices[0] || []).filter((option) => choices.every((options) =>
+                options.some((candidate) => candidate.code === option.code && candidate.is_schedulable === option.is_schedulable)));
+            stage.replaceChildren(new Option('Pilih tahapan', ''));
+            common.forEach((item) => {
+                const option = new Option(item.name, item.code);
+                option.dataset.schedulable = item.is_schedulable || 0;
+                stage.add(option);
+            });
+            preview.replaceChildren();
+            selected.forEach((input) => {
+                const parts = stagePreviews.get('candidate-stage-modal-' + input.value) || [];
+                const heading = document.createElement('strong');
+                heading.textContent = input.labels[0].textContent.trim();
+                preview.append(heading);
+                parts.filter(Boolean).forEach((part) => preview.append(part.cloneNode(true)));
+            });
+            const message = form.querySelector('[data-stage-selection-message]');
+            message.textContent = selected.length === 0
+                ? 'Pilih lamaran yang ingin diproses.'
+                : 'Pilih lamaran dengan tahap berikutnya yang sama, atau proses satu per satu.';
+            message.hidden = common.length > 0;
+            form.querySelector('button[type="submit"]').disabled = common.length === 0;
+            stage.dispatchEvent(new Event('change'));
+        };
+        picker.addEventListener('change', updateSelection);
+        if (!picker.querySelector('input:checked')) updateSelection();
+    });
+
     document.querySelectorAll('[data-candidate-stage-select]').forEach((stageSelect) => {
         if (!(stageSelect instanceof HTMLSelectElement)) return;
 

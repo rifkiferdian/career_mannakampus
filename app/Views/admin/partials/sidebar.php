@@ -63,18 +63,13 @@ if ($canViewApplicantBlacklist) {
 $canManageHrdTeams = $authorization->can($userId, 'hrd.teams.manage');
 $candidateTeams = [];
 $newCandidateCounts = [];
-$currentCandidateTeamId = 0;
 if ($canViewCandidates) {
     $teamBuilder = db_connect()->table('hrd_teams AS teams')->select('teams.id, teams.name')->where('teams.is_active', 1)->orderBy('teams.name');
     if (! $canManageHrdTeams) {
         $teamBuilder->join('hrd_team_users AS team_users', 'team_users.hrd_team_id = teams.id')->where('team_users.user_id', $userId);
     }
     $candidateTeams = $teamBuilder->get()->getResultArray();
-    $requestedCandidateTeamId = max(0, (int) service('request')->getGet('team_id'));
     $availableCandidateTeamIds = array_map('intval', array_column($candidateTeams, 'id'));
-    $membershipCandidateTeamId = (int) (db_connect()->table('hrd_team_users')->select('hrd_team_id')->where('user_id', $userId)->get()->getRowArray()['hrd_team_id'] ?? 0);
-    $defaultCandidateTeamId = in_array($membershipCandidateTeamId, $availableCandidateTeamIds, true) ? $membershipCandidateTeamId : (int) ($candidateTeams[0]['id'] ?? 0);
-    $currentCandidateTeamId = in_array($requestedCandidateTeamId, $availableCandidateTeamIds, true) ? $requestedCandidateTeamId : $defaultCandidateTeamId;
     if ($availableCandidateTeamIds !== []) {
         $newCandidateRows = db_connect()->table('applications AS applications')
             ->select('applicants.assigned_hrd_team_id, COUNT(DISTINCT applications.applicant_id) AS total', false)
@@ -246,26 +241,12 @@ $activeClass = static fn (string $menu): string => $activeMenu === $menu ? ' cla
             </div>
         </details>
         <?php endif ?>
-        <?php if ($canViewApplicantPool): ?>
-            <a<?= $activeClass('applicant-pool') ?> href="<?= site_url('adminhrdmannakampus/list-pelamar') ?>">
+        <?php if ($canViewApplicantPool || $canViewCandidates): ?>
+            <a<?= in_array($activeMenu, ['applicant-pool', 'candidates'], true) ? ' class="active"' : '' ?> href="<?= site_url($canViewCandidates ? 'adminhrdmannakampus/kandidat' : 'adminhrdmannakampus/list-pelamar') ?>">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
-                List Pelamar
-                <?php if ($unassignedApplicantCount > 0): ?><span class="sidebar-notification-badge" title="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD" aria-label="<?= $unassignedApplicantCount ?> pelamar baru belum dipilih divisi HRD"><?= $unassignedApplicantCount > 99 ? '99+' : $unassignedApplicantCount ?> Baru</span><?php endif ?>
-            </a>
-        <?php endif ?>
-        <?php if ($canViewCandidates && $candidateTeams !== []): ?>
-            <?php foreach ($candidateTeams as $candidateTeam): ?>
-                <a<?= $activeMenu === 'candidates' && $currentCandidateTeamId === (int) $candidateTeam['id'] ? ' class="active"' : '' ?> href="<?= site_url('adminhrdmannakampus/kandidat?team_id=' . $candidateTeam['id']) ?>">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
-                    Pelamar <?= esc($candidateTeam['name']) ?>
-                    <?php $newCandidateCount = (int) ($newCandidateCounts[(int) $candidateTeam['id']] ?? 0); ?>
-                    <?php if ($newCandidateCount > 0): ?><span class="sidebar-notification-badge" title="<?= $newCandidateCount ?> pelamar berstatus Lamaran Baru" aria-label="<?= $newCandidateCount ?> pelamar berstatus Lamaran Baru"><?= $newCandidateCount > 99 ? '99+' : $newCandidateCount ?></span><?php endif ?>
-                </a>
-            <?php endforeach ?>
-        <?php elseif ($canViewCandidates): ?>
-            <a<?= $activeClass('candidates') ?> href="<?= site_url('adminhrdmannakampus/kandidat') ?>">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 8h5M18.5 5.5v5"/></svg>
-                Pelamar Divisi
+                Pelamar
+                <?php $newApplicants = $unassignedApplicantCount + array_sum($newCandidateCounts); ?>
+                <?php if ($newApplicants > 0): ?><span class="sidebar-notification-badge"><?= $newApplicants > 99 ? '99+' : $newApplicants ?> Baru</span><?php endif ?>
             </a>
         <?php endif ?>
     </nav>

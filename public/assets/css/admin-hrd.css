@@ -1024,6 +1024,10 @@ button.candidate-whatsapp-link { padding: 0; border: 0; background: transparent;
 .candidate-process-buttons button { color: white; background: var(--admin-orange); border: 0; }
 .candidate-stage-modal { width: min(960px, calc(100vw - 24px)); }
 .candidate-modal-form { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 21px 23px 23px; border: 0; border-radius: 0; }
+.candidate-stage-modal :is([data-stage-applications], [data-stage-selection-message], .candidate-stage-previews) { grid-column: 1 / -1; }
+.candidate-stage-modal [data-stage-applications] { display: grid; gap: 8px; min-width: 0; padding: 10px 12px; border: 1px solid #dce3e9; border-radius: 8px; }
+.candidate-stage-modal [data-stage-applications] label { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 8px; }
+.candidate-stage-previews { display: grid; gap: 10px; }
 .candidate-current-stage { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; color: #71808c; background: #f7f9fa; border: 1px solid #e5eaee; border-radius: 8px; font-size: 10px; }
 .candidate-current-stage strong { color: var(--admin-navy); font-size: 11px; }
 .candidate-process-progress { grid-column: 1 / -1; min-width: 0; padding: 15px 0 12px; background: #fff; border: 1px solid #e5eaee; border-radius: 10px; }

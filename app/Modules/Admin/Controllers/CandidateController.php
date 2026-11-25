@@ -81,6 +81,17 @@ class CandidateController extends BaseController
         }
         $this->applyFilters($builder, $filters);
         $applications = $builder->orderBy('applications.updated_at', 'DESC')->orderBy('applications.id', 'DESC')->get()->getResultArray();
+        $matchedApplicants = array_values(array_unique(array_column($applications, 'applicant_id')));
+        $totalPages = max(1, (int) ceil(count($matchedApplicants) / self::PER_PAGE));
+        $page = min(max(1, (int) $this->request->getGet('page')), $totalPages);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $pageApplicants = array_slice($matchedApplicants, $offset, self::PER_PAGE);
+        $matchedApplications = $applications;
+        $applications = $pageApplicants === [] ? [] : $this->candidateQuery()
+            ->where('applicants.assigned_hrd_team_id', $selectedTeamId)
+            ->whereIn('applicants.id', $pageApplicants)->orderBy('applications.id', 'DESC')->get()->getResultArray();
+        $pageOrder = array_flip($pageApplicants);
+        usort($applications, static fn (array $a, array $b): int => $pageOrder[$a['applicant_id']] <=> $pageOrder[$b['applicant_id']]);
         $now = time();
         $nowDateTime = new \DateTimeImmutable();
         $today = new \DateTimeImmutable('today');
@@ -117,15 +128,15 @@ class CandidateController extends BaseController
         }
         unset($application);
         $summary = [
-            'total' => count($applications),
-            'overdue' => count(array_filter($applications, static fn (array $row): bool => (bool) $row['is_overdue'])),
-            'accepted' => count(array_filter($applications, static fn (array $row): bool => in_array($row['application_status'], ['accepted', 'hired'], true))),
-            'active' => count(array_filter($applications, static fn (array $row): bool => ! in_array($row['application_status'], ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'], true))),
+            'total' => count($matchedApplicants),
+            'overdue' => count(array_filter($matchedApplications, static function (array $row) use ($now): bool {
+                $since = strtotime((string) ($row['stage_changed_at'] ?: $row['submitted_at']));
+
+                return $since !== false && (int) $row['sla_days'] > 0 && floor(($now - $since) / 86400) > (int) $row['sla_days'];
+            })),
+            'accepted' => count(array_filter($matchedApplications, static fn (array $row): bool => in_array($row['application_status'], ['accepted', 'hired'], true))),
+            'active' => count(array_filter($matchedApplications, static fn (array $row): bool => ! in_array($row['application_status'], ['accepted', 'hired', 'rejected', 'withdrawn', 'screening_failed'], true))),
         ];
-        $totalPages = max(1, (int) ceil($summary['total'] / self::PER_PAGE));
-        $page = min(max(1, (int) $this->request->getGet('page')), $totalPages);
-        $offset = ($page - 1) * self::PER_PAGE;
-        $applications = array_slice($applications, $offset, self::PER_PAGE);
         $applicationIds = array_map('intval', array_column($applications, 'id'));
         $schedulesByApplication = [];
         if ($applicationIds !== []) {
@@ -184,6 +195,7 @@ class CandidateController extends BaseController
             'selectedTeam' => $selectedTeam,
             'selectedTeamId' => $selectedTeamId,
             'canManageTeams' => $canManageTeams,
+            'canViewApplicantPool' => Services::authorization()->can($userId, 'applicants.pool.view'),
             'canUpdateStatus' => $canUpdateStatus,
             'canManageSchedules' => Services::authorization()->can($userId, 'schedules.manage'),
             'canRecordAttendance' => Services::authorization()->can($userId, 'schedules.attendance'),
@@ -422,25 +434,76 @@ class CandidateController extends BaseController
 
     public function updateStage(int $applicationId): RedirectResponse
     {
+        $db = db_connect();
+        $team = max(0, (int) $this->request->getPost('team_id'));
+        $ids = $this->request->getPost('application_ids')
+            ?? ($this->request->getPost('select_applications') ? [] : [$applicationId]);
+        if (! is_array($ids) || $ids === [] || count($ids) > 100) {
+            return $this->candidateError('Pilih lamaran yang akan diproses.', $team);
+        }
+        foreach ($ids as $id) {
+            if (! is_scalar($id) || ! ctype_digit((string) $id) || (int) $id < 1) {
+                return $this->candidateError('Pilihan lamaran tidak valid.', $team);
+            }
+        }
+        $ids = array_unique(array_map('intval', $ids));
+        sort($ids);
+        $anchor = $db->table('applications')->select('applicant_id')
+            ->where('id', $applicationId)->where('deleted_at', null)->get()->getRowArray();
+        if ($anchor === null || ! $db->transBegin()) {
+            return $this->candidateError('Lamaran tidak tersedia untuk diproses.', $team);
+        }
+        try {
+            $applicants = $db->protectIdentifiers('applicants', true);
+            $db->query("SELECT id FROM {$applicants} WHERE id = ? FOR UPDATE", [(int) $anchor['applicant_id']]);
+            $table = $db->protectIdentifiers('applications', true);
+            foreach ($ids as $id) {
+                $db->query("SELECT id FROM {$table} WHERE id = ? AND applicant_id = ? FOR UPDATE", [$id, (int) $anchor['applicant_id']]);
+            }
+            $sessionId = null;
+            $scheduleData = null;
+            foreach ($ids as $id) {
+                $stageName = $this->applyStage($id, (int) $anchor['applicant_id'], count($ids) > 1, $sessionId, $scheduleData);
+            }
+            if (! $db->transStatus() || ! $db->transCommit()) {
+                throw new \RuntimeException('Transaksi tahap gagal.');
+            }
+        } catch (\InvalidArgumentException $exception) {
+            $db->transRollback();
+
+            return $this->candidateError($exception->getMessage(), $team);
+        } catch (\Throwable $exception) {
+            $db->transRollback();
+            log_message('error', 'Gagal mengubah tahap: {message}', ['message' => $exception->getMessage()]);
+
+            return $this->candidateError('Tahapan gagal diperbarui.', $team);
+        }
+
+        return redirect()->to($this->candidateUrl($team))
+            ->with('candidate_success', count($ids) . ' lamaran dipindahkan ke tahap ' . $stageName . '.');
+    }
+
+    private function applyStage(int $applicationId, int $applicantId, bool $shared, ?int &$sessionId, ?array &$scheduleData): string
+    {
         $database = db_connect();
         $application = $database->table('applications AS applications')
             ->select('applications.*, applicants.assigned_hrd_team_id AS owner_hrd_team_id, vacancies.recruitment_process_template_id')
             ->join('applicants', 'applicants.id = applications.applicant_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->where('applications.id', $applicationId)
+            ->where('applications.applicant_id', $applicantId)
             ->where('applications.deleted_at', null)
             ->where('applicants.deleted_at', null)
             ->get()->getRowArray();
         $userId = (int) (session()->get('hrd_auth')['user_id'] ?? 0);
         $currentTeam = $this->currentTeam($userId);
         $canManageTeams = Services::authorization()->can($userId, 'hrd.teams.manage');
-        $returnTeamId = max(0, (int) $this->request->getPost('team_id'));
         $newStage = trim((string) $this->request->getPost('stage'));
         if ($application === null) {
-            return $this->candidateError('Lamaran atau tahapan yang dipilih tidak valid.', $returnTeamId);
+            throw new \InvalidArgumentException('Lamaran atau tahapan yang dipilih tidak valid.');
         }
         if (Services::applicantBlacklist()->isActive((int) $application['applicant_id'])) {
-            return $this->candidateError('Pelamar berada dalam blacklist aktif dan tahap seleksinya tidak dapat diubah.', $returnTeamId);
+            throw new \InvalidArgumentException('Pelamar berada dalam blacklist aktif dan tahap seleksinya tidak dapat diubah.');
         }
         $allStages = $database->table('recruitment_stages')->where('is_active', 1)->orderBy('display_order')->get()->getResultArray();
         $templateStages = $this->templateStages();
@@ -453,34 +516,30 @@ class CandidateController extends BaseController
             }
         }
         if ($stage === null) {
-            return $this->candidateError('Tahapan tidak sesuai urutan template lowongan. Pilih tahap berikutnya yang tersedia.', $returnTeamId);
+            throw new \InvalidArgumentException('Tahapan tidak sesuai urutan template lowongan. Pilih tahap berikutnya yang tersedia.');
         }
         if (empty($application['owner_hrd_team_id'])) {
-            return $this->candidateError('Pelamar belum dipilih oleh divisi HRD.', $returnTeamId);
+            throw new \InvalidArgumentException('Pelamar belum dipilih oleh divisi HRD.');
         }
         if (! $canManageTeams && (int) ($currentTeam['id'] ?? 0) !== (int) $application['owner_hrd_team_id']) {
-            return $this->candidateError('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda proses.', $returnTeamId);
+            throw new \InvalidArgumentException('Pelamar ini dimiliki divisi HRD lain dan tidak dapat Anda proses.');
         }
         if ((string) $application['application_status'] === $newStage) {
-            return $this->candidateError('Kandidat sudah berada pada tahapan tersebut.', $returnTeamId);
+            throw new \InvalidArgumentException('Kandidat sudah berada pada tahapan tersebut.');
         }
 
-        $scheduleData = null;
-        if ((int) ($stage['is_schedulable'] ?? 0) === 1) {
+        $requiresSchedule = (int) ($stage['is_schedulable'] ?? 0) === 1;
+        if ($requiresSchedule && $scheduleData === null) {
             if (! Services::authorization()->can($userId, 'schedules.manage')) {
-                return $this->candidateError('Anda tidak memiliki akses untuk membuat jadwal seleksi.', $returnTeamId);
+                throw new \InvalidArgumentException('Anda tidak memiliki akses untuk membuat jadwal seleksi.');
             }
-            try {
-                $scheduleData = Services::recruitmentSchedule()->validateInput([
+            $scheduleData = Services::recruitmentSchedule()->validateInput([
                     'scheduled_at' => $this->request->getPost('scheduled_at'),
                     'venue' => $this->request->getPost('venue'),
                     'pic_user_id' => $this->request->getPost('pic_user_id'),
                     'instructions' => $this->request->getPost('instructions'),
                     'confirmation_deadline_at' => $this->request->getPost('confirmation_deadline_at'),
-                ]);
-            } catch (\InvalidArgumentException $exception) {
-                return $this->candidateError($exception->getMessage(), $returnTeamId);
-            }
+            ]);
         }
 
         $internalNotes = mb_substr(trim((string) $this->request->getPost('notes')), 0, 2000);
@@ -497,7 +556,7 @@ class CandidateController extends BaseController
             $templateId = (int) $this->request->getPost('rejection_template_id');
             $rejectionTemplate = $database->table('rejection_reason_templates')->where('id', $templateId)->where('is_active', 1)->get()->getRowArray();
             if ($rejectionTemplate === null) {
-                return $this->candidateError('Pilih alasan gugur terlebih dahulu.', $returnTeamId);
+                throw new \InvalidArgumentException('Pilih alasan gugur terlebih dahulu.');
             }
             $rejectionSnapshot = $this->rejectionStageSnapshot(
                 (int) $application['recruitment_process_template_id'],
@@ -513,7 +572,6 @@ class CandidateController extends BaseController
         }
 
         $now = date('Y-m-d H:i:s');
-        $database->transStart();
         Services::recruitmentSchedule()->cancelActiveForApplication(
             $applicationId,
             $userId,
@@ -557,15 +615,26 @@ class CandidateController extends BaseController
             'changed_by' => $userId,
             'created_at' => $now,
         ]);
-        if ($scheduleData !== null) {
-            Services::recruitmentSchedule()->create($applicationId, (int) $stage['id'], $scheduleData, $userId);
-        }
-        $database->transComplete();
-        if (! $database->transStatus()) {
-            return $this->candidateError('Tahapan kandidat gagal diperbarui.', $returnTeamId);
+        if ($requiresSchedule && $scheduleData !== null) {
+            if ($shared && $sessionId === null) {
+                $database->table('recruitment_sessions')->insert([
+                    'name' => $stage['name'],
+                    'stage_id' => (int) $stage['id'],
+                    'starts_at' => $scheduleData['scheduled_at'],
+                    'venue' => $scheduleData['venue'],
+                    'pic_user_id' => $scheduleData['pic_user_id'],
+                    'instructions' => $scheduleData['instructions'] ?? null,
+                    'status' => 'scheduled',
+                    'created_by' => $userId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $sessionId = (int) $database->insertID();
+            }
+            Services::recruitmentSchedule()->create($applicationId, (int) $stage['id'], $scheduleData + ['session_id' => $sessionId], $userId);
         }
 
-        return redirect()->to($this->candidateUrl($returnTeamId))->with('candidate_success', 'Tahapan kandidat berhasil diubah menjadi ' . $stage['name'] . '.');
+        return (string) $stage['name'];
     }
 
     public function undoStage(int $applicationId): RedirectResponse
