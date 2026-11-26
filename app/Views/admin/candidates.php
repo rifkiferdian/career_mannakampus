@@ -88,6 +88,7 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
                                     }
                                 }
                                 $latestSubmission = max(array_column($siblings, 'submitted_at'));
+                                $periodNames = implode(', ', array_unique(array_filter(array_column($siblings, 'period_name'))));
                                 $rejectedApplications = array_filter($siblings, static fn ($row) => ! empty($row['rejected_stage_name']));
                             ?>
                                 <tr>
@@ -136,7 +137,12 @@ $paginationQuery = array_filter(['team_id' => $selectedTeamId] + $filters, stati
                                             <span class="candidate-not-rejected">—</span>
                                         <?php endif ?>
                                     </td>
-                                    <td class="report-date"><?= esc(date('d/m/Y', strtotime($latestSubmission))) ?><small><?= esc(date('H:i', strtotime($latestSubmission))) ?></small></td>
+                                    <td class="report-date">
+                                        <?= esc(date('d/m/Y H:i', strtotime($latestSubmission))) ?>
+                                        <?php if ($periodNames !== ''): ?>
+                                            <small><?= esc($periodNames) ?></small>
+                                        <?php endif ?>
+                                    </td>
                                     <td><div class="candidate-table-actions"><a class="candidate-action-icon candidate-action-detail" href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) . '?source=division' . ($selectedTeamId > 0 ? '&amp;team_id=' . $selectedTeamId : '') ?>" target="_blank" rel="noopener noreferrer" title="Lihat detail pelamar" aria-label="Lihat detail <?= esc($application['full_name'], 'attr') ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/></svg></a><?php foreach ($siblings as $scheduledApplication): ?><?php if ($scheduledApplication['active_schedule']): ?><button class="candidate-action-icon candidate-action-schedule" type="button" data-admin-modal-open="candidate-schedule-modal-<?= (int) $scheduledApplication['active_schedule']['id'] ?>" title="Lihat jadwal <?= esc($scheduledApplication['vacancy_title'], 'attr') ?>" aria-label="Lihat jadwal <?= esc($application['full_name'], 'attr') ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M13 14h3M8 17h3"/></svg></button><?php elseif (! $isBlacklisted && $canManageSchedules && $scheduledApplication['reschedulable_schedule']): ?><button class="candidate-action-icon candidate-action-reschedule" type="button" data-admin-modal-open="candidate-reschedule-modal-<?= (int) $scheduledApplication['reschedulable_schedule']['id'] ?>" title="Jadwalkan ulang <?= esc($scheduledApplication['vacancy_title'], 'attr') ?>" aria-label="Jadwalkan ulang <?= esc($application['full_name'], 'attr') ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/><path d="M12 8v4l2.5 1.5"/></svg></button><?php endif ?><?php endforeach ?><?php if (! $isBlacklisted && $canUpdateStatus && $stageApplication !== null): ?><button class="candidate-action-icon candidate-action-stage" type="button" data-admin-modal-open="candidate-stage-modal-<?= (int) $stageApplication['id'] ?>" title="Ubah tahap rekrutmen" aria-label="Ubah tahap <?= esc($application['full_name'], 'attr') ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h12M13 4l3 3-3 3M20 17H8M11 14l-3 3 3 3"/></svg></button><?php endif ?></div></td>
                                 </tr>
                             <?php endforeach ?>

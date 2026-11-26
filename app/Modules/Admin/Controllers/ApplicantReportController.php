@@ -281,7 +281,8 @@ class ApplicantReportController extends BaseController
             }
             $row['position_statuses'] = $positionStatuses;
             $row['status_label'] = implode('; ', array_map(static fn (array $item): string => $item['position'] . ': ' . $item['status'], $positionStatuses));
-            $row['position_names'] = str_replace('||', ', ', (string) $row['position_names']);
+            $row['positions'] = explode('||', (string) $row['position_names']);
+            $row['position_names'] = implode(', ', $row['positions']);
             $row['period_names'] = str_replace('||', ', ', (string) $row['period_names']);
             $row['department_names'] = str_replace('||', ', ', (string) $row['department_names']);
             $birthDate = DateTimeImmutable::createFromFormat('!Y-m-d', (string) ($row['birth_date'] ?? ''));
