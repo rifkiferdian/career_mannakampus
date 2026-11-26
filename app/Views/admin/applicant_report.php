@@ -45,11 +45,12 @@ $pageEnd = min((int) $pagination['total_pages'], (int) $pagination['page'] + 2);
         <td><div class="applicant-pool-actions"><?php if ($canViewCandidate): ?><a class="report-detail-link" href="<?= site_url('adminhrdmannakampus/pelamar/' . $application['applicant_id']) ?>?source=list" target="_blank" rel="noopener noreferrer">Detail</a><?php endif ?><?php if (! $isAssigned && ! $isBlacklisted && $canAssign): ?><form action="<?= site_url('adminhrdmannakampus/list-pelamar/' . $application['applicant_id'] . '/pilih') ?>" method="post"><?= csrf_field() ?><button type="submit" data-confirm="Pilih pelamar ini beserta seluruh lamarannya untuk <?= esc($currentTeam['name'], 'attr') ?>?">Pilih</button></form><?php endif ?><?php if ($canDeleteApplicant): ?>
             <form action="<?= site_url('adminhrdmannakampus/list-pelamar/' . (int) $application['applicant_id'] . '/hapus') ?>" method="post">
                 <?= csrf_field() ?>
-                <button type="submit"
+                <button class="table-action-icon table-action-delete" type="submit"
+                    aria-label="Hapus pelamar" title="Hapus pelamar"
                     data-confirm="Hapus <?= esc($application['full_name'], 'attr') ?> beserta seluruh lamaran, riwayat, dan berkasnya? Data tidak dapat dipulihkan."
                     data-confirm-title="Hapus pelamar permanen"
                     data-confirm-button="Hapus permanen"
-                    data-confirm-color="#b42318">Hapus</button>
+                    data-confirm-color="#b42318"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button>
             </form>
         <?php endif ?><?php if (! $canDeleteApplicant && ! $canViewCandidate && ($isAssigned || $isBlacklisted || ! $canAssign)): ?>-<?php endif ?></div></td>
     </tr>

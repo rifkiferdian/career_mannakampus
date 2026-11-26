@@ -1837,10 +1837,9 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 }
 
 /* Compact icon actions shared by admin data tables. */
-.department-table-actions .table-action-icon,
-.vacancy-actions .table-action-icon,
-.period-actions .table-action-icon {
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon {
     width: 34px;
+    min-width: 34px;
     height: 34px;
     min-height: 34px;
     flex: 0 0 34px;
@@ -1848,48 +1847,63 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
     align-items: center;
     justify-content: center;
     padding: 0;
-    color: #8b9aab;
-    background: #fff;
-    border: 1px solid #dce3ea;
+    color: #a66b00;
+    background: transparent;
+    border: 0;
     border-radius: 8px;
     box-shadow: none;
     cursor: pointer;
-    transition: color .18s ease, border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    transition: color .18s ease;
 }
-.table-action-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
-.department-table-actions .table-action-edit:hover,
-.department-table-actions .table-action-edit:focus-visible,
-.vacancy-actions .table-action-edit:hover,
-.vacancy-actions .table-action-edit:focus-visible,
-.period-actions .table-action-edit:hover,
-.period-actions .table-action-edit:focus-visible {
-    color: var(--admin-orange);
-    background: #fff8f3;
-    border-color: #ffb68f;
-    box-shadow: 0 4px 12px rgba(248, 118, 56, .12);
-    transform: translateY(-1px);
+.table-action-icon svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.table-action-icon svg,
+.table-action-icon::before { transition: transform .18s ease-out; }
+
+@supports (mask: url("") center / contain no-repeat) {
+    .table-action-icon svg { display: none; }
+    .table-action-icon::before {
+        content: "";
+        width: 16px;
+        height: 16px;
+        background-color: currentColor;
+        mask: var(--table-action-glyph) center / contain no-repeat;
+    }
+    .table-action-edit { --table-action-glyph: url("../icons/fa-pencil.svg"); }
+    .table-action-delete { --table-action-glyph: url("../icons/fa-trash.svg"); }
 }
-.department-table-actions .table-action-delete,
-.vacancy-actions .table-action-delete,
-.period-actions .table-action-delete { color: #91a0b2; background: #fff; border-color: #dce3ea; }
-.department-table-actions .table-action-delete:hover,
-.department-table-actions .table-action-delete:focus-visible,
-.vacancy-actions .table-action-delete:hover,
-.vacancy-actions .table-action-delete:focus-visible,
-.period-actions .table-action-delete:hover,
-.period-actions .table-action-delete:focus-visible {
-    color: #d95050;
-    background: #fff5f5;
-    border-color: #efaaaa;
-    box-shadow: 0 4px 12px rgba(217, 80, 80, .1);
-    transform: translateY(-1px);
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-edit:hover:not(:disabled),
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-edit:focus-visible {
+    color: #805300;
 }
-.department-table-actions .table-action-icon:focus-visible,
-.vacancy-actions .table-action-icon:focus-visible,
-.period-actions .table-action-icon:focus-visible { outline: 2px solid rgba(248, 118, 56, .28); outline-offset: 2px; }
-.department-table-actions .table-action-icon:disabled,
-.vacancy-actions .table-action-icon:disabled,
-.period-actions .table-action-icon:disabled { color: #b7c0c9; background: #f5f6f7; border-color: #e5e8ea; box-shadow: none; transform: none; cursor: not-allowed; }
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-delete { color: #cf2735; }
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-delete:hover:not(:disabled),
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-delete:focus-visible {
+    color: #a91824;
+}
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:hover:not(:disabled) {
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:hover:not(:disabled) svg,
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:hover:not(:disabled)::before {
+    transform: translateY(-1px) scale(1.12);
+}
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:active:not(:disabled) svg,
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:active:not(:disabled)::before {
+    transform: scale(.94);
+}
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+:is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:disabled { color: #a3aab3; transform: none; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+    .table-action-icon svg,
+    .table-action-icon::before { transition: none; }
+    :is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:hover:not(:disabled) svg,
+    :is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:hover:not(:disabled)::before,
+    :is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:active:not(:disabled) svg,
+    :is(.department-table-actions, .vacancy-actions, .period-actions, .applicant-pool-actions, .talent-table-actions, .blacklist-actions) .table-action-icon:active:not(:disabled)::before { transform: none; }
+}
 
 @media (max-width: 680px) {
     .vacancy-period-filter, .vacancy-period-form { grid-template-columns: 1fr; }
