@@ -51,7 +51,7 @@ class ApplicantDetailController extends BaseController
         }
 
         $applications = $database->table('applications AS applications')
-            ->select('applications.*, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, departments.name AS department_name, batches.batch_number, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.reason_text_snapshot AS rejection_reason_text, rejections.internal_notes AS rejection_internal_notes, rejections.rejected_at, rejected_user.full_name AS rejected_by_name, talent_pool.id AS talent_pool_id')
+            ->select('applications.*, vacancies.title AS vacancy_title, vacancies.department_id, vacancies.recruitment_process_template_id, departments.name AS department_name, batches.batch_number, rejections.stage_code AS rejected_stage_code, rejections.stage_name_snapshot AS rejected_stage_name, rejections.stage_order_snapshot AS rejected_stage_order, rejections.reason_title_snapshot AS rejection_reason_title, rejections.reason_text_snapshot AS rejection_reason_text, rejections.internal_notes AS rejection_internal_notes, rejections.rejected_at, rejected_user.full_name AS rejected_by_name, talent_pool.id AS talent_pool_id, talent_pool.application_id AS talent_pool_application_id')
             ->join('vacancies', 'vacancies.id = applications.vacancy_id')
             ->join('departments', 'departments.id = vacancies.department_id')
             ->join('application_batches AS batches', 'batches.id = applications.batch_id')
@@ -165,8 +165,15 @@ class ApplicantDetailController extends BaseController
             $applicationId = (int) $application['id'];
             $application['process_steps'] = $this->processSteps(
                 (int) $application['recruitment_process_template_id'],
-                (string) $application['application_status'],
+                (string) ($application['rejected_stage_code'] ?: $application['application_status']),
                 $templateStages
+            );
+            $application['stage_comments'] = array_filter(
+                $histories[$applicationId] ?? [],
+                static fn (array $history): bool => $history['status_type'] === 'application'
+                    && $history['changed_by'] !== null
+                    && trim((string) $history['notes']) !== ''
+                    && ! str_starts_with((string) $history['notes'], 'Tahapan kandidat diubah menjadi ')
             );
             $lastChange = $histories[$applicationId][0] ?? null;
             $blockedBySchedule = false;

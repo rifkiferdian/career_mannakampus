@@ -765,6 +765,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .candidate-detail-talent-button, .candidate-detail-talent-saved { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; color: #247052; background: #eff9f4; border: 1px solid #cbe7da; border-radius: 8px; font-family: inherit; font-size: 10px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .candidate-detail-talent-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .candidate-detail-talent-saved { background: #e8f5ef; cursor: pointer; }
+.candidate-detail-talent-saved svg { flex: none; width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.candidate-detail-talent-saved .candidate-talent-link-arrow { width: 12px; height: 12px; }
+.candidate-detail-talent-saved:hover { background: #d9eee3; border-color: #9bc9b3; }
+.candidate-detail-talent-saved:focus-visible { outline: 2px solid #247052; outline-offset: 2px; }
 .candidate-application-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #f8fafb; border-bottom: 1px solid #e9edf0; }
 .candidate-application-metrics div { padding: 15px 18px; border-right: 1px solid #e5eaee; }
 .candidate-application-metrics div:last-child { border-right: 0; }
@@ -1987,6 +1991,53 @@ button, .settings-submit, .logout-button, .view-career-link { font-size: 12px; }
 .candidate-top-process-card .candidate-process-marker{width:27px;height:27px;border-radius:8px;font-size:9px;box-shadow:0 2px 5px rgba(24,42,56,.06)}
 .candidate-top-process-card .candidate-process-stepper li>strong{max-width:105px;margin-top:5px;font-size:9px;line-height:1.25}
 .candidate-top-process-card .candidate-process-stepper li>small{margin-top:2px;font-size:7px}
+.candidate-flow-rejection, .candidate-flow-comments { margin: 10px 12px 12px; padding: 10px 12px; border-radius: 8px; font-size: 12px; overflow-wrap: anywhere; }
+.candidate-flow-rejection { background: #fff3f2; color: #912018; }
+.candidate-top-process-card .is-rejected .candidate-process-marker { background: #b42318; border-color: #b42318; color: #fff; }
+.candidate-top-process-card .is-rejected > small { color: #a1261d; }
+.candidate-flow-rejection > b, .candidate-flow-comment small { display: block; margin-top: 4px; }
+.candidate-flow-rejection p, .candidate-flow-comment p { margin: 5px 0 0; }
+.candidate-flow-comments { background: #f5f7fa; color: var(--admin-navy); }
+.candidate-flow-comments summary { cursor: pointer; font-weight: 700; }
+.candidate-flow-comment { margin-top: 8px; padding-top: 8px; border-top: 1px solid #dce3ea; }
+.candidate-top-process-card .candidate-detail-process-actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.candidate-top-process-card .candidate-detail-talent-saved { width: auto; min-height: 24px; margin-top: 6px; padding: 0 7px; gap: 4px; border-color: transparent; border-radius: 999px; font-size: 9px; }
+.candidate-top-process-card .candidate-detail-talent-saved svg { width: 12px; height: 12px; }
+.candidate-flow-talent-status { display: flex; justify-content: center; padding: 0 12px 8px; }
+.candidate-top-process-card .candidate-detail-undo-button { min-height: 32px; padding: 0 10px; gap: 6px; color: #8d3e35; background: #fff; border-color: #e4c7c2; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.candidate-top-process-card .candidate-detail-undo-button svg { width: 15px; height: 15px; }
+.candidate-top-process-card .candidate-detail-undo-button:hover { background: #fff0ee; border-color: #ce938b; }
+.candidate-top-process-card .candidate-detail-undo-button:focus-visible { outline: 2px solid #8d3e35; outline-offset: 2px; }
+@media (max-width: 660px) {
+    .candidate-top-process-card .candidate-detail-process-actions { justify-content: flex-start; }
+}
+.candidate-flow-detail-button { min-height: 32px; padding: 0 10px; border: 1px solid #cbdbe9; border-radius: 7px; color: #254b70; background: #edf5fc; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.candidate-flow-detail-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.candidate-flow-detail-button svg { flex: none; width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.candidate-flow-detail-button .candidate-flow-detail-arrow { width: 12px; height: 12px; }
+.candidate-flow-detail-button:hover { background: #dcecf9; border-color: #90b4d6; }
+.candidate-flow-detail-button:focus-visible { outline: 2px solid #315d87; outline-offset: 2px; }
+.applicant-application-modal { width: min(1180px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
+.applicant-application-modal .admin-modal-panel { max-height: calc(100dvh - 24px); }
+.applicant-application-modal .applicant-application-modal-heading { grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; padding: 16px 22px; }
+.applicant-application-identity > span { color: #596e7f; font-size: 11px; font-weight: 700; }
+.applicant-application-modal-heading .applicant-application-identity h2 { margin: 3px 0; font-size: clamp(18px, 3vw, 24px); }
+.applicant-application-modal-heading .report-application-status { font-size: 12px; white-space: normal; }
+.applicant-application-modal .candidate-application-card { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+.applicant-application-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 16px 22px 0; }
+.applicant-application-metrics > div { display: grid; align-content: start; gap: 5px; padding: 11px 12px; border-radius: 8px; background: #f3f6f9; overflow-wrap: anywhere; }
+.applicant-application-metrics span { color: #526778; font-size: 11px; }
+.applicant-application-metrics strong { font-size: 13px; }
+.applicant-application-actions { display: flex; justify-content: flex-end; margin: 0 22px; padding-block: 12px 14px; }
+.applicant-application-background { margin: 16px 22px 0; border: 1px solid #dfe7ed; border-radius: 8px; }
+.applicant-application-background summary { padding: 12px; color: var(--admin-navy); font-size: 13px; font-weight: 700; cursor: pointer; }
+@media (max-width: 620px) {
+    .applicant-application-modal .applicant-application-modal-heading { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 14px; }
+    .applicant-application-modal-heading .report-application-status { grid-row: 2; justify-self: start; }
+    .applicant-application-modal-heading .admin-modal-close { grid-area: 1 / 2; }
+    .applicant-application-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-inline: 14px; }
+    .applicant-application-background, .applicant-application-actions { margin-inline: 14px; }
+}
 @media(max-width:660px){.candidate-top-process-card .candidate-process-progress-heading{align-items:flex-start;flex-direction:column}.candidate-top-process-card .candidate-detail-process-actions{width:auto}.candidate-top-process-card .candidate-detail-undo-button{width:auto}.candidate-top-process-card .candidate-process-stepper{width:max(100%,calc(var(--candidate-step-count) * 98px));grid-template-columns:repeat(var(--candidate-step-count),minmax(88px,1fr))}}
 @media(max-width:1100px){.candidate-overview-grid.is-split{display:flex;flex-direction:column;gap:14px;margin-bottom:0}.candidate-overview-grid.is-split .candidate-top-processes{width:100%;order:1;margin-bottom:0}.candidate-overview-grid.is-split .candidate-recommendation-card{width:100%;order:2;margin-bottom:20px}}
 

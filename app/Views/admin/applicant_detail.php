@@ -69,9 +69,7 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
             <?php if ($blacklistError): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($blacklistError) ?></div><?php endif ?>
             <?php if ($candidateSuccess): ?><div class="admin-alert admin-alert-success dashboard-alert" data-swal-toast="success" role="status"><?= esc($candidateSuccess) ?></div><?php endif ?>
             <?php if ($candidateError): ?><div class="admin-alert admin-alert-error dashboard-alert" data-swal-toast="error" role="alert"><?= esc($candidateError) ?></div><?php endif ?>
-            <?php $applicationsWithProcess = array_values(array_filter($applications, static fn (array $application): bool => $application['process_steps'] !== [])); ?>
-            <div class="candidate-overview-grid <?= $canViewRecommendation && $applicationsWithProcess !== [] ? 'is-split' : '' ?>">
-            <?php if ($applicationsWithProcess !== []): ?><section class="candidate-top-processes" aria-label="Alur rekrutmen pelamar"><?php foreach ($applicationsWithProcess as $processApplication): $processApplicationId = (int) $processApplication['id']; ?><article class="candidate-process-progress candidate-detail-process-progress candidate-top-process-card"><div class="candidate-process-progress-heading"><div><span class="candidate-top-process-eyebrow">Alur rekrutmen</span><strong><?= esc($processApplication['vacancy_title']) ?></strong><small><?= esc($processApplication['application_number']) ?> · <?= esc($statusLabels[$processApplication['application_status']] ?? ucwords(str_replace('_', ' ', $processApplication['application_status']))) ?></small></div><div class="candidate-detail-process-actions"><div class="candidate-process-legend" aria-label="Keterangan tahap"><span class="previous"><i></i>Sebelumnya</span><span class="current"><i></i>Saat ini</span><span class="next"><i></i>Selanjutnya</span></div><?php if ($processApplication['can_undo_stage']): ?><button class="candidate-detail-undo-button" type="button" data-admin-modal-open="applicant-undo-modal-<?= $processApplicationId ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v2"/></svg>Urungkan perubahan</button><?php endif ?></div></div><div class="candidate-process-progress-scroll"><ol class="candidate-process-stepper" style="--candidate-step-count: <?= count($processApplication['process_steps']) ?>" aria-label="Urutan tahapan rekrutmen <?= esc($processApplication['vacancy_title'], 'attr') ?>"><?php foreach ($processApplication['process_steps'] as $step): $progressState = (string) $step['progress_state']; ?><li class="is-<?= esc($progressState, 'attr') ?>" <?= $progressState === 'current' ? 'aria-current="step"' : '' ?>><span class="candidate-process-marker"><?= (int) $step['display_order'] ?></span><strong><?= esc($step['name']) ?></strong><small><?= esc($progressLabels[$progressState] ?? 'Akan datang') ?></small></li><?php endforeach ?></ol></div></article><?php endforeach ?></section><?php endif ?>
+            <div class="candidate-overview-grid">
             <?php if ($canViewRecommendation): ?>
                 <section class="candidate-recommendation-card <?= $applicantRecommendation === null ? 'is-empty' : 'has-value' ?>">
                     <div class="candidate-recommendation-heading">
@@ -162,6 +160,88 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
             </section>
 
             <div class="candidate-section-heading"><span class="login-eyebrow">Application Journey</span><h2>Riwayat lamaran</h2><p><?= count($applications) ?> posisi yang pernah dilamar oleh kandidat ini.</p></div>
+            <?php if ($applications !== []): ?>
+                <section class="candidate-top-processes" aria-label="Alur rekrutmen pelamar">
+                    <?php foreach ($applications as $flow):
+                        $status = $flow['application_status'];
+                        $isRejected = in_array($status, ['rejected', 'screening_failed'], true);
+                        $reason = $flow['rejection_reason_text'] ?: ($flow['screening_notes'] ?: $flow['public_message']);
+                    ?>
+                        <article class="candidate-process-progress candidate-detail-process-progress candidate-top-process-card">
+                            <div class="candidate-process-progress-heading">
+                                <div>
+                                    <span class="candidate-top-process-eyebrow">Alur rekrutmen</span>
+                                    <strong><?= esc($flow['vacancy_title']) ?></strong>
+                                    <small><?= esc($flow['application_number']) ?> · Daftar <?= esc($date($flow['submitted_at'], 'd/m/Y H:i')) ?></small>
+                                    <small>Status terakhir · <?= esc($statusLabels[$status] ?? ucwords(str_replace('_', ' ', $status))) ?></small>
+                                </div>
+                                <div class="candidate-detail-process-actions">
+                                    <button class="candidate-flow-detail-button" type="button" data-admin-modal-open="applicant-application-modal-<?= (int) $flow['id'] ?>" aria-haspopup="dialog" aria-label="Detail lamaran <?= esc($flow['vacancy_title'] . ' ' . $flow['application_number'], 'attr') ?>">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10ZM13 3v7h7M8 14h8m-8 3h6"/></svg>
+                                        <span>Detail lamaran</span>
+                                        <svg class="candidate-flow-detail-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                                    </button>
+                                    <?php if ($flow['can_undo_stage']): ?>
+                                        <button class="candidate-detail-undo-button" type="button" data-admin-modal-open="applicant-undo-modal-<?= (int) $flow['id'] ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v2"/></svg>Urungkan perubahan</button>
+                                    <?php endif ?>
+                                </div>
+                            </div>
+                            <?php if ((int) $flow['talent_pool_application_id'] === (int) $flow['id']): ?>
+                                <div class="candidate-flow-talent-status">
+                                    <a class="candidate-detail-talent-saved" href="<?= site_url('adminhrdmannakampus/talent-pool?team_id=' . (int) $applicant['assigned_hrd_team_id']) ?>" aria-label="Sudah dicadangkan, buka Talent Pool">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15l-7-3-7 3V5Z"/><path d="m9 10 2 2 4-4"/></svg>
+                                        <span>Sudah dicadangkan</span>
+                                        <svg class="candidate-talent-link-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                                    </a>
+                                </div>
+                            <?php endif ?>
+                            <?php if ($flow['process_steps'] !== []): ?>
+                                <div class="candidate-process-progress-scroll">
+                                    <ol class="candidate-process-stepper" style="--candidate-step-count: <?= count($flow['process_steps']) ?>" aria-label="Urutan tahapan rekrutmen <?= esc($flow['vacancy_title'], 'attr') ?>">
+                                        <?php foreach ($flow['process_steps'] as $step):
+                                            $state = $step['progress_state'];
+                                            $label = $progressLabels[$state] ?? 'Akan datang';
+                                            if ($isRejected && $state === 'current') {
+                                                $state = 'rejected';
+                                                $label = 'Gugur di tahap ini';
+                                            } elseif ($isRejected && in_array($state, ['next', 'upcoming'], true)) {
+                                                $state = 'upcoming';
+                                                $label = 'Tidak dilanjutkan';
+                                            }
+                                        ?>
+                                            <li class="is-<?= esc($state, 'attr') ?>" <?= $state === 'current' ? 'aria-current="step"' : '' ?>>
+                                                <span class="candidate-process-marker"><?= (int) $step['display_order'] ?></span>
+                                                <strong><?= esc($step['name']) ?></strong><small><?= esc($label) ?></small>
+                                            </li>
+                                        <?php endforeach ?>
+                                    </ol>
+                                </div>
+                            <?php endif ?>
+                            <?php if ($isRejected): ?>
+                                <div class="candidate-flow-rejection">
+                                    <strong>Alasan gugur<?= $flow['rejected_stage_name'] ? ' · ' . esc($flow['rejected_stage_name']) : '' ?></strong>
+                                    <?php if ($flow['rejection_reason_title']): ?><b><?= esc($flow['rejection_reason_title']) ?></b><?php endif ?>
+                                    <?php if ($reason): ?><p><?= nl2br(esc($reason)) ?></p><?php endif ?>
+                                    <?php if ($flow['rejection_internal_notes']): ?><p><b>Catatan HRD</b><br><?= nl2br(esc($flow['rejection_internal_notes'])) ?></p><?php endif ?>
+                                    <?php if (! $reason && ! $flow['rejection_reason_title'] && ! $flow['rejection_internal_notes']): ?><p>Alasan belum tercatat.</p><?php endif ?>
+                                </div>
+                            <?php endif ?>
+                            <?php if ($flow['stage_comments'] !== []): ?>
+                                <details class="candidate-flow-comments">
+                                    <summary>Catatan per tahap</summary>
+                                    <?php foreach ($flow['stage_comments'] as $comment): ?>
+                                        <div class="candidate-flow-comment">
+                                            <strong><?= esc($statusLabels[$comment['new_status']] ?? ucwords(str_replace('_', ' ', $comment['new_status']))) ?></strong>
+                                            <small><?= esc($date($comment['created_at'])) ?> · <?= esc($comment['changed_by_name'] ?: 'HRD') ?></small>
+                                            <p><?= nl2br(esc($comment['notes'])) ?></p>
+                                        </div>
+                                    <?php endforeach ?>
+                                </details>
+                            <?php endif ?>
+                        </article>
+                    <?php endforeach ?>
+                </section>
+            <?php endif ?>
             <?php if ($applications === []): ?><section class="settings-card candidate-empty">Pelamar belum memiliki lamaran aktif.</section><?php endif ?>
             <?php foreach ($applications as $application):
                 $applicationId = (int) $application['id'];
@@ -171,24 +251,29 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
                 $applicationSchedules = $schedulesByApplication[$applicationId] ?? [];
                 $applicationWorkExperiences = $workExperiencesByBatch[(int) $application['batch_id']] ?? [];
             ?>
-                <section class="settings-card candidate-application-card">
-                    <div class="candidate-application-heading">
-                        <div><span>Prioritas <?= (int) $application['preference_order'] ?> · <?= esc($application['department_name']) ?></span><h3><?= esc($application['vacancy_title']) ?></h3><code><?= esc($application['application_number']) ?></code></div>
-                        <div class="candidate-application-heading-actions">
+                <dialog class="admin-modal applicant-application-modal" id="applicant-application-modal-<?= $applicationId ?>" aria-labelledby="applicant-application-title-<?= $applicationId ?>">
+                    <div class="admin-modal-panel">
+                        <div class="settings-card-heading admin-modal-heading applicant-application-modal-heading">
+                            <div class="applicant-application-identity">
+                                <span>Detail lamaran</span>
+                                <h2 id="applicant-application-title-<?= $applicationId ?>"><?= esc($application['vacancy_title']) ?></h2>
+                                <p><?= esc($application['department_name']) ?> · Prioritas <?= (int) $application['preference_order'] ?> · <?= esc($application['application_number']) ?></p>
+                            </div>
                             <span class="report-application-status"><?= esc($statusLabels[$application['application_status']] ?? ucwords(str_replace('_', ' ', $application['application_status']))) ?></span>
-                            <?php if (! empty($application['talent_pool_id'])): ?>
-                                <a class="candidate-detail-talent-saved" href="<?= site_url('adminhrdmannakampus/talent-pool?team_id=' . (int) $applicant['assigned_hrd_team_id']) ?>">Sudah dicadangkan</a>
-                            <?php elseif ($canSaveTalentPool && ! $isBlacklistActive): ?>
-                                <button class="candidate-detail-talent-button" type="button" data-admin-modal-open="applicant-talent-modal-<?= $applicationId ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15l-7-3-7 3V5Z"/><path d="M9 9h6M9 12h6"/></svg>Simpan cadangan</button>
-                            <?php endif ?>
+                            <button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Tutup detail lamaran" autofocus>&times;</button>
                         </div>
-                    </div>
-                    <div class="candidate-application-metrics">
-                        <div><span>Tanggal daftar</span><strong><?= esc($date($application['submitted_at'])) ?></strong></div>
-                        <div><span>Hasil screening</span><strong class="candidate-screening-text screening-text-<?= esc($screening, 'attr') ?>"><?= $screening === 'passed' ? 'Lolos' : ($screening === 'failed' ? 'Tidak lolos' : 'Belum dinilai') ?></strong></div>
-                        <div><span>Nilai screening</span><strong><?= $application['screening_score'] !== null ? esc(number_format((float) $application['screening_score'], 2, ',', '.')) : '-' ?></strong></div>
-                        <div><span>Batch pendaftaran</span><strong><?= esc($application['batch_number']) ?></strong></div>
-                    </div>
+                        <section class="settings-card candidate-application-card">
+                        <div class="applicant-application-metrics">
+                            <div><span>Tanggal daftar</span><strong><?= esc($date($application['submitted_at'], 'd/m/Y H:i')) ?></strong></div>
+                            <div><span>Hasil screening</span><strong class="candidate-screening-text screening-text-<?= esc($screening, 'attr') ?>"><?= $screening === 'passed' ? 'Lolos' : ($screening === 'failed' ? 'Tidak lolos' : 'Belum dinilai') ?></strong></div>
+                            <div><span>Nilai screening</span><strong><?= $application['screening_score'] !== null ? esc(number_format((float) $application['screening_score'], 2, ',', '.')) : '-' ?></strong></div>
+                            <div><span>Batch pendaftaran</span><strong><?= esc($application['batch_number']) ?></strong></div>
+                        </div>
+                        <?php if (empty($application['talent_pool_id']) && $canSaveTalentPool && ! $isBlacklistActive): ?>
+                        <div class="applicant-application-actions">
+                            <button class="candidate-detail-talent-button" type="button" data-admin-modal-open="applicant-talent-modal-<?= $applicationId ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15l-7-3-7 3V5Z"/><path d="M9 9h6M9 12h6"/></svg>Simpan cadangan</button>
+                        </div>
+                        <?php endif ?>
                     <?php if (! empty($application['rejected_stage_name'])): ?>
                         <div class="candidate-rejection-card">
                             <span>Keputusan gugur</span>
@@ -203,16 +288,21 @@ $oldRecommendationAnswers = is_array($oldRecommendationAnswers) ? $oldRecommenda
                         </div>
                     <?php endif ?>
                     <?php if ($applicationSchedules !== []): ?><section class="candidate-detail-schedules"><div class="candidate-subsection-title"><h4>Jadwal seleksi</h4><span><?= count($applicationSchedules) ?> jadwal</span></div><?php $detailScheduleLabels = ['scheduled' => 'Menunggu konfirmasi', 'confirmed' => 'Bersedia hadir', 'reschedule_requested' => 'Minta jadwal ulang', 'present' => 'Hadir', 'absent' => 'Tidak hadir', 'cancelled' => 'Dibatalkan']; foreach ($applicationSchedules as $schedule): ?><article><div><strong><?= esc($schedule['stage_name']) ?></strong><span><?= esc($date($schedule['scheduled_at'])) ?> WIB · <?= esc($schedule['venue']) ?></span><small>PIC <?= esc($schedule['pic_name']) ?> · batas konfirmasi <?= esc($date($schedule['confirmation_deadline_at'])) ?></small><?php if ($schedule['candidate_note']): ?><p>Catatan kandidat: <?= esc($schedule['candidate_note']) ?></p><?php endif ?></div><span class="schedule-status schedule-status-<?= esc($schedule['status'], 'attr') ?>"><?= esc($detailScheduleLabels[$schedule['status']] ?? $schedule['status']) ?></span></article><?php endforeach ?></section><?php endif ?>
+                    <details class="applicant-application-background">
+                        <summary>Pengalaman, motivasi, dan tujuan pelamar</summary>
                     <div class="candidate-narrative-grid">
                         <div class="candidate-work-experience"><span>Pengalaman kerja</span><?php if ($applicationWorkExperiences === []): ?><p><?= nl2br(esc($value($application['work_experience']))) ?></p><?php else: ?><?php foreach ($applicationWorkExperiences as $experience): ?><article><strong><?= esc($experience['company_name']) ?></strong><b><?= esc($value($experience['position_title'])) ?></b><small><?= (int) $experience['start_year'] ?>–<?= $experience['end_year'] === null ? 'Sekarang' : (int) $experience['end_year'] ?></small><p><?= nl2br(esc($experience['responsibilities'])) ?></p><p><b>Alasan keluar</b><br><?= nl2br(esc(trim((string) ($experience['leaving_reason'] ?? '')) ?: '-')) ?></p></article><?php endforeach ?><?php endif ?></div>
                         <div><span>Motivasi bekerja dan alasan ingin bergabung dengan Manna Kampus</span><p><?= nl2br(esc($value($application['work_motivation']))) ?></p></div>
                         <div><span>Target/impian yang akan dicapai</span><p><?= nl2br(esc($value($application['career_goal']))) ?></p></div>
                     </div>
+                    </details>
                     <div class="candidate-application-columns">
                         <div class="candidate-subsection"><div class="candidate-subsection-title"><h4>Jawaban screening</h4><span><?= count($applicationAnswers) ?> jawaban</span></div><div class="department-table-wrap"><table class="department-table candidate-answer-table"><thead><tr><th>Pertanyaan</th><th>Jawaban</th><th>Hasil</th><th>Nilai</th></tr></thead><tbody><?php if ($applicationAnswers === []): ?><tr><td colspan="4" class="department-empty">Tidak ada jawaban screening.</td></tr><?php endif ?><?php foreach ($applicationAnswers as $answer): $eligibility = $answer['is_eligible']; ?><tr><td><?= esc($answer['question_text']) ?><?= (int) $answer['is_knockout'] === 1 ? '<small>Knockout</small>' : '' ?></td><td><strong><?= esc($answerValue($answer)) ?></strong></td><td><span class="account-status <?= $eligibility === null ? 'pending' : ((int) $eligibility === 1 ? 'active' : 'inactive') ?>"><i></i><?= $eligibility === null ? 'Belum dinilai' : ((int) $eligibility === 1 ? 'Sesuai' : 'Tidak sesuai') ?></span></td><td><?= $answer['score'] !== null ? esc(number_format((float) $answer['score'], 2, ',', '.')) : '-' ?></td></tr><?php endforeach ?></tbody></table></div></div>
                         <div class="candidate-subsection"><div class="candidate-subsection-title"><h4>Riwayat status</h4><span><?= count($applicationHistories) ?> aktivitas</span></div><div class="candidate-timeline"><?php if ($applicationHistories === []): ?><p class="candidate-empty">Belum ada perubahan status.</p><?php endif ?><?php foreach ($applicationHistories as $history): ?><article><i></i><div><strong><?= esc($statusLabels[$history['new_status']] ?? ucwords(str_replace('_', ' ', $history['new_status']))) ?></strong><p><?= esc($value($history['notes'])) ?></p><small><?= esc($date($history['created_at'])) ?> · <?= esc($history['changed_by_name'] ?: 'Sistem') ?></small></div></article><?php endforeach ?></div></div>
                     </div>
-                </section>
+                        </section>
+                    </div>
+                </dialog>
             <?php endforeach ?>
         </div>
     <?= view('admin/partials/footer') ?>
