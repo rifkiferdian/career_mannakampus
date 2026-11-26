@@ -45,12 +45,19 @@
                     </div>
                     <div class="access-table-wrap">
                         <table class="access-table">
-                            <thead><tr><th>User</th><th>Role</th><th>Login terakhir</th><th>Status</th><th>Aksi</th></tr></thead>
+                            <thead><tr><th>User</th><th>NIP</th><th>Role</th><th>Login terakhir</th><th>Status</th><th>Aksi</th></tr></thead>
                             <tbody>
                                 <?php foreach ($users as $managedUser): ?>
                                     <?php $isSelf = (int) $managedUser['id'] === (int) ($auth['user_id'] ?? 0); ?>
                                     <tr>
                                         <td><span class="access-user-cell"><i><?= esc(mb_strtoupper(mb_substr((string) $managedUser['full_name'], 0, 1))) ?></i><span><strong><?= esc($managedUser['full_name']) ?><?= $isSelf ? ' (Anda)' : '' ?></strong><small><?= esc($managedUser['email']) ?></small></span></span></td>
+                                        <td>
+                                            <form class="inline-role-form inline-nip-form" action="<?= site_url('adminhrdmannakampus/akses/users/' . (int) $managedUser['id'] . '/nip') ?>" method="post">
+                                                <?= csrf_field() ?>
+                                                <input name="nip" type="text" inputmode="numeric" pattern="[0-9]{1,32}" maxlength="32" value="<?= esc((string) $managedUser['nip'], 'attr') ?>" placeholder="Opsional" aria-label="NIP <?= esc($managedUser['full_name'], 'attr') ?>">
+                                                <button type="submit">Simpan</button>
+                                            </form>
+                                        </td>
                                         <td>
                                             <?php if ($isSelf): ?>
                                                 <span class="role-pill role-<?= esc(mb_strtolower((string) $managedUser['role_code']), 'attr') ?>"><?= esc($managedUser['role_name']) ?></span>
@@ -90,6 +97,13 @@
                         <?= csrf_field() ?>
                         <div><label for="new_full_name">Nama lengkap</label><div class="admin-input <?= isset($createErrors['full_name']) ? 'has-error' : '' ?>"><input id="new_full_name" name="full_name" type="text" value="<?= esc(old('full_name'), 'attr') ?>" maxlength="150" required></div><?php if (isset($createErrors['full_name'])): ?><p class="field-error"><?= esc($createErrors['full_name']) ?></p><?php endif ?></div>
                         <div><label for="new_email">Email</label><div class="admin-input <?= isset($createErrors['email']) ? 'has-error' : '' ?>"><input id="new_email" name="email" type="email" value="<?= esc(old('email'), 'attr') ?>" maxlength="150" required></div><?php if (isset($createErrors['email'])): ?><p class="field-error"><?= esc($createErrors['email']) ?></p><?php endif ?></div>
+                        <div>
+                            <label for="new_nip">NIP (opsional)</label>
+                            <div class="admin-input <?= isset($createErrors['nip']) ? 'has-error' : '' ?>">
+                                <input id="new_nip" name="nip" type="text" inputmode="numeric" pattern="[0-9]{1,32}" maxlength="32" value="<?= esc(old('nip'), 'attr') ?>">
+                            </div>
+                            <?php if (isset($createErrors['nip'])): ?><p class="field-error"><?= esc($createErrors['nip']) ?></p><?php endif ?>
+                        </div>
                         <div><label for="new_phone">Nomor WhatsApp</label><div class="admin-input <?= isset($createErrors['phone']) ? 'has-error' : '' ?>"><input id="new_phone" name="phone" type="tel" value="<?= esc(old('phone'), 'attr') ?>" maxlength="30" placeholder="+62 812 3456 7890"></div><?php if (isset($createErrors['phone'])): ?><p class="field-error"><?= esc($createErrors['phone']) ?></p><?php endif ?></div>
                         <div><label for="new_role">Role</label><div class="admin-input admin-select <?= isset($createErrors['role_id']) ? 'has-error' : '' ?>"><select id="new_role" name="role_id" required><option value="">Pilih role</option><?php foreach ($roles as $role): ?><?php if ($role['code'] !== 'SUPER_ADMIN'): ?><option value="<?= esc((string) $role['id'], 'attr') ?>" <?= (int) old('role_id') === (int) $role['id'] ? 'selected' : '' ?>><?= esc($role['name']) ?></option><?php endif ?><?php endforeach ?></select></div><?php if (isset($createErrors['role_id'])): ?><p class="field-error"><?= esc($createErrors['role_id']) ?></p><?php endif ?></div>
                         <div class="new-user-password"><label for="new_user_password">Password sementara</label><div class="admin-input <?= isset($createErrors['password']) ? 'has-error' : '' ?>"><input id="new_user_password" name="password" type="password" maxlength="255" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-toggle="new_user_password" aria-label="Tampilkan password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><p class="password-hint">Minimal 12 karakter: huruf besar, kecil, angka, dan simbol.</p><?php if (isset($createErrors['password'])): ?><p class="field-error"><?= esc($createErrors['password']) ?></p><?php endif ?></div>

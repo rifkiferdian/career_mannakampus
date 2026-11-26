@@ -29,11 +29,12 @@ class AuthController extends BaseController
     {
         $this->disableClientCaching();
 
-        $email = mb_strtolower(trim((string) $this->request->getPost('email')));
+        $identifier = mb_strtolower(trim((string) $this->request->getPost('identifier')));
+        $isNip = preg_match('/\A[0-9]{1,32}\z/', $identifier) === 1;
         $password = (string) $this->request->getPost('password');
         $throttleKey = 'hrd_login_' . hash(
             'sha256',
-            $this->request->getIPAddress() . '|' . $email,
+            $this->request->getIPAddress() . '|' . $identifier,
         );
 
         if (! Services::throttler()->check($throttleKey, 5, 60)) {
@@ -41,20 +42,20 @@ class AuthController extends BaseController
 
             return view('admin/auth/login', [
                 'error' => 'Terlalu banyak percobaan masuk. Tunggu satu menit lalu coba kembali.',
-                'email' => $email,
+                'identifier' => $identifier,
             ]);
         }
 
-        $input = ['email' => $email, 'password' => $password];
+        $input = ['identifier' => $identifier, 'password' => $password];
         $rules = [
-            'email'    => 'required|valid_email|max_length[190]',
+            'identifier' => $isNip ? 'required' : 'required|valid_email|max_length[190]',
             'password' => 'required|max_length[255]',
         ];
         $messages = [
-            'email' => [
-                'required'    => 'Email wajib diisi.',
-                'valid_email' => 'Format email tidak valid.',
-                'max_length'  => 'Email tidak valid.',
+            'identifier' => [
+                'required'    => 'Email atau NIP wajib diisi.',
+                'valid_email' => 'Masukkan email yang valid atau NIP hingga 32 digit.',
+                'max_length'  => 'Email atau NIP tidak valid.',
             ],
             'password' => [
                 'required'   => 'Password wajib diisi.',
@@ -65,12 +66,12 @@ class AuthController extends BaseController
         if (! $this->validateData($input, $rules, $messages)) {
             return view('admin/auth/login', [
                 'errors' => $this->validator->getErrors(),
-                'email'  => $email,
+                'identifier' => $identifier,
             ]);
         }
 
         $userModel = new UserModel();
-        $user = $userModel->findActiveHrdByEmail($email);
+        $user = $isNip ? $userModel->findActiveHrdByNip($identifier) : $userModel->findActiveHrdByEmail($identifier);
         $userAgent = (string) $this->request->getUserAgent();
         $passwordHash = (string) ($user['password_hash'] ?? self::DUMMY_PASSWORD_HASH);
         $passwordMatches = password_verify($password, $passwordHash);
@@ -91,7 +92,7 @@ class AuthController extends BaseController
 
             Services::hrdSession()->recordEvent(
                 $user !== null ? (int) $user['id'] : null,
-                $email,
+                $user['email'] ?? ($isNip ? '' : $identifier),
                 'login',
                 false,
                 $this->request->getIPAddress(),
@@ -99,8 +100,8 @@ class AuthController extends BaseController
             );
 
             return view('admin/auth/login', [
-                'error' => 'Email atau password tidak sesuai.',
-                'email' => $email,
+                'error' => 'Email/NIP atau password tidak sesuai.',
+                'identifier' => $identifier,
             ]);
         }
 

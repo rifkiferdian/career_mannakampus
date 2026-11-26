@@ -268,6 +268,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .role-super_admin { color: #8a461e; background: #fff0e7; }
 .role-hrd_manager { color: #2b6550; background: #e8f5ef; }
 .inline-role-form { display: flex; align-items: center; gap: 6px; }
+.inline-nip-form input { width: 124px; height: 34px; padding: 0 9px; border: 1px solid #dce3e9; border-radius: 6px; color: #425465; font: inherit; }
 .inline-role-form select, .admin-select select { height: 34px; padding: 0 28px 0 9px; color: #425465; background: white; border: 1px solid #dce3e9; border-radius: 6px; outline: 0; font-size: 8px; }
 .inline-role-form button { height: 34px; padding: 0 9px; color: white; background: var(--admin-navy); border: 0; border-radius: 6px; font-size: 8px; font-weight: 700; cursor: pointer; }
 .account-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 999px; font-size: 8px; font-weight: 750; }

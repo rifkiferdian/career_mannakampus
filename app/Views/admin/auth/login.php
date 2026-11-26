@@ -55,12 +55,12 @@
                 <form class="admin-login-form" action="<?= site_url('adminhrdmannakampus') ?>" method="post" novalidate>
                     <?= csrf_field() ?>
 
-                    <label for="email">Email HRD</label>
-                    <div class="admin-input <?= isset($errors['email']) ? 'has-error' : '' ?>">
+                    <label for="identifier">Email atau NIP HRD</label>
+                    <div class="admin-input <?= isset($errors['identifier']) ? 'has-error' : '' ?>">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
-                        <input id="email" name="email" type="email" value="<?= esc($email ?? old('email'), 'attr') ?>" placeholder="nama@mannakampus.id" maxlength="190" autocomplete="username" required autofocus>
+                        <input id="identifier" name="identifier" type="text" value="<?= esc($identifier ?? '', 'attr') ?>" placeholder="Masukkan email atau NIP" maxlength="190" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
                     </div>
-                    <?php if (isset($errors['email'])): ?><p class="field-error"><?= esc($errors['email']) ?></p><?php endif ?>
+                    <?php if (isset($errors['identifier'])): ?><p class="field-error"><?= esc($errors['identifier']) ?></p><?php endif ?>
 
                     <label for="password">Password</label>
                     <div class="admin-input <?= isset($errors['password']) ? 'has-error' : '' ?>">

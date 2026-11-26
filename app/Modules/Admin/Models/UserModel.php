@@ -32,6 +32,11 @@ class UserModel extends Model
         return $this->findActiveHrd('users.email', mb_strtolower(trim($email)));
     }
 
+    public function findActiveHrdByNip(string $nip): ?array
+    {
+        return $this->findActiveHrd('users.nip', $nip);
+    }
+
     /**
      * @return array<string, mixed>|null
      */

@@ -5,6 +5,7 @@ namespace App\Modules\Admin\Controllers;
 use App\Controllers\BaseController;
 use App\Modules\Admin\Models\UserModel;
 use App\Modules\Admin\Services\AuthorizationService;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\Services;
 
@@ -21,7 +22,7 @@ class AccessController extends BaseController
             ->get()
             ->getResultArray();
         $users = $database->table('users')
-            ->select('id, full_name, email, phone, is_active, last_login_at, created_at')
+            ->select('id, full_name, email, nip, phone, is_active, last_login_at, created_at')
             ->where('deleted_at', null)
             ->orderBy('created_at', 'DESC')
             ->get()
@@ -71,6 +72,7 @@ class AccessController extends BaseController
         $input = [
             'full_name' => trim((string) $this->request->getPost('full_name')),
             'email'     => mb_strtolower(trim((string) $this->request->getPost('email'))),
+            'nip'       => trim((string) $this->request->getPost('nip')),
             'phone'     => trim((string) $this->request->getPost('phone')),
             'role_id'   => (int) $this->request->getPost('role_id'),
             'password'  => (string) $this->request->getPost('password'),
@@ -78,12 +80,17 @@ class AccessController extends BaseController
         $rules = [
             'full_name' => 'required|min_length[3]|max_length[150]',
             'email'     => 'required|valid_email|max_length[150]',
+            'nip'       => 'permit_empty|max_length[32]|regex_match[/\A[0-9]+\z/]|is_unique[users.nip]',
             'phone'     => 'permit_empty|max_length[30]|regex_match[/^\+?[0-9][0-9\s-]{7,29}$/]',
             'role_id'   => 'required|is_natural_no_zero',
             'password'  => 'required|min_length[12]|max_length[255]',
         ];
 
-        if (! $this->validateData($input, $rules)) {
+        if (! $this->validateData($input, $rules, ['nip' => [
+            'max_length' => 'NIP harus berisi maksimal 32 digit angka.',
+            'regex_match' => 'NIP hanya boleh berisi angka.',
+            'is_unique' => 'NIP sudah digunakan.',
+        ]])) {
             return redirect()->to(site_url('adminhrdmannakampus/akses#new-user'))
                 ->withInput()
                 ->with('create_user_errors', $this->validator->getErrors());
@@ -121,6 +128,7 @@ class AccessController extends BaseController
             'uuid'              => $this->uuidV4(),
             'full_name'         => $input['full_name'],
             'email'             => $input['email'],
+            'nip'               => $input['nip'] !== '' ? $input['nip'] : null,
             'phone'             => $input['phone'] !== '' ? $input['phone'] : null,
             'password_hash'     => password_hash($input['password'], PASSWORD_DEFAULT),
             'email_verified_at' => $now,
@@ -136,9 +144,45 @@ class AccessController extends BaseController
             'assigned_at' => $now,
         ]);
         $database->transComplete();
+        if (! $database->transStatus()) {
+            return $this->accessError('Akun gagal dibuat. Periksa apakah email atau NIP sudah digunakan.');
+        }
 
         return redirect()->to(site_url('adminhrdmannakampus/akses'))
             ->with('access_success', 'Akun ' . $input['full_name'] . ' berhasil dibuat sebagai ' . $role['name'] . '.');
+    }
+
+    public function updateNip(int $userId): RedirectResponse
+    {
+        $nip = trim((string) $this->request->getPost('nip'));
+        if ($nip !== '' && preg_match('/\A[0-9]{1,32}\z/', $nip) !== 1) {
+            return $this->accessError('NIP harus berisi maksimal 32 digit angka.');
+        }
+
+        $database = db_connect();
+        $users = $database->table('users');
+        if ($users->where('id', $userId)->where('deleted_at', null)->countAllResults() === 0) {
+            return $this->accessError('Akun tidak ditemukan.');
+        }
+        if ($nip !== '' && $users->where('nip', $nip)->where('id !=', $userId)->countAllResults() > 0) {
+            return $this->accessError('NIP sudah digunakan.');
+        }
+
+        try {
+            $saved = $users->where('id', $userId)->where('deleted_at', null)->update([
+                'nip' => $nip !== '' ? $nip : null,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+        } catch (DatabaseException $exception) {
+            if ((int) $exception->getCode() !== 1062) {
+                throw $exception;
+            }
+            return $this->accessError('NIP sudah digunakan.');
+        }
+
+        return $saved
+            ? redirect()->to(site_url('adminhrdmannakampus/akses'))->with('access_success', 'NIP akun berhasil diperbarui.')
+            : $this->accessError('NIP akun gagal disimpan.');
     }
 
     public function updateStatus(int $userId): RedirectResponse

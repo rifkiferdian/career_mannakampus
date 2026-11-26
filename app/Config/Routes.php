@@ -68,6 +68,7 @@ $routes->group('adminhrdmannakampus', ['namespace' => 'App\Modules\Admin\Control
     $routes->post('akses/users', 'AccessController::createUser', ['filter' => 'super-admin', 'as' => 'hrd.access.users.create']);
     $routes->post('akses/users/(:num)/status', 'AccessController::updateStatus/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.users.status']);
     $routes->post('akses/users/(:num)/role', 'AccessController::updateRole/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.users.role']);
+    $routes->post('akses/users/(:num)/nip', 'AccessController::updateNip/$1', ['filter' => 'super-admin']);
     $routes->post('akses/roles/(:num)/permissions', 'AccessController::updatePermissions/$1', ['filter' => 'super-admin', 'as' => 'hrd.access.permissions']);
     $routes->get('departemen', 'DepartmentController::index', ['filter' => 'permission:departments.view', 'as' => 'hrd.departments']);
     $routes->post('departemen', 'DepartmentController::create', ['filter' => 'permission:departments.manage', 'as' => 'hrd.departments.create']);
