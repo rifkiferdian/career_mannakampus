@@ -678,6 +678,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .report-content .department-name-cell code { font-size: 10px; }
 .department-content .department-description-cell,
 .report-content .report-applicant a { font-size: 11px; }
+.report-content .report-applicant .report-applicant-name,
+.candidate-table .report-applicant .report-applicant-name { display: inline-block; margin-top: 0; color: #245d8a; font-size: 13px; font-weight: 800; }
+.report-applicant .report-applicant-name:hover,
+.report-applicant .report-applicant-name:focus-visible { text-decoration: underline; }
 .vacancy-content .vacancy-table-subtext,
 .vacancy-content .vacancy-period small,
 .report-content .report-applicant small,
